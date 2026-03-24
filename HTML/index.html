@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hockey Drill Builder - Sandbox</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        .toolbar {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 8px 15px;
+            margin-right: 5px;
+            cursor: pointer;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        /* Give the canvas a visible border */
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <button onclick="addPuck()">Add Puck</button>
+        <button onclick="addNet()">Add Net</button>
+        <button onclick="addForward()" style="background-color: #007bff;">Add F</button>
+        <button onclick="addDefense()" style="background-color: #dc3545;">Add D</button>
+        <button onclick="addCoach()" style="background-color: #6c757d;">Add Coach</button>
+        
+        <button onclick="toggleDrawing()" id="drawBtn">Enable Drawing Mode</button>
+        <button onclick="exportJSON()" style="background-color: #28a745;">Console.log JSON State</button>
+    </div>
+
+    <canvas id="drillCanvas" width="800" height="400"></canvas>
+
+    <script>
+        // 1. Initialize the Fabric.js Canvas
+        const canvas = new fabric.Canvas('drillCanvas');
+
+        // Let's set a light blue background to represent the ice for now
+        canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas));
+
+        // Note: To use a real rink image, you would use this code instead:
+        // fabric.Image.fromURL('path_to_your_rink_image.jpg', function(img) {
+        //     canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        // });
+
+        // 2. Function to add a Puck
+        function addPuck() {
+            const puck = new fabric.Circle({
+                radius: 8,
+                fill: 'black',
+                left: 400, // Start in the middle of the canvas
+                top: 200,
+                originX: 'center',
+                originY: 'center',
+                hasControls: false // We don't need to resize a puck, just drag it
+            });
+            canvas.add(puck);
+            // Select the puck immediately so the user knows it was added
+            canvas.setActiveObject(puck); 
+        }
+
+        // 3. Function to add a Net
+        function addNet() {
+            // We'll use a red rectangle to represent the net for this test
+            const net = new fabric.Rect({
+                width: 60,
+                height: 30,
+                fill: 'red',
+                left: 100,
+                top: 200,
+                originX: 'center',
+                originY: 'center',
+                borderColor: 'blue',
+                cornerColor: 'blue',
+                transparentCorners: false
+            });
+            canvas.add(net);
+            canvas.setActiveObject(net);
+        }
+
+        // A helper function to create a player icon (Letter + Circle)
+        function addCoach(label, color = 'black') {
+            // 1. Create the Circle
+            const circle = new fabric.Circle({
+                radius: 15,
+                fill: 'transparent',
+                stroke: color,
+                strokeWidth: 2,
+                originX: 'center',
+                originY: 'center'
+            });
+
+            // 2. Create the Text (F, D, or c)
+            const text = new fabric.Text(label, {
+                fontSize: 18,
+                fontWeight: 'bold',
+                fill: color,
+                originX: 'center',
+                originY: 'center',
+                fontFamily: 'Arial'
+            });
+
+            // 3. Group them together
+            const playerGroup = new fabric.Group([circle, text], {
+                left: 200,
+                top: 200
+            });
+
+            canvas.add(playerGroup);
+            canvas.setActiveObject(playerGroup);
+        }
+        function addPlayer(label, color = 'black') {
+            // 1. Create the Text (F, D, or c)
+            const text = new fabric.Text(label, {
+                fontSize: 18,
+                fontWeight: 'bold',
+                fill: color,
+                originX: 'center',
+                originY: 'center',
+                fontFamily: 'Arial'
+            });
+
+            // 2. Group them together
+            const playerGroup = new fabric.Group([circle, text], {
+                left: 200,
+                top: 200
+            });
+
+            canvas.add(playerGroup);
+            canvas.setActiveObject(playerGroup);
+        }
+
+        // Specific wrappers for your buttons
+        function addForward() { addPlayer('F', 'blue'); }
+        function addDefense() { addPlayer('D', 'red'); }
+        function addCoach() { addPlayer('c', 'black', true); }
+
+        // 4. Function to toggle Freehand Drawing
+        function toggleDrawing() {
+            // Fabric natively supports drawing mode!
+            canvas.isDrawingMode = !canvas.isDrawingMode; 
+            
+            const btn = document.getElementById('drawBtn');
+            if (canvas.isDrawingMode) {
+                btn.innerText = "Disable Drawing Mode";
+                btn.style.backgroundColor = "#dc3545"; // Make it red to show it's active
+                
+                // Set the brush properties
+                canvas.freeDrawingBrush.color = 'blue';
+                canvas.freeDrawingBrush.width = 3;
+            } else {
+                btn.innerText = "Enable Drawing Mode";
+                btn.style.backgroundColor = "#0056b3";
+            }
+        }
+
+        // 5. Function to export the Canvas state to JSON
+        function exportJSON() {
+            const canvasData = canvas.toJSON();
+            const jsonString = JSON.stringify(canvasData, null, 2);
+            
+            console.log("=== DRILL JSON DATA ===");
+            console.log(jsonString);
+            alert("JSON data printed to your browser's developer console!");
+        }
+    </script>
+</body>
+</html>
