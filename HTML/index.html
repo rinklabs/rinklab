@@ -42,6 +42,10 @@
     <div class="toolbar">
         <label for="colorPicker">Active Color: </label>
         <input type="color" id="colorPicker" value="#000000" onchange="updateLiveColor()">
+        <select id="rinkView" onchange="updateRinkView()">
+            <option value="full">Full Rink</option>
+            <option value="half">Half Rink (Offensive Zone)</option>
+        </select>
 
         <button onclick="addPuck()">Add Puck</button>
         <button onclick="addNet()">Add Net</button>
@@ -52,6 +56,13 @@
         <button onclick="addO()" style="background-color: #6c757d;">Add O</button>
         <button onclick="deleteSelected()" style="background-color: #dc3545; margin-left: 20px;">Delete Selected</button>
         
+        <select id="lineStyle">
+            <option value="solid">Solid (Skate)</option>
+            <option value="dashed">Dashed (Pass)</option>
+            <option value="dotted">Dotted (Shot)</option>
+        </select>
+        <input type="checkbox" id="arrowEnd"> <label for="arrowEnd">Add Arrowhead</label>
+        <button onclick="enableLineMode()" id="lineBtn">Draw Straight Line</button>
         <button onclick="toggleDrawing()" id="drawBtn">Enable Drawing Mode</button>
         <button onclick="exportJSON()" style="background-color: #28a745;">Console.log JSON State</button>
     </div>
@@ -61,6 +72,44 @@
     <script>
         // 1. Initialize the Fabric.js Canvas
         const canvas = new fabric.Canvas('drillCanvas');
+
+        let rinkImg; // Global variable to store the loaded rink
+
+        fabric.Image.fromURL('rink.svg', function(img) {
+            rinkImg = img;
+            updateRinkView(); // Initialize the view
+        });
+
+        function updateRinkView() {
+            if (!rinkImg) return;
+
+            const view = document.getElementById('rinkView').value;
+            
+            if (view === 'half') {
+                // 1. Scale the image up so half of it fills the whole canvas
+                // 2. Shift the 'top' property so the bottom half is hidden
+                rinkImg.set({
+                    scaleX: canvas.width / (rinkImg.width), 
+                    scaleY: (canvas.height * 2) / rinkImg.height,
+                    top: -canvas.height, // Move the top half off-screen
+                    left: 0
+                });
+            } else {
+                // Full Rink View
+                rinkImg.set({
+                    scaleX: canvas.width / rinkImg.width,
+                    scaleY: canvas.height / rinkImg.height,
+                    top: 0,
+                    left: 0
+                });
+            }
+
+            canvas.setBackgroundImage(rinkImg, canvas.renderAll.bind(canvas));
+        }
+
+        // Tell Fabric never to use the cache buffer for any object on this canvas.
+        // This forces it to redraw the actual strokes every time.
+        fabric.Object.prototype.objectCaching = false;
 
         // Let's set a light blue background to represent the ice for now
         canvas.setBackgroundColor('#e0f7fa', canvas.renderAll.bind(canvas));
@@ -120,8 +169,8 @@
         function addNet() {
             // We'll use a red rectangle to represent the net for this test
             const net = new fabric.Rect({
-                width: 60,
-                height: 30,
+                width: 30,
+                height: 60,
                 fill: 'red',
                 left: 100,
                 top: 200,
@@ -216,6 +265,111 @@
             }
         }
 
+        let isLineMode = false;
+        let line, arrow;
+
+        function enableLineMode() {
+            isLineMode = !isLineMode;
+            canvas.isDrawingMode = false; // Turn off freehand if it was on
+            
+            const btn = document.getElementById('lineBtn');
+            btn.style.backgroundColor = isLineMode ? "#28a745" : "#0056b3";
+            btn.innerText = isLineMode ? "Finish Line" : "Draw Straight Line";
+        }
+
+        // Helper to get dash array based on selection
+        function getDashStyle() {
+            const style = document.getElementById('lineStyle').value;
+            if (style === 'dashed') return [10, 5];
+            if (style === 'dotted') return [2, 4];
+            return []; // Solid
+        }
+
+        // --- MOUSE EVENTS FOR STRAIGHT LINES ---
+
+        canvas.on('mouse:down', function(o) {
+            if (isLineMode) {
+                canvas.discardActiveObject(); // Deselect everything else
+            }
+            if (!isLineMode) return;
+            const pointer = canvas.getPointer(o.e);
+            const points = [pointer.x, pointer.y, pointer.x, pointer.y];
+            
+            line = new fabric.Line(points, {
+                strokeWidth: 3,
+                fill: getActiveColor(),
+                stroke: getActiveColor(),
+                originX: 'center',
+                originY: 'center',
+                selectable: true,
+                strokeDashArray: getDashStyle()
+            });
+            
+            canvas.add(line);
+        });
+
+        canvas.on('mouse:move', function(o) {
+            if (!isLineMode || !line) return;
+            const pointer = canvas.getPointer(o.e);
+            line.set({ x2: pointer.x, y2: pointer.y });
+            canvas.renderAll();
+        });
+
+        canvas.on('mouse:up', function(o) {
+            if (!isLineMode || !line) return;
+
+            // 1. Calculate the distance between start and end points
+            const dx = line.x2 - line.x1;
+            const dy = line.y2 - line.y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // 2. Only keep the line if it's longer than 10 pixels
+            // This prevents "stray triangles" from accidental clicks
+            if (distance > 10) {
+                if (document.getElementById('arrowEnd').checked) {
+                    addArrowHead(line);
+                }
+            } else {
+                // If it was just a click, remove the tiny "dot" line we started
+                canvas.remove(line);
+            }
+            
+            line = null; 
+            canvas.renderAll();
+        });
+        function addArrowHead(lineObj) {
+            const headLength = 15;
+            const dx = lineObj.x2 - lineObj.x1;
+            const dy = lineObj.y2 - lineObj.y1;
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            const arrowHead = new fabric.Triangle({
+                left: lineObj.x2,
+                top: lineObj.y2,
+                width: headLength,
+                height: headLength,
+                fill: lineObj.stroke,
+                angle: angle + 90, 
+                originX: 'center',
+                originY: 'center',
+                selectable: false
+            });
+
+            const lineAndArrow = new fabric.Group([lineObj, arrowHead], {
+                selectable: true,
+                hasControls: true,
+                // --- THE FIXES ---
+                objectCaching: false, // Prevents the "clipping" or "cutoff" look
+                transparentCorners: true,
+                perPixelTargetFind: true // Allows you to click "through" the empty space of the group
+            });
+
+            canvas.remove(lineObj);
+            canvas.add(lineAndArrow);
+            canvas.setActiveObject(lineAndArrow);
+            canvas.renderAll();
+        }
+        
         // 5. Function to export the Canvas state to JSON
         function exportJSON() {
             const canvasData = canvas.toJSON();
