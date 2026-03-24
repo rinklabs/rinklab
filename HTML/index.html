@@ -180,6 +180,7 @@
             <input type="file" id="fileInput" style="display: none;" onchange="loadJSON(event)">
             <button onclick="document.getElementById('fileInput').click()" class="btn-load">Load Drill</button>
             <button onclick="exportJSON()" class="btn-save">Save/Export JSON</button>
+            <button onclick="saveToBackend()" class="btn-save">SaveTo Backend</button>
         </div>
     </div>
 
@@ -534,6 +535,29 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+        }
+
+        async function saveToBackend() {
+            const fullDrillData = {
+                name: document.getElementById('drillName').value || "Unnamed-Drill",
+                tags: document.getElementById('drillTags').value,
+                explanation: document.getElementById('drillExplanation').value,
+                rinkMode: document.getElementById('rinkView').value,
+                canvasState: canvas.toJSON() 
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/save-drill', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullDrillData)
+                });
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                console.error("Error saving to backend:", error);
+                alert("Backend not running. Use the 'Download JSON' button instead.");
+            }
         }
     
         function loadJSON(event) {
