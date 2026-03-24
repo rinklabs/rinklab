@@ -114,6 +114,15 @@
         canvas {
             border: 1px solid #333;
         }
+
+        .btn-load {
+            background-color: #6c757d !important;
+            color: white;
+            margin-top: 10px;
+        }
+        .btn-load:hover {
+            background-color: #5a6268 !important;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +176,10 @@
                 <input type="checkbox" id="arrowEnd"> <label for="arrowEnd">Add Arrowhead</label>
             </div>
             
-            <button onclick="exportJSON()" style="background-color: #28a745;">Console.log JSON State</button>
+            <hr>
+            <input type="file" id="fileInput" style="display: none;" onchange="loadJSON(event)">
+            <button onclick="document.getElementById('fileInput').click()" class="btn-load">Load Drill</button>
+            <button onclick="exportJSON()" class="btn-save">Save/Export JSON</button>
         </div>
     </div>
 
@@ -524,6 +536,43 @@
             URL.revokeObjectURL(url);
         }
     
+        function loadJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    // 1. Restore the Text Fields
+                    document.getElementById('drillName').value = data.name || "";
+                    document.getElementById('drillTags').value = data.tags || "";
+                    document.getElementById('drillExplanation').value = data.explanation || "";
+
+                    // 2. Restore the Rink View
+                    if (data.rinkMode) {
+                        document.getElementById('rinkView').value = data.rinkMode;
+                        updateRinkView();
+                    }
+
+                    // 3. Restore the Drawing (The Canvas)
+                    // We use a slight timeout to ensure the rink background is set first
+                    setTimeout(() => {
+                        canvas.loadFromJSON(data.canvasState, function() {
+                            canvas.renderAll();
+                            console.log("Drill loaded successfully!");
+                        });
+                    }, 100);
+
+                } catch (err) {
+                    alert("Error parsing JSON file. Is it a valid drill file?");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        }
+
         function deleteSelected() {
             const activeObjects = canvas.getActiveObjects();
             
