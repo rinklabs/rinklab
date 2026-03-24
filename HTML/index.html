@@ -24,6 +24,52 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
+        .editor-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .metadata-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .drill-input-large {
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 2px solid #ddd;
+            outline: none;
+            padding: 5px 0;
+        }
+
+        .drill-input-large:focus {
+            border-bottom-color: #0056b3;
+        }
+
+        .drill-input-small {
+            font-size: 14px;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px 10px;
+            outline: none;
+        }
+
+        .explanation-container textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 15px;
+            resize: vertical; /* Let the coach make it taller if needed */
+            box-sizing: border-box;
+        }
+
         /* Sidebar Styling */
         .sidebar {
             width: 220px;
@@ -73,8 +119,19 @@
 <body>
 
     <div class="main-container">
-        <div class="canvas-container">
-            <canvas id="drillCanvas" width="800" height="600"></canvas>
+        <div class="editor-column">
+            <div class="metadata-container">
+                <input type="text" id="drillName" placeholder="Drill Name (e.g., 2-on-1 Transition)" class="drill-input-large">
+                <input type="text" id="drillTags" placeholder="Tags: Skating, Passing, Overspeed..." class="drill-input-small">
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="drillCanvas" width="800" height="500"></canvas>
+            </div>
+
+            <div class="explanation-container">
+                <textarea id="drillExplanation" placeholder="Describe the drill flow, coaching points, and variations here..."></textarea>
+            </div>
         </div>
         <div class="sidebar">
             <select id="rinkView" onchange="updateRinkView()">
@@ -92,9 +149,9 @@
                 <button onclick="addX()" style="background-color: #6c757d;">Add X</button>
                 <button onclick="addO()" style="background-color: #6c757d;">Add O</button>
                 <button onclick="addPylon()" style="border-left: 5px solid #ff8c00;">Add Pylon</button>
-                <button onclick="enableLineMode()" id="lineBtn">Draw Straight Line</button>
-                <button onclick="toggleDrawing()" id="drawBtn">Enable Drawing Mode</button>
-                <button onclick="deleteSelected()" style="background-color: #dc3545; margin-left: 20px;">Delete Selected</button>
+                <button onclick="enableLineMode()" id="lineBtn">Draw Line</button>
+                <button onclick="toggleDrawing()" id="drawBtn">Freehand Mode</button>
+                <button onclick="deleteSelected()" style="background-color: #dc3545; margin-left: 20px;">Delete</button>
             </div>
             
             <hr>
