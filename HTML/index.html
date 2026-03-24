@@ -45,6 +45,9 @@
         <button onclick="addForward()" style="background-color: #007bff;">Add F</button>
         <button onclick="addDefense()" style="background-color: #dc3545;">Add D</button>
         <button onclick="addCoach()" style="background-color: #6c757d;">Add Coach</button>
+        <button onclick="addX()" style="background-color: #6c757d;">Add X</button>
+        <button onclick="addO()" style="background-color: #6c757d;">Add O</button>
+        <button onclick="deleteSelected()" style="background-color: #dc3545; margin-left: 20px;">Delete Selected</button>
         
         <button onclick="toggleDrawing()" id="drawBtn">Enable Drawing Mode</button>
         <button onclick="exportJSON()" style="background-color: #28a745;">Console.log JSON State</button>
@@ -154,6 +157,8 @@
         // Specific wrappers for your buttons
         function addForward() { addPlayer('F', 'blue'); }
         function addDefense() { addPlayer('D', 'red'); }
+        function addX() { addPlayer('X', 'black'); }
+        function addO() { addPlayer('O', 'black'); }
 
         // 4. Function to toggle Freehand Drawing
         function toggleDrawing() {
@@ -183,6 +188,28 @@
             console.log(jsonString);
             alert("JSON data printed to your browser's developer console!");
         }
+    
+        function deleteSelected() {
+            const activeObjects = canvas.getActiveObjects();
+            
+            if (activeObjects.length > 0) {
+                canvas.discardActiveObject(); // Deselect them first to avoid glitches
+                activeObjects.forEach((obj) => {
+                    canvas.remove(obj);
+                });
+                canvas.requestRenderAll(); // Refresh the ice
+            }
+        }
+
+        // Listen for the 'Delete' key on the keyboard
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                // Only delete if the user isn't typing in a text box (for later)
+                if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    deleteSelected();
+                }
+            }
+        });
     </script>
 </body>
 </html>
