@@ -89,9 +89,9 @@
                 // 1. Scale the image up so half of it fills the whole canvas
                 // 2. Shift the 'top' property so the bottom half is hidden
                 rinkImg.set({
-                    scaleX: canvas.width / (rinkImg.width), 
-                    scaleY: (canvas.height * 2) / rinkImg.height,
-                    top: -canvas.height, // Move the top half off-screen
+                    scaleX: (canvas.width * 2)/ (rinkImg.width), 
+                    scaleY: canvas.height / rinkImg.height,
+                    top: 0,
                     left: 0
                 });
             } else {
