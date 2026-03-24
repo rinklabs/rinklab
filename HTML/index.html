@@ -493,12 +493,35 @@
         
         // 5. Function to export the Canvas state to JSON
         function exportJSON() {
-            const canvasData = canvas.toJSON();
-            const jsonString = JSON.stringify(canvasData, null, 2);
+            // 1. Create the data packet
+            const fullDrillData = {
+                name: document.getElementById('drillName').value || "Unnamed-Drill",
+                tags: document.getElementById('drillTags').value,
+                explanation: document.getElementById('drillExplanation').value,
+                rinkMode: document.getElementById('rinkView').value,
+                canvasState: canvas.toJSON() 
+            };
+
+            // 2. Convert the object to a string
+            const jsonString = JSON.stringify(fullDrillData, null, 2);
+
+            // 3. Create a Blob (Binary Large Object) of the data
+            const blob = new Blob([jsonString], { type: "application/json" });
             
-            console.log("=== DRILL JSON DATA ===");
-            console.log(jsonString);
-            alert("JSON data printed to your browser's developer console!");
+            // 4. Create a hidden link to trigger the download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            // Use the drill name as the filename
+            const fileName = fullDrillData.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.href = url;
+            link.download = `${fileName}.json`;
+            
+            // 5. "Click" the link and clean up
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
     
         function deleteSelected() {
