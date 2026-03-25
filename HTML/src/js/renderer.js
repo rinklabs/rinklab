@@ -111,7 +111,6 @@ function drawPlayer(el) {
 
   // Circle outline
   ctx.beginPath();
-  ctx.arc(el.x, el.y, PLAYER_R, 0, Math.PI * 2);
   ctx.strokeStyle = color;
   ctx.lineWidth   = 2;
   ctx.stroke();
