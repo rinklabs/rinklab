@@ -20,6 +20,8 @@
     <button class="tool-btn"        data-tool="arrow"   title="Arrow (A)">→</button>
     <button class="tool-btn"        data-tool="text"    title="Text (T)">T</button>
     <button class="tool-btn"        data-tool="pen"     title="Pen (P)">✏</button>
+    <button class="tool-btn" data-tool="pylon" title="Pylon (Y)">▲</button>
+    <button class="tool-btn" data-tool="net"   title="Net (N)">🥅</button>
     <div class="sep"></div>
     <button class="tool-btn"        data-tool="player"  title="Place Player">⛹</button>
     <select id="player-type" title="Player type">
@@ -30,6 +32,16 @@
       <option value="W">W — Wing</option>
       <option value="Co">Co — Coach</option>
     </select>
+    <div class="sep"></div>
+    <div class="prop-row" id="row-player-size">
+      <label>Size</label>
+      <select id="p-player-size">
+        <option value="24">Small (24px)</option>
+        <option value="32" selected>Medium (32px)</option>
+        <option value="40">Large (40px)</option>
+        <option value="48">Extra Large (48px)</option>
+      </select>
+    </div>
     <div class="sep"></div>
     <span class="tb-label">Stroke</span>
     <input type="color" id="stroke-color" value="#000000"/>

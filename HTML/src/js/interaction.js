@@ -302,6 +302,8 @@ function initPropsPanel() {
   ['p-stroke', 'p-fill', 'p-sw', 'p-opacity', 'p-font', 'p-fill-check', 'p-player-type', 'p-line-style'].forEach(id => {
     document.getElementById(id).addEventListener('input',  syncPropsToElement);
     document.getElementById(id).addEventListener('change', syncPropsToElement);
+    document.getElementById('p-player-size').addEventListener('change', syncPropsToElement);
+    document.getElementById('p-line-style').addEventListener('change', syncPropsToElement);
   });
 }
 
@@ -327,8 +329,14 @@ function updatePropsPanel() {
   document.getElementById('row-sw').style.display          = isPlayer ? 'none' : 'flex';
   document.getElementById('row-player-type').style.display = isPlayer    ? 'flex' : 'none';
   document.getElementById('row-line-style').style.display  = isStrokable ? 'flex' : 'none';
-  if (isPlayer)    document.getElementById('p-player-type').value = el.playerType ?? 'F';
+  if (isPlayer){
+    document.getElementById('p-player-type').value = el.playerType || 'F';
+    document.getElementById('p-player-size').value = el.fontSize || 32;
+  }
   if (isStrokable) document.getElementById('p-line-style').value  = el.lineStyle  ?? 'solid';
+  if (el.lineStyle) {
+    document.getElementById('p-line-style').value = el.lineStyle;
+  }
 }
 
 function syncPropsToElement() {
@@ -341,6 +349,7 @@ function syncPropsToElement() {
 
   if (el.type === 'player') {
     el.playerType = document.getElementById('p-player-type').value;
+    el.fontSize = parseInt(document.getElementById('p-player-size').value);
   } else {
     el.fillColor   = document.getElementById('p-fill-check').checked
                      ? document.getElementById('p-fill').value : null;

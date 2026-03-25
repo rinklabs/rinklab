@@ -31,6 +31,7 @@ const State = {
 
   // Player tool default
   defPlayerType: 'F',
+  defPlayerSize: 32,
 
   // Line style default (applies to line, arrow, pen)
   defLineStyle: 'solid',
@@ -48,7 +49,7 @@ function uid() {
 function toExcalidrawType(t) {
   return { rect: 'rectangle', pen: 'freedraw', arrow: 'arrow',
            ellipse: 'ellipse', line: 'line', text: 'text',
-           player: 'player' }[t] ?? 'rectangle';
+           player: 'player' ,pylon: 'pylon', net: 'net'}[t] ?? 'rectangle';
 }
 
 /** Serialized type → internal type */

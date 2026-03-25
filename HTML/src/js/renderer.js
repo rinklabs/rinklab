@@ -39,6 +39,8 @@ function drawElement(el, selected) {
     case 'pen':     drawPen(el);     break;
     case 'text':    drawText(el);    break;
     case 'player':  drawPlayer(el);  break;
+    case 'pylon': drawPylon(el); break;
+    case 'net':   drawNet(el);   break;
   }
 
   if (selected) drawSelection(el);
@@ -125,26 +127,62 @@ function drawText(el) {
 const PLAYER_R = 16;
 
 function drawPlayer(el) {
-  const color = el.strokeColor ?? '#000000';
-  const label = el.playerType  ?? 'F';
-
-  // Circle outline
-  ctx.beginPath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth   = 2;
-  ctx.stroke();
-
-  // Label — bold, centered, same color
-  const fontSize = label.length > 1 ? 13 : 15;
-  ctx.font      = `bold ${fontSize}px sans-serif`;
-  ctx.fillStyle = color;
+  ctx.save();
+  ctx.globalAlpha = el.opacity / 100;
+  ctx.fillStyle   = el.strokeColor; // This uses the Black default we set
+  
+  // Use the saved fontSize from the element, or default to 32
+  const size = el.fontSize || 32;
+  ctx.font = `bold ${size}px sans-serif`;
+  
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(label, el.x, el.y);
+  ctx.fillText(el.playerType, el.x, el.y);
+  ctx.restore();
+}
 
-  // Reset canvas text alignment so other draw calls aren't affected
-  ctx.textAlign    = 'left';
-  ctx.textBaseline = 'alphabetic';
+function drawPylon(el) {
+  const { x, y, w, h } = el;
+  ctx.beginPath();
+  // Main Triangle
+  ctx.moveTo(x + w / 2, y);          // Top tip
+  ctx.lineTo(x + w, y + h * 0.85);   // Bottom right
+  ctx.lineTo(x, y + h * 0.85);       // Bottom left
+  ctx.closePath();
+  ctx.stroke();
+  
+  // The "Feet" (slight base)
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.1, y + h * 0.85);
+  ctx.lineTo(x + w * 1.1, y + h * 0.85);
+  ctx.lineTo(x + w * 1.1, y + h);
+  ctx.lineTo(x - w * 0.1, y + h);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function drawNet(el) {
+  const { x, y, w, h } = el;
+  // Scale factor based on the original SVG viewbox (200x160)
+  const sw = w / 200;
+  const sh = h / 160;
+
+  ctx.beginPath();
+  // The Net Path: Front line, sides, and the rounded back (Q)
+  ctx.moveTo(x + 60 * sw, y + 40 * sh);
+  ctx.lineTo(x + 140 * sw, y + 40 * sh); // Front crossbar
+  ctx.lineTo(x + 140 * sw, y + 80 * sh); // Right side
+  ctx.quadraticCurveTo(x + 100 * sw, y + 110 * sh, x + 60 * sw, y + 80 * sh); // Rounded back
+  ctx.closePath();
+  ctx.stroke();
+
+  // Draw the posts (circles)
+  ctx.beginPath();
+  ctx.arc(x + 60 * sw, y + 40 * sh, 3 * sw, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 140 * sw, y + 40 * sh, 3 * sw, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 // ── Selection indicators ─────────────────────────────────────
