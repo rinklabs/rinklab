@@ -270,6 +270,17 @@ function initToolbarInputs() {
     applyToSelected('strokeWidth', +e.target.value);
   });
 
+  document.getElementById('line-style').addEventListener('change', e => {
+    State.defLineStyle = e.target.value;
+    if (State.selected) {
+      const el = State.elements.find(el => el.id === State.selected);
+      if (el && ['line', 'arrow', 'pen'].includes(el.type)) {
+        el.lineStyle = e.target.value;
+        render();
+      }
+    }
+  });
+
   document.getElementById('player-type').addEventListener('change', e => {
     State.defPlayerType = e.target.value;
     // If a player is selected, update its type live
@@ -288,7 +299,7 @@ function applyToSelected(key, value) {
 
 // ── Properties panel ─────────────────────────────────────────
 function initPropsPanel() {
-  ['p-stroke', 'p-fill', 'p-sw', 'p-opacity', 'p-font', 'p-fill-check', 'p-player-type'].forEach(id => {
+  ['p-stroke', 'p-fill', 'p-sw', 'p-opacity', 'p-font', 'p-fill-check', 'p-player-type', 'p-line-style'].forEach(id => {
     document.getElementById(id).addEventListener('input',  syncPropsToElement);
     document.getElementById(id).addEventListener('change', syncPropsToElement);
   });
@@ -309,12 +320,15 @@ function updatePropsPanel() {
   document.getElementById('p-opacity').value       = el.opacity     ?? 100;
   document.getElementById('p-font').value          = el.fontSize    ?? 20;
 
-  const isPlayer = el.type === 'player';
-  document.getElementById('row-font').style.display       = el.type === 'text' ? 'flex' : 'none';
-  document.getElementById('row-fill').style.display       = isPlayer ? 'none' : 'flex';
-  document.getElementById('row-sw').style.display         = isPlayer ? 'none' : 'flex';
-  document.getElementById('row-player-type').style.display = isPlayer ? 'flex' : 'none';
-  if (isPlayer) document.getElementById('p-player-type').value = el.playerType ?? 'F';
+  const isPlayer   = el.type === 'player';
+  const isStrokable = ['line', 'arrow', 'pen'].includes(el.type);
+  document.getElementById('row-font').style.display        = el.type === 'text' ? 'flex' : 'none';
+  document.getElementById('row-fill').style.display        = isPlayer ? 'none' : 'flex';
+  document.getElementById('row-sw').style.display          = isPlayer ? 'none' : 'flex';
+  document.getElementById('row-player-type').style.display = isPlayer    ? 'flex' : 'none';
+  document.getElementById('row-line-style').style.display  = isStrokable ? 'flex' : 'none';
+  if (isPlayer)    document.getElementById('p-player-type').value = el.playerType ?? 'F';
+  if (isStrokable) document.getElementById('p-line-style').value  = el.lineStyle  ?? 'solid';
 }
 
 function syncPropsToElement() {
@@ -332,6 +346,9 @@ function syncPropsToElement() {
                      ? document.getElementById('p-fill').value : null;
     el.strokeWidth = +document.getElementById('p-sw').value;
     if (el.type === 'text') el.fontSize = +document.getElementById('p-font').value;
+    if (['line', 'arrow', 'pen'].includes(el.type)) {
+      el.lineStyle = document.getElementById('p-line-style').value;
+    }
   }
   render();
 }

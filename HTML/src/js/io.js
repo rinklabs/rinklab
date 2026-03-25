@@ -84,7 +84,11 @@ function serializeElement(el) {
     });
   }
   if (el.type === 'line' || el.type === 'arrow') {
-    base.points = [[0, 0], [el.w ?? 0, el.h ?? 0]];
+    base.points    = [[0, 0], [el.w ?? 0, el.h ?? 0]];
+    base.lineStyle = el.lineStyle ?? 'solid';
+  }
+  if (el.type === 'pen') {
+    base.lineStyle = el.lineStyle ?? 'solid';
   }
   if (el.type === 'player') {
     base.playerType = el.playerType ?? 'F';
@@ -143,6 +147,7 @@ function deserializeElement(el) {
     id:          el.id ?? uid(),
     type:        fromExcalidrawType(el.type),
     playerType:  el.playerType  ?? 'F',
+    lineStyle:   el.lineStyle   ?? 'solid',
     x:           el.x,
     y:           el.y,
     w:           el.width       ?? 0,

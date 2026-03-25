@@ -31,6 +31,9 @@ const State = {
 
   // Player tool default
   defPlayerType: 'F',
+
+  // Line style default (applies to line, arrow, pen)
+  defLineStyle: 'solid',
 };
 
 // ── Unique ID generator ──────────────────────────────────────

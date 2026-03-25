@@ -39,6 +39,14 @@
     <span class="tb-label">W</span>
     <input type="range" id="stroke-width" min="1" max="20" value="2" style="width:60px;"/>
     <div class="sep"></div>
+    <span class="tb-label">Line</span>
+    <select id="line-style" title="Line style">
+      <option value="solid">— Solid</option>
+      <option value="dashed">-- Dashed</option>
+      <option value="dotted">·· Dotted</option>
+      <option value="wiggle">〜 Wiggle</option>
+    </select>
+    <div class="sep"></div>
     <button class="btn btn-danger" id="btn-del" title="Delete selected (Del)">✕</button>
   </div>
 
@@ -320,12 +328,12 @@
       connector-curvature="0"
       d="m622.47 257.94c0 3.343-2.681 6.056-5.983 6.056-3.304 0-5.984-2.713-5.984-6.056 0-3.342 2.681-6.055 5.984-6.055 3.296 0 5.972 2.699 5.983 6.035"
   />
-  <!-- <path
+  <path
       id="path14545"
       style="stroke:#cc3333;stroke-width:3.0097;fill:url(#pattern3025)"
       connector-curvature="0"
       d="m66.484 192.92s-12.223-0.115-12.723-0.383c-10.192-5.446-0.465-14.42-0.795-14.735-7.735-7.384-1.49-15.509 2.1-15.216l11.21-0.127"
-  /> -->
+  />
   <rect
       id="rect3044"
       style="fill:#4466bb"
@@ -341,12 +349,12 @@
       connector-curvature="0"
       d="m65.6 12.586-0.045 322.59m0.691-188.06c42.611-0.1 44.025 60.907-0.423 60.649m0.336-48.495c1.011 0.146 15.232-0.098 15.232-0.098l0.277 35.943h-15.962"
   />
-  <!-- <path
+  <path
       id="path15433"
       style="stroke:#cc3333;stroke-width:3.0097;fill:url(#pattern3021)"
       connector-curvature="0"
       d="m679.98 159.67s12.222 0.211 12.719 0.481c10.15 5.525 0.355 14.424 0.684 14.741 7.679 7.444 1.372 15.52-2.215 15.199l-11.211 0.04"
-  /> -->
+  />
   <rect
       id="rect3075"
       style="fill:#4466bb"
@@ -415,6 +423,15 @@
         <option value="C">C — Centre</option>
         <option value="W">W — Wing</option>
         <option value="Co">Co — Coach</option>
+      </select>
+    </div>
+    <div class="prop-row" id="row-line-style">
+      <label>Line style</label>
+      <select id="p-line-style">
+        <option value="solid">— Solid</option>
+        <option value="dashed">-- Dashed</option>
+        <option value="dotted">·· Dotted</option>
+        <option value="wiggle">〜 Wiggle</option>
       </select>
     </div>
   </div>

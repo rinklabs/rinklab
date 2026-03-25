@@ -63,19 +63,32 @@ function drawEllipse(el) {
 }
 
 function drawLine(el) {
+  applyLineStyle(el.lineStyle);
   ctx.beginPath();
-  ctx.moveTo(el.x, el.y);
-  ctx.lineTo(el.x + el.w, el.y + el.h);
+  if (el.lineStyle === 'wiggle') {
+    wigglyLinePath(el.x, el.y, el.x + el.w, el.y + el.h);
+  } else {
+    ctx.moveTo(el.x, el.y);
+    ctx.lineTo(el.x + el.w, el.y + el.h);
+  }
   ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 function drawArrow(el) {
   const x2 = el.x + el.w, y2 = el.y + el.h;
+  applyLineStyle(el.lineStyle);
   ctx.beginPath();
-  ctx.moveTo(el.x, el.y);
-  ctx.lineTo(x2, y2);
+  if (el.lineStyle === 'wiggle') {
+    wigglyLinePath(el.x, el.y, x2, y2);
+  } else {
+    ctx.moveTo(el.x, el.y);
+    ctx.lineTo(x2, y2);
+  }
   ctx.stroke();
+  ctx.setLineDash([]);
 
+  // Arrowhead is always solid
   const ang = Math.atan2(y2 - el.y, x2 - el.x);
   const hs  = Math.max(10, (el.strokeWidth ?? 2) * 3.5);
   ctx.beginPath();
@@ -89,10 +102,16 @@ function drawArrow(el) {
 
 function drawPen(el) {
   if (el.points.length < 2) return;
+  applyLineStyle(el.lineStyle);
   ctx.beginPath();
-  ctx.moveTo(el.points[0][0], el.points[0][1]);
-  el.points.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+  if (el.lineStyle === 'wiggle') {
+    wigglyPenPath(el.points);
+  } else {
+    ctx.moveTo(el.points[0][0], el.points[0][1]);
+    el.points.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+  }
   ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 function drawText(el) {
@@ -206,10 +225,26 @@ function renderDragPreview(a, b) {
       ctx.stroke();
       break;
     case 'line':
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      applyLineStyle(State.defLineStyle);
+      ctx.beginPath();
+      if (State.defLineStyle === 'wiggle') {
+        wigglyLinePath(a.x, a.y, b.x, b.y);
+      } else {
+        ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
       break;
     case 'arrow': {
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      applyLineStyle(State.defLineStyle);
+      ctx.beginPath();
+      if (State.defLineStyle === 'wiggle') {
+        wigglyLinePath(a.x, a.y, b.x, b.y);
+      } else {
+        ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
       const ang = Math.atan2(dy, dx), hs = Math.max(10, State.defSW * 3.5);
       ctx.beginPath();
       ctx.moveTo(b.x, b.y);
@@ -232,10 +267,16 @@ function renderPenPreview(pts) {
   ctx.lineWidth   = State.defSW;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
+  applyLineStyle(State.defLineStyle);
   ctx.beginPath();
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+  if (State.defLineStyle === 'wiggle') {
+    wigglyPenPath(pts);
+  } else {
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+  }
   ctx.stroke();
+  ctx.setLineDash([]);
   ctx.restore();
 }
 
@@ -254,4 +295,73 @@ function penBounds(pts) {
     minY = Math.min(minY, y); maxY = Math.max(maxY, y);
   });
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// ── Line style helpers ───────────────────────────────────────
+
+/** Sets ctx dash pattern for solid / dashed / dotted. Wiggle is handled via path. */
+function applyLineStyle(style) {
+  switch (style) {
+    case 'dashed': ctx.setLineDash([14, 7]);  ctx.lineCap = 'butt';  break;
+    case 'dotted': ctx.setLineDash([2, 8]);   ctx.lineCap = 'round'; break;
+    default:       ctx.setLineDash([]);        ctx.lineCap = 'round'; break; // solid + wiggle
+  }
+}
+
+/**
+ * Builds a sine-wave path between two points directly into ctx.
+ * Does NOT call ctx.stroke() — caller does that.
+ */
+function wigglyLinePath(x1, y1, x2, y2) {
+  const dx  = x2 - x1, dy  = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  const ux = dx / len, uy = dy / len; // unit along
+  const nx = -uy,      ny =  ux;      // unit normal
+  const amp   = 4;
+  const freq  = Math.PI * 2 / 24;     // one full wave every 24 px
+  const steps = Math.max(30, Math.ceil(len / 3));
+
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t    = i / steps;
+    const dist = t * len;
+    const wave = amp * Math.sin(dist * freq);
+    const px   = x1 + t * dx + wave * nx;
+    const py   = y1 + t * dy + wave * ny;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+}
+
+/**
+ * Builds a sine-wave path that follows an arbitrary polyline (pen strokes).
+ * Maintains a running arc-length so the wave frequency is consistent.
+ */
+function wigglyPenPath(pts) {
+  const amp  = 3;
+  const freq = Math.PI * 2 / 24;
+  let totalLen = 0;
+  let first    = true;
+
+  for (let i = 1; i < pts.length; i++) {
+    const [x1, y1] = pts[i - 1];
+    const [x2, y2] = pts[i];
+    const segLen = Math.hypot(x2 - x1, y2 - y1);
+    if (segLen < 0.5) continue;
+
+    const ux = (x2 - x1) / segLen, uy = (y2 - y1) / segLen;
+    const nx = -uy, ny = ux;
+    const steps = Math.max(2, Math.ceil(segLen / 3));
+
+    for (let j = first ? 0 : 1; j <= steps; j++) {
+      const t    = j / steps;
+      const dist = totalLen + t * segLen;
+      const wave = amp * Math.sin(dist * freq);
+      const px   = x1 + t * (x2 - x1) + wave * nx;
+      const py   = y1 + t * (y2 - y1) + wave * ny;
+      first ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      first = false;
+    }
+    totalLen += segLen;
+  }
 }
