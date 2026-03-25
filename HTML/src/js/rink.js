@@ -8,9 +8,28 @@ const HALF_X = RINK_W / 2;
 
 let showHalf = true;
 
-function initRink() {
-  const rinkSvg = document.querySelector('#rink-layer svg');
+async function initRink() {
+  const container = document.getElementById('rink-layer');
 
+  try {
+    // 1. Fetch the file from your assets folder
+    const response = await fetch('assets/rink.svg');
+    const svgText = await response.text();
+
+    // 2. Inject it into the div
+    container.innerHTML = svgText;
+
+    // 3. Now that it exists in the DOM, set up the toggle logic
+    const rinkSvg = container.querySelector('svg');
+    setupRinkLogic(rinkSvg);
+
+  } catch (err) {
+    console.error("Failed to load rink.svg:", err);
+  }
+}
+
+// Move your existing clip-path/group logic into this helper function
+function setupRinkLogic(rinkSvg) {
   // Ensure a <defs> block exists
   const defs = rinkSvg.querySelector('defs') ?? (() => {
     const d = document.createElementNS('http://www.w3.org/2000/svg', 'defs');

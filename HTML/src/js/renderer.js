@@ -26,7 +26,7 @@ function render() {
 function drawElement(el, selected) {
   ctx.save();
   ctx.globalAlpha  = el.opacity / 100;
-  ctx.strokeStyle  = el.strokeColor ?? '#e8e8e8';
+  ctx.strokeStyle  = el.strokeColor ?? '#000000';
   ctx.lineWidth    = el.strokeWidth  ?? 2;
   ctx.lineCap      = 'round';
   ctx.lineJoin     = 'round';
@@ -96,7 +96,7 @@ function drawArrow(el) {
   ctx.lineTo(x2 - hs * Math.cos(ang - 0.4), y2 - hs * Math.sin(ang - 0.4));
   ctx.lineTo(x2 - hs * Math.cos(ang + 0.4), y2 - hs * Math.sin(ang + 0.4));
   ctx.closePath();
-  ctx.fillStyle = el.strokeColor ?? '#e8e8e8';
+  ctx.fillStyle = el.strokeColor ?? '#000000';
   ctx.fill();
 }
 
@@ -116,7 +116,7 @@ function drawPen(el) {
 
 function drawText(el) {
   ctx.font      = `${el.fontSize ?? 20}px sans-serif`;
-  ctx.fillStyle = el.strokeColor ?? '#e8e8e8';
+  ctx.fillStyle = el.strokeColor ?? '#000000';
   const txt     = el.id === State.editingText?.id ? State.textCursor : (el.text ?? '');
   ctx.fillText(txt, el.x, el.y + (el.fontSize ?? 20));
 }
@@ -125,7 +125,7 @@ function drawText(el) {
 const PLAYER_R = 16;
 
 function drawPlayer(el) {
-  const color = el.strokeColor ?? '#e8e8e8';
+  const color = el.strokeColor ?? '#000000';
   const label = el.playerType  ?? 'F';
 
   // Circle outline
