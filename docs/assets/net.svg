@@ -1,4 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 70">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 27.925131 64.762535"
+   version="1.1"
+   id="svg10"
+   sodipodi:docname="net.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   width="27.925131"
+   height="64.762535"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs10">
+    <linearGradient
+       id="linearGradient16"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#060606;stop-opacity:1;"
+         offset="0"
+         id="stop16" />
+      <stop
+         style="stop-color:#f6f6f6;stop-opacity:0;"
+         offset="1"
+         id="stop17" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath11">
+      <rect
+         style="fill:#000000"
+         id="rect12"
+         width="64.762535"
+         height="12.477186"
+         x="17.42845"
+         y="29.311485" />
+    </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient16"
+       id="linearGradient17"
+       x1="49.734352"
+       y1="3.2611129"
+       x2="49.734352"
+       y2="67.839035"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview10"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="5.0492155"
+     inkscape:cx="66.842067"
+     inkscape:cy="44.660403"
+     inkscape:window-width="1272"
+     inkscape:window-height="768"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg10" />
   <!--
     Top-down view of a hockey net.
     The opening (goal line) runs along the top edge.
@@ -6,45 +72,20 @@
     STROKE_COLOR = frame / post colour
     FILL_COLOR   = net interior tint
   -->
-
   <!-- Net interior fill -->
-  <path
-    d="M 18,8 L 82,8 Q 94,8 94,22 L 94,46 Q 94,62 82,62 L 50,65 Q 18,62 6,46 L 6,22 Q 6,8 18,8 Z"
-    fill="FILL_COLOR"
-    opacity="0.35"
-    stroke="none"
-  />
-
   <!-- Mesh lines (horizontal) -->
-  <line x1="6"  y1="24" x2="94" y2="24" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="6"  y1="38" x2="94" y2="38" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="9"  y1="52" x2="91" y2="52" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-
   <!-- Mesh lines (vertical) -->
-  <line x1="28" y1="8"  x2="22" y2="63" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="40" y1="8"  x2="37" y2="65" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="50" y1="8"  x2="50" y2="65" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="60" y1="8"  x2="63" y2="65" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-  <line x1="72" y1="8"  x2="78" y2="63" stroke="STROKE_COLOR" stroke-width="0.8" opacity="0.4"/>
-
   <!-- Net frame -->
-  <path
-    d="M 18,8 L 82,8 Q 94,8 94,22 L 94,46 Q 94,62 82,62 L 50,65 Q 18,62 6,46 L 6,22 Q 6,8 18,8 Z"
-    fill="none"
-    stroke="STROKE_COLOR"
-    stroke-width="2.5"
-    stroke-linejoin="round"
-  />
-
   <!-- Goal-line crossbar (front) — thick, bold -->
-  <line
-    x1="18" y1="8" x2="82" y2="8"
-    stroke="STROKE_COLOR"
-    stroke-width="4"
-    stroke-linecap="round"
-  />
-
   <!-- Posts (circles at ends of crossbar) -->
-  <circle cx="18" cy="8" r="4" fill="STROKE_COLOR"/>
-  <circle cx="82" cy="8" r="4" fill="STROKE_COLOR"/>
+  <rect
+     style="fill:url(#linearGradient17);stroke:#f80429;stroke-width:3.34218685;stroke-dasharray:none;stroke-opacity:1;stroke-linecap:butt"
+     id="rect10"
+     width="63.57793"
+     height="22.047186"
+     x="17.945383"
+     y="19.483559"
+     ry="10.76723"
+     clip-path="url(#clipPath11)"
+     transform="matrix(0,1,-2.2380952,0,93.527025,-17.42845)" />
 </svg>
