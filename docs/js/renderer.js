@@ -152,69 +152,46 @@ function drawPlayer(el) {
 }
 
 function drawPylon(el) {
-  const { x, y, w, h } = el;
-
-  // Body (triangle)
-  ctx.beginPath();
-  ctx.moveTo(x + w / 2, y);          // apex
-  ctx.lineTo(x + w,     y + h * 0.8); // bottom-right
-  ctx.lineTo(x,         y + h * 0.8); // bottom-left
-  ctx.closePath();
-  if (el.fillColor) {
-    ctx.fillStyle = hexAlpha(el.fillColor, el.opacity);
+  const img = getSpriteImage('pylon', el.strokeColor, el.fillColor);
+  if (img) {
+    // Normalise so x/y is always the top-left regardless of drag direction
+    const nx = el.w >= 0 ? el.x : el.x + el.w;
+    const ny = el.h >= 0 ? el.y : el.y + el.h;
+    ctx.drawImage(img, nx, ny, Math.abs(el.w), Math.abs(el.h));
+  } else {
+    // Fallback while the sprite is loading
+    const { x, y, w, h } = el;
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w, y + h * 0.8);
+    ctx.lineTo(x,     y + h * 0.8);
+    ctx.closePath();
+    ctx.fillStyle = el.fillColor ?? '#ff8c00';
     ctx.fill();
+    ctx.stroke();
   }
-  ctx.stroke();
-
-  // Base
-  ctx.beginPath();
-  ctx.rect(x - w * 0.1, y + h * 0.8, w * 1.2, h * 0.2);
-  if (el.fillColor) {
-    ctx.fillStyle = hexAlpha(el.fillColor, el.opacity);
-    ctx.fill();
-  }
-  ctx.stroke();
 }
 
 function drawNet(el) {
-  const { x, y, w, h } = el;
-  // Net shape: crossbar across the top, two posts dropping down,
-  // curving back to meet in the middle — works for any drag size/direction.
-  const absW = Math.abs(w), absH = Math.abs(h);
-  const ox = w < 0 ? el.x + w : el.x; // normalised origin
-  const oy = h < 0 ? el.y + h : el.y;
-
-  const postW  = absW * 0.15; // depth of each side post
-  const neckY  = absH * 0.35; // where the back-curve starts
-
-  ctx.beginPath();
-  // Crossbar (front opening)
-  ctx.moveTo(ox,         oy);
-  ctx.lineTo(ox + absW,  oy);
-  // Right post down
-  ctx.lineTo(ox + absW,  oy + neckY);
-  // Curve to back centre
-  ctx.quadraticCurveTo(ox + absW, oy + absH, ox + absW / 2, oy + absH);
-  // Curve back up left side
-  ctx.quadraticCurveTo(ox,        oy + absH, ox, oy + neckY);
-  // Left post back up to crossbar
-  ctx.lineTo(ox, oy);
-  ctx.closePath();
-
-  if (el.fillColor) {
-    ctx.fillStyle = hexAlpha(el.fillColor, el.opacity);
-    ctx.fill();
-  }
-  ctx.stroke();
-
-  // Posts (filled circles at crossbar ends)
-  const pr = Math.max(2, (el.strokeWidth ?? 2) * 1.5);
-  ctx.fillStyle = el.strokeColor ?? '#000000';
-  [ox, ox + absW].forEach(px => {
+  const img = getSpriteImage('net', el.strokeColor, el.fillColor);
+  if (img) {
+    const nx = el.w >= 0 ? el.x : el.x + el.w;
+    const ny = el.h >= 0 ? el.y : el.y + el.h;
+    ctx.drawImage(img, nx, ny, Math.abs(el.w), Math.abs(el.h));
+  } else {
+    // Fallback while the sprite is loading
+    const absW = Math.abs(el.w), absH = Math.abs(el.h);
+    const ox = el.w < 0 ? el.x + el.w : el.x;
+    const oy = el.h < 0 ? el.y + el.h : el.y;
     ctx.beginPath();
-    ctx.arc(px, oy, pr, 0, Math.PI * 2);
-    ctx.fill();
-  });
+    ctx.moveTo(ox,        oy);
+    ctx.lineTo(ox + absW, oy);
+    ctx.lineTo(ox + absW, oy + absH * 0.6);
+    ctx.quadraticCurveTo(ox + absW, oy + absH, ox + absW / 2, oy + absH);
+    ctx.quadraticCurveTo(ox, oy + absH, ox, oy + absH * 0.6);
+    ctx.closePath();
+    ctx.stroke();
+  }
 }
 
 // ── Selection handles ────────────────────────────────────────

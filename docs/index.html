@@ -154,6 +154,7 @@
 <script src="js/state.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/rink.js"></script>
+<script src="js/assets.js"></script>
 <script src="js/renderer.js"></script>
 <script src="js/interaction.js"></script>
 <script src="js/io.js"></script>
@@ -161,9 +162,9 @@
   // Entry point — initialise all modules
   window.addEventListener('DOMContentLoaded', async () => {
     // Start by loading the rink
-    await initRink(); 
-    
-    // Once rink is in place, start everything else
+    await initRink();
+    await initAssets();   // preload pylon.svg and net.svg
+
     initRenderer();
     initInteraction();
     initIO();
