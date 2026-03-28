@@ -51,7 +51,7 @@ function hitEl(el, x, y) {
       return tx >= el.x - 4 && tx <= el.x + w + 4 && ty >= el.y - 4 && ty <= el.y + (el.fontSize ?? 20) * 1.4 + 4;
     }
     case 'player': {
-      const r = (el.fontSize ?? 32) / 2 + 6;
+      const r = playerRadius(el) + 4;   // matches the selection circle
       return Math.hypot(x - el.x, y - el.y) <= r;
     }
     default: return false;
@@ -141,15 +141,14 @@ function onMouseDown(e) {
     return;
   }
 
-  if (['pylon', 'net'].includes(State.tool)) {
-    const isNet = State.tool === 'net';
+  if (State.tool === 'pylon') {
     const el = {
       id:          uid(),
-      type:        State.tool,
+      type:        'pylon',
       x:           x - 15,   // center the 30px-wide pylon on click
       y:           y - 20,   // center the 40px-tall pylon on click
-      w:           isNet ? 30 : 30,
-      h:           isNet ? 50 : 40,
+      w:           30,
+      h:           40,
       strokeColor: State.defStroke,
       fillColor:   '#ff8c00', // orange by default
       opacity:     100,

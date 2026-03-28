@@ -8,6 +8,11 @@ const wrap   = document.getElementById('canvas-wrap');
 
 // Keep canvas pixel-perfect on resize
 function initRenderer() {
+  // Size the canvas immediately so the very first render (e.g. placing a player)
+  // draws to a real pixel buffer rather than a 0×0 one.
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+
   new ResizeObserver(() => {
     canvas.width  = wrap.clientWidth;
     canvas.height = wrap.clientHeight;
@@ -133,22 +138,32 @@ function drawText(el) {
   ctx.fillText(txt, el.x, el.y + (el.fontSize ?? 20));
 }
 
-// Player radius in px — fixed size
-const PLAYER_R = 16;
+// Player token radius is derived from fontSize so it scales with the size picker
+function playerRadius(el) { return (el.fontSize ?? 32) / 2; }
 
 function drawPlayer(el) {
-  ctx.save();
-  ctx.globalAlpha = el.opacity / 100;
-  ctx.fillStyle   = el.strokeColor; // This uses the Black default we set
-  
-  // Use the saved fontSize from the element, or default to 32
-  const size = el.fontSize || 32;
-  ctx.font = `bold ${size}px sans-serif`;
-  
+  const r     = playerRadius(el);
+  const color = el.strokeColor ?? '#000000';
+
+  // Circle outline
+  ctx.beginPath();
+  ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = Math.max(1.5, r * 0.1);
+  ctx.stroke();
+
+  // Label centred inside — shrink font slightly so it fits within the circle
+  const label    = el.playerType ?? 'F';
+  const fontSize = label.length > 1 ? r * 0.9 : r * 1.1;
+  ctx.font         = `bold ${fontSize}px sans-serif`;
+  ctx.fillStyle    = color;
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(el.playerType, el.x, el.y);
-  ctx.restore();
+  ctx.fillText(label, el.x, el.y);
+
+  // Reset text props so other draw calls aren't affected
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'alphabetic';
 }
 
 function drawPylon(el) {
@@ -180,16 +195,15 @@ function drawNet(el) {
     ctx.drawImage(img, nx, ny, Math.abs(el.w), Math.abs(el.h));
   } else {
     // Fallback while the sprite is loading
-    const { x, y, w, h } = el;
-    // This scales the internal SVG paths to the fixed w/h (80x60)
-    const sw = w / 200; 
-    const sh = h / 160;
-
+    const absW = Math.abs(el.w), absH = Math.abs(el.h);
+    const ox = el.w < 0 ? el.x + el.w : el.x;
+    const oy = el.h < 0 ? el.y + el.h : el.y;
     ctx.beginPath();
-    ctx.moveTo(x + 60 * sw, y + 40 * sh);
-    ctx.lineTo(x + 140 * sw, y + 40 * sh);
-    ctx.lineTo(x + 140 * sw, y + 80 * sh);
-    ctx.quadraticCurveTo(x + 100 * sw, y + 110 * sh, x + 60 * sw, y + 80 * sh);
+    ctx.moveTo(ox,        oy);
+    ctx.lineTo(ox + absW, oy);
+    ctx.lineTo(ox + absW, oy + absH * 0.6);
+    ctx.quadraticCurveTo(ox + absW, oy + absH, ox + absW / 2, oy + absH);
+    ctx.quadraticCurveTo(ox, oy + absH, ox, oy + absH * 0.6);
     ctx.closePath();
     ctx.stroke();
   }
@@ -211,6 +225,19 @@ function drawSelection(el) {
 
   // ── Dashed bounding outline ──────────────────────────
   const hasBox = !['line', 'arrow', 'player'].includes(el.type);
+
+  // Player gets a dashed circle instead of a rect
+  if (el.type === 'player') {
+    const r = playerRadius(el);
+    ctx.strokeStyle = '#ff6b35';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, r + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
   if (hasBox) {
     ctx.strokeStyle = '#ff6b35';
     ctx.lineWidth   = 1.5;
@@ -424,10 +451,11 @@ function getElementHandles(el) {
     ];
   }
 
-  // Player — one scale handle (bottom-right of glyph), no rotation
+  // Player — scale handle on the circle edge at bottom-right (45°)
   if (el.type === 'player') {
-    const r = (el.fontSize ?? 32) / 2;
-    return [{ id: 'scale', x: el.x + r, y: el.y + r }];
+    const r   = playerRadius(el);
+    const off = r / Math.SQRT2;  // position on circle circumference at 45°
+    return [{ id: 'scale', x: el.x + off, y: el.y + off }];
   }
 
   // Pen — four bounding-box corners, no rotation

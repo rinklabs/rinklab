@@ -3,154 +3,188 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rink Draw</title>
+  <title>Hockey Drills Lab</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<!-- ── Toolbar ─────────────────────────────────────────────── -->
-<div id="toolbar">
-  <span id="logo">⬡ RINK DRAW</span>
-
-  <div id="tools">
-    <button class="tool-btn active" data-tool="select"  title="Select (V)">↖</button>
-    <button class="tool-btn"        data-tool="rect"    title="Rectangle (R)">▭</button>
-    <button class="tool-btn"        data-tool="ellipse" title="Ellipse (E)">◯</button>
-    <button class="tool-btn"        data-tool="line"    title="Line (L)">╱</button>
-    <button class="tool-btn"        data-tool="arrow"   title="Arrow (A)">→</button>
-    <button class="tool-btn"        data-tool="text"    title="Text (T)">T</button>
-    <button class="tool-btn"        data-tool="pen"     title="Pen (P)">✏</button>
-    <button class="tool-btn" data-tool="pylon" title="Pylon (Y)">▲</button>
-    <button class="tool-btn" data-tool="net"   title="Net (N)">🥅</button>
-    <div class="sep"></div>
-    <button class="tool-btn"        data-tool="player"  title="Place Player">👤</button>
-    <select id="player-type" title="Player type">
-      <option value="F">F — Forward</option>
-      <option value="D">D — Defence</option>
-      <option value="G">G — Goalie</option>
-      <option value="C">C — Centre</option>
-      <option value="W">W — Wing</option>
-      <option value="Co">Co — Coach</option>
-    </select>
-    <div class="sep"></div>
-    <div class="prop-row" id="row-player-size">
-      <label>Size</label>
-      <select id="p-player-size">
-        <option value="24">Small (24px)</option>
-        <option value="32" selected>Medium (32px)</option>
-        <option value="40">Large (40px)</option>
-        <option value="48">Extra Large (48px)</option>
-      </select>
-    </div>
-    <div class="sep"></div>
-    <span class="tb-label">Stroke</span>
-    <input type="color" id="stroke-color" value="#000000"/>
-    <span class="tb-label">Fill</span>
-    <input type="color" id="fill-color" value="#000000"/>
-    <input type="checkbox" id="fill-check" title="Use fill" style="accent-color:var(--accent);cursor:pointer;"/>
-    <span class="tb-label">W</span>
-    <input type="range" id="stroke-width" min="1" max="20" value="2" style="width:60px;"/>
-    <div class="sep"></div>
-    <span class="tb-label">Line</span>
-    <select id="line-style" title="Line style">
-      <option value="solid">— Solid</option>
-      <option value="dashed">-- Dashed</option>
-      <option value="dotted">·· Dotted</option>
-      <option value="wiggle">〜 Wiggle</option>
-    </select>
-    <div class="sep"></div>
-    <button class="btn btn-danger" id="btn-del" title="Delete selected (Del)">✕</button>
-  </div>
-
-  <div style="display:flex;gap:8px;align-items:center;">
-    <button class="btn half" id="btn-toggle">◑ Half Rink</button>
+<!-- ── Top bar: title + action buttons ──────────────────────── -->
+<div id="top-bar">
+  <span id="logo">🏒 Hockey Drills Lab</span>
+  <input type="text" id="drill-title"
+         placeholder="Drill Title"
+         autocomplete="off"/>
+  <div id="top-actions">
+    <button class="btn btn-toggle" id="btn-toggle">◑ Half Rink</button>
     <button class="btn btn-secondary" id="btn-load">Load JSON</button>
     <button class="btn btn-primary"   id="btn-save">Save JSON ↓</button>
   </div>
 </div>
 
-<!-- ── Canvas area ──────────────────────────────────────────── -->
-<div id="canvas-wrap">
+<!-- ── Main row: canvas (left, flex) + toolbar (right, fixed) ── -->
+<div id="main-row">
 
-  <!-- SVG rink background (inline, no network request) -->
-  <div id="rink-layer"></div>
+  <!-- Canvas area -->
+  <div id="canvas-wrap">
+    <div id="rink-layer"></div>
+    <canvas id="c"></canvas>
+  </div><!-- /canvas-wrap -->
 
-  <!-- Transparent drawing canvas -->
-  <canvas id="c"></canvas>
+  <!-- Right toolbar (vertical) -->
+  <div id="toolbar">
 
-  <!-- Per-element properties panel -->
-  <div id="props">
-    <h3>Properties</h3>
-    <div class="prop-row">
-      <label>Stroke</label>
-      <input type="color" id="p-stroke"/>
+    <!-- Tool buttons: 2-column grid -->
+    <div id="tools">
+      <button class="tool-btn active" data-tool="select"  title="Select (V)">↖</button>
+      <button class="tool-btn"        data-tool="rect"    title="Rectangle (R)">▭</button>
+      <button class="tool-btn"        data-tool="ellipse" title="Ellipse (E)">◯</button>
+      <button class="tool-btn"        data-tool="line"    title="Line (L)">╱</button>
+      <button class="tool-btn"        data-tool="arrow"   title="Arrow (A)">→</button>
+      <button class="tool-btn"        data-tool="text"    title="Text (T)">T</button>
+      <button class="tool-btn"        data-tool="pen"     title="Pen (P)">✏</button>
+      <button class="tool-btn"        data-tool="pylon"   title="Pylon">▲</button>
+      <button class="tool-btn"        data-tool="net"     title="Net">🥅</button>
+      <button class="tool-btn"        data-tool="player"  title="Place Player">🏒</button>
     </div>
-    <div class="prop-row" id="row-fill">
-      <label>Fill</label>
-      <input type="checkbox" id="p-fill-check"/>
-      <input type="color" id="p-fill"/>
-    </div>
-    <div class="prop-row" id="row-sw">
-      <label>Stroke W</label>
-      <input type="range" id="p-sw" min="1" max="20"/>
-    </div>
-    <div class="prop-row">
-      <label>Opacity</label>
-      <input type="range" id="p-opacity" min="0" max="100" value="100"/>
-    </div>
-    <div class="prop-row" id="row-font">
-      <label>Font size</label>
-      <input type="number" id="p-font" min="8" max="200" value="20"/>
-    </div>
-    <div class="prop-row" id="row-player-type">
-      <label>Player</label>
-      <select id="p-player-type">
+
+    <div class="tb-sep"></div>
+
+    <!-- Player type + size -->
+    <div class="tb-group">
+      <span class="tb-label">Player type</span>
+      <select id="player-type">
         <option value="F">F — Forward</option>
         <option value="D">D — Defence</option>
         <option value="G">G — Goalie</option>
         <option value="C">C — Centre</option>
         <option value="W">W — Wing</option>
         <option value="Co">Co — Coach</option>
+        <option value="X">X</option>
+        <option value="O">O</option>
       </select>
     </div>
-    <div class="prop-row" id="row-line-style">
-      <label>Line style</label>
-      <select id="p-line-style">
+
+    <div class="tb-group">
+      <span class="tb-label">Player size</span>
+      <select id="p-player-size">
+        <option value="24">Small</option>
+        <option value="32" selected>Medium</option>
+        <option value="40">Large</option>
+        <option value="48">X-Large</option>
+      </select>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- Stroke / fill -->
+    <div class="tb-group">
+      <span class="tb-label">Stroke</span>
+      <input type="color" id="stroke-color" value="#000000"/>
+    </div>
+
+    <div class="tb-group">
+      <span class="tb-label">Fill</span>
+      <div class="tb-inline">
+        <input type="color" id="fill-color" value="#000000"/>
+        <input type="checkbox" id="fill-check" title="Enable fill"/>
+      </div>
+    </div>
+
+    <div class="tb-group">
+      <span class="tb-label">Stroke width</span>
+      <input type="range" id="stroke-width" min="1" max="20" value="2" class="tb-range"/>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- Line style -->
+    <div class="tb-group">
+      <span class="tb-label">Line style</span>
+      <select id="line-style">
         <option value="solid">— Solid</option>
         <option value="dashed">-- Dashed</option>
         <option value="dotted">·· Dotted</option>
         <option value="wiggle">〜 Wiggle</option>
       </select>
     </div>
-  </div>
 
+    <div class="tb-sep"></div>
+
+    <button class="btn btn-danger btn-full" id="btn-del"
+            title="Delete selected (Del)">✕ Delete</button>
+
+    <!-- Selected-element properties (shown only when something is selected) -->
+    <div id="props">
+      <div class="tb-sep" style="margin:0 -8px 6px;"></div>
+      <h3>Selected</h3>
+      <div class="prop-row">
+        <label>Stroke</label>
+        <input type="color" id="p-stroke"/>
+      </div>
+      <div class="prop-row" id="row-fill">
+        <label>Fill</label>
+        <input type="checkbox" id="p-fill-check"/>
+        <input type="color" id="p-fill"/>
+      </div>
+      <div class="prop-row" id="row-sw">
+        <label>Width</label>
+        <input type="range" id="p-sw" min="1" max="20"/>
+      </div>
+      <div class="prop-row">
+        <label>Opacity</label>
+        <input type="range" id="p-opacity" min="0" max="100" value="100"/>
+      </div>
+      <div class="prop-row" id="row-font">
+        <label>Font size</label>
+        <input type="number" id="p-font" min="8" max="200" value="20"/>
+      </div>
+      <div class="prop-row" id="row-player-type">
+        <label>Player</label>
+        <select id="p-player-type">
+          <option value="F">F — Forward</option>
+          <option value="D">D — Defence</option>
+          <option value="G">G — Goalie</option>
+          <option value="C">C — Centre</option>
+          <option value="W">W — Wing</option>
+          <option value="Co">Co — Coach</option>
+          <option value="X">X</option>
+          <option value="O">O</option>
+        </select>
+      </div>
+      <div class="prop-row" id="row-line-style">
+        <label>Line style</label>
+        <select id="p-line-style">
+          <option value="solid">— Solid</option>
+          <option value="dashed">-- Dashed</option>
+          <option value="dotted">·· Dotted</option>
+          <option value="wiggle">〜 Wiggle</option>
+        </select>
+      </div>
+    </div>
+
+  </div><!-- /toolbar -->
+
+</div><!-- /main-row -->
+
+<!-- ── Tags: single line under the canvas ───────────────────── -->
+<div id="tags-row">
+  <span class="tb-label">Tags</span>
+  <input type="text" id="drill-tags"
+         placeholder="breakout; forecheck; 2-on-1"/>
+  <span class="meta-hint">(semicolon separated)</span>
 </div>
 
-<!-- ── Drill metadata panel ─────────────────────────────────── -->
-<div id="meta-panel">
-  <div class="meta-field" id="meta-field-title">
-    <label>Drill Title</label>
-    <input type="text" id="drill-title"
-           placeholder="e.g. Breakout Forecheck 2-1-2"
-           autocomplete="off"/>
-  </div>
-  <div class="meta-field" id="meta-field-tags">
-    <label>Keywords / Tags <span class="meta-hint">(semicolon separated)</span></label>
-    <input type="text" id="drill-tags"
-           placeholder="e.g. breakout; forecheck; 2-on-1"/>
-  </div>
-  <div class="meta-field" id="meta-field-desc">
-    <label>Drill Description</label>
-    <textarea id="drill-desc"
-              placeholder="Describe the drill, key coaching points, variations…"></textarea>
-  </div>
+<!-- ── Description: big box at the bottom ───────────────────── -->
+<div id="desc-row">
+  <textarea id="drill-desc"
+            placeholder="Drill description — coaching points, key cues, variations…"></textarea>
 </div>
 
 <!-- ── Toast + hidden file input ────────────────────────────── -->
 <div id="toast"></div>
 <input type="file" id="file-input" accept=".json" style="display:none"/>
 
-<!-- ── Scripts (load order matters) ─────────────────────────── -->
+<!-- ── Scripts ───────────────────────────────────────────────── -->
 <script src="js/state.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/rink.js"></script>
@@ -159,17 +193,14 @@
 <script src="js/interaction.js"></script>
 <script src="js/io.js"></script>
 <script>
-  // Entry point — initialise all modules
   window.addEventListener('DOMContentLoaded', async () => {
-    // Start by loading the rink
     await initRink();
-    await initAssets();   // preload pylon.svg and net.svg
-
-    initRenderer();
+    await initAssets();
+    initRenderer();     // ResizeObserver fires immediately + sizes canvas
     initInteraction();
     initIO();
-    
-    render(); // Initial draw
+    // rAF ensures the browser has finished layout before we paint
+    requestAnimationFrame(render);
   });
 </script>
 

@@ -1,184 +1,134 @@
 /* ─────────────────────────────────────────────────────────────
-   style.css  —  all visual styles for rink-draw
+   style.css
+   Layout:  top-bar / main-row (canvas + right toolbar) /
+            tags-row / desc-row
 ───────────────────────────────────────────────────────────── */
 
-/* ── Reset & variables ───────────────────────────────────── */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── Reset & variables ──────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:     #0f0f0f;
-  --panel:  #161616;
-  --border: #2a2a2a;
-  --accent: #ff6b35;
-  --text:   #e8e8e8;
-  --muted:  #555;
-  --hover:  #222;
+  --bg:       #0f0f0f;
+  --panel:    #161616;
+  --border:   #2a2a2a;
+  --accent:   #ff6b35;
+  --text:     #e8e8e8;
+  --muted:    #666;
+  --hover:    #222;
+  --tb-w:     152px;   /* right toolbar width */
+  --top-h:    44px;    /* top bar height */
+  --tags-h:   32px;    /* tags strip height */
+  --desc-h:   90px;    /* description box height */
+}
+
+html, body {
+  height:     100%;
+  overflow:   hidden;
 }
 
 body {
-  background:   var(--bg);
-  color:        var(--text);
-  font-family:  'Courier New', monospace;
-  height:       100vh;
-  display:      flex;
+  background:     var(--bg);
+  color:          var(--text);
+  font-family:    'Courier New', monospace;
+  display:        flex;
   flex-direction: column;
-  overflow:     hidden;
-  user-select:  none;
+  user-select:    none;
 }
 
-/* ── Toolbar ─────────────────────────────────────────────── */
-#toolbar {
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  padding:         8px 14px;
-  background:      var(--panel);
-  border-bottom:   1px solid var(--border);
-  flex-shrink:     0;
-  gap:             8px;
-  flex-wrap:       wrap;
+/* ── Top bar ─────────────────────────────────────────────────── */
+#top-bar {
+  height:        var(--top-h);
+  flex-shrink:   0;
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  padding:       0 12px;
+  background:    var(--panel);
+  border-bottom: 1px solid var(--border);
 }
 
 #logo {
-  font-size:      12px;
-  font-weight:    700;
-  letter-spacing: .15em;
-  color:          var(--accent);
-  white-space:    nowrap;
+  font-size:   14px;
+  font-weight: 700;
+  color:       var(--accent);
+  flex-shrink: 0;
+  line-height: 1;
+  letter-spacing: .03em;
+  white-space: nowrap;
 }
 
-#tools { display: flex; gap: 4px; align-items: center; }
-
-.tool-btn {
-  width:           34px;
-  height:          34px;
-  border:          1px solid var(--border);
-  border-radius:   4px;
-  background:      transparent;
-  color:           var(--text);
-  cursor:          pointer;
-  font-size:       16px;
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  transition:      .1s;
-}
-.tool-btn:hover  { background: var(--hover); }
-.tool-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-
-.sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
-
-.tb-label {
-  font-size:      10px;
-  color:          var(--muted);
-  letter-spacing: .08em;
-  white-space:    nowrap;
-}
-
-/* ── Shared form controls ────────────────────────────────── */
-input[type=color] {
-  width:         34px;
-  height:        34px;
-  border:        1px solid var(--border);
-  border-radius: 4px;
-  padding:       2px;
-  background:    var(--panel);
-  cursor:        pointer;
-}
-
-input[type=range] {
-  width:        80px;
-  accent-color: var(--accent);
-}
-
-select {
-  background:    var(--panel);
+#drill-title {
+  flex:          1;
+  min-width:     0;
+  background:    transparent;
+  border:        none;
+  border-bottom: 1px solid transparent;
   color:         var(--text);
-  border:        1px solid var(--border);
-  border-radius: 4px;
-  padding:       5px 7px;
   font-family:   inherit;
-  font-size:     11px;
-  cursor:        pointer;
-  height:        34px;
+  font-size:     20px;
+  font-weight:   700;
+  letter-spacing:.03em;
+  padding:       2px 4px;
+  outline:       none;
+  transition:    border-color .15s;
 }
-select:focus { outline: none; border-color: var(--accent); }
+#drill-title::placeholder { color: var(--muted); font-weight: 400; font-size: 16px; }
+#drill-title:focus        { border-bottom-color: var(--accent); }
 
-/* ── Buttons ─────────────────────────────────────────────── */
-.btn {
-  padding:        7px 14px;
-  border:         none;
-  border-radius:  4px;
-  font-family:    inherit;
-  font-size:      11px;
-  font-weight:    700;
-  letter-spacing: .08em;
-  cursor:         pointer;
-  text-transform: uppercase;
-  transition:     .15s;
+#top-actions {
+  display:     flex;
+  gap:         6px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
-.btn-primary           { background: var(--accent); color: #000; }
-.btn-primary:hover     { background: #ff8559; }
+/* ── Main row ────────────────────────────────────────────────── */
+#main-row {
+  flex:       1;
+  display:    flex;
+  min-height: 0;   /* critical: allow shrinking in flex column */
+  overflow:   hidden;
+}
 
-.btn-secondary         { background: transparent; color: #999; border: 1px solid var(--border); }
-.btn-secondary:hover   { border-color: #666; color: var(--text); }
+/* ── Canvas area ─────────────────────────────────────────────── */
+#canvas-wrap {
+  flex:     1;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
 
-.btn-danger            { background: transparent; color: #e05a5a; border: 1px solid #e05a5a33; }
-.btn-danger:hover      { background: #e05a5a22; }
+/* The rink SVG fills the wrap absolutely */
+#rink-layer {
+  position:       absolute;
+  inset:          0;
+  pointer-events: none;
+}
+#rink-layer svg { width: 100%; height: 100%; }
 
-/* Rink toggle */
-#btn-toggle            { min-width: 90px; }
-#btn-toggle.half       { background: #5567b0; border-color: #5567b0; color: #fff; }
-#btn-toggle.full       { background: transparent; color: #999; border: 1px solid var(--border); }
-#btn-toggle.full:hover { border-color: #666; color: var(--text); }
-
-/* ── Canvas area ─────────────────────────────────────────── */
-#canvas-wrap { flex: 1; position: relative; overflow: hidden; }
-
+/* The drawing canvas also fills the wrap absolutely */
 canvas {
+  position: absolute;
+  inset:    0;
   display:  block;
   cursor:   crosshair;
-  position: absolute;
-  top:      0;
-  left:     0;
 }
 canvas.cursor-select { cursor: default; }
 canvas.cursor-move   { cursor: move; }
 canvas.cursor-text   { cursor: text; }
 
-/* SVG background layer */
-#rink-layer {
-  position:       absolute;
-  top:            0;
-  left:           0;
-  width:          100%;
-  height:         100%;
-  pointer-events: none;
-}
-#rink-layer svg { width: 100%; height: 100%; }
-
-/* ── Properties panel ────────────────────────────────────── */
+/* ── Properties panel (docked inside right toolbar) ─────────── */
 #props {
-  position:      absolute;
-  top:           10px;
-  right:         10px;
-  width:         210px;
-  background:    var(--panel);
-  border:        1px solid var(--border);
-  border-radius: 6px;
-  padding:       12px;
-  display:       none;
+  display:        none;
   flex-direction: column;
-  gap:           10px;
-  z-index:       50;
+  gap:            7px;
 }
 #props.visible { display: flex; }
 
 #props h3 {
-  font-size:      11px;
+  font-size:      9px;
   color:          var(--accent);
-  letter-spacing: .1em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
@@ -186,75 +136,200 @@ canvas.cursor-text   { cursor: text; }
   display:         flex;
   align-items:     center;
   justify-content: space-between;
-  gap:             8px;
+  gap:             6px;
 }
-.prop-row label        { font-size: 11px; color: var(--muted); white-space: nowrap; }
-.prop-row input[type=color]  { width: 28px; height: 28px; }
-.prop-row input[type=range]  { width: 100px; }
+.prop-row label             { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.prop-row input[type=color] { width: 26px; height: 26px; flex-shrink: 0; }
+.prop-row input[type=range] { flex: 1; min-width: 0; }
+.prop-row select            { flex: 1; height: 24px; padding: 1px 4px; font-size: 11px; }
 .prop-row input[type=number] {
-  width:         60px;
+  width:         52px;
   background:    var(--hover);
   border:        1px solid var(--border);
   color:         var(--text);
   border-radius: 4px;
-  padding:       3px 6px;
+  padding:       2px 5px;
   font-family:   inherit;
   font-size:     11px;
 }
 
-/* ── Metadata panel ──────────────────────────────────────── */
-#meta-panel {
-  background:  var(--panel);
-  border-top:  1px solid var(--border);
-  padding:     10px 16px;
-  flex-shrink: 0;
-  display:     flex;
-  gap:         12px;
-  align-items: flex-start;
-}
-
-.meta-field {
+/* ── Right toolbar ───────────────────────────────────────────── */
+#toolbar {
+  width:          var(--tb-w);
+  flex-shrink:    0;
+  background:     var(--panel);
+  border-left:    1px solid var(--border);
   display:        flex;
   flex-direction: column;
-  gap:            4px;
+  gap:            8px;
+  padding:        8px;
+  overflow-y:     auto;
+  overflow-x:     hidden;
 }
 
-.meta-field label {
-  font-size:      10px;
+/* 2-col tool grid fills toolbar width */
+#tools {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   3px;
+}
+
+.tool-btn {
+  height:          32px;
+  border:          1px solid var(--border);
+  border-radius:   4px;
+  background:      transparent;
+  color:           var(--text);
+  cursor:          pointer;
+  font-size:       15px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  transition:      background .1s;
+}
+.tool-btn:hover  { background: var(--hover); }
+.tool-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+.tb-sep {
+  height:     1px;
+  background: var(--border);
+  margin:     0 -8px;
+  flex-shrink: 0;
+}
+
+/* Labelled group: small label above control */
+.tb-group {
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+
+/* Side-by-side pair (e.g. fill swatch + checkbox) */
+.tb-inline {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+
+.tb-label {
+  font-size:      9px;
   letter-spacing: .1em;
   text-transform: uppercase;
   color:          var(--muted);
+  white-space:    nowrap;
 }
 
-.meta-field input[type=text],
-.meta-field textarea {
+.tb-range { width: 100%; accent-color: var(--accent); }
+
+.btn-full { width: 100%; }
+
+/* ── Shared form controls ────────────────────────────────────── */
+input[type=color] {
+  width:         32px;
+  height:        28px;
+  border:        1px solid var(--border);
+  border-radius: 4px;
+  padding:       2px;
+  background:    var(--panel);
+  cursor:        pointer;
+}
+input[type=color]:focus { outline: none; border-color: var(--accent); }
+
+select {
+  width:         100%;
+  background:    var(--panel);
+  color:         var(--text);
+  border:        1px solid var(--border);
+  border-radius: 4px;
+  padding:       4px 5px;
+  font-family:   inherit;
+  font-size:     11px;
+  cursor:        pointer;
+  height:        28px;
+}
+select:focus { outline: none; border-color: var(--accent); }
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn {
+  padding:        6px 12px;
+  border:         none;
+  border-radius:  4px;
+  font-family:    inherit;
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: .06em;
+  cursor:         pointer;
+  text-transform: uppercase;
+  transition:     background .15s, color .15s;
+  white-space:    nowrap;
+}
+.btn-primary         { background: var(--accent); color: #000; }
+.btn-primary:hover   { background: #ff8559; }
+.btn-secondary       { background: transparent; color: #999; border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: #666; color: var(--text); }
+.btn-danger          { background: transparent; color: #e05a5a; border: 1px solid #e05a5a44; }
+.btn-danger:hover    { background: #e05a5a22; }
+
+.btn-toggle          { min-width: 90px; background: #5567b0; border: 1px solid #5567b0; color: #fff; }
+.btn-toggle:hover    { background: #6678c1; }
+.btn-toggle.full     { background: transparent; color: #999; border: 1px solid var(--border); }
+.btn-toggle.full:hover { border-color: #666; color: var(--text); }
+
+/* ── Tags row ────────────────────────────────────────────────── */
+#tags-row {
+  height:        var(--tags-h);
+  flex-shrink:   0;
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  padding:       0 12px;
+  background:    var(--panel);
+  border-top:    1px solid var(--border);
+}
+
+#drill-tags {
+  flex:          1;
+  min-width:     0;
+  height:        22px;
   background:    var(--hover);
   border:        1px solid var(--border);
-  color:         var(--text);
   border-radius: 4px;
-  padding:       5px 8px;
-  font-family:   'Courier New', monospace;
+  color:         var(--text);
+  font-family:   inherit;
   font-size:     12px;
+  padding:       0 8px;
   outline:       none;
-  transition:    .15s;
+}
+#drill-tags:focus { border-color: var(--accent); }
+
+.meta-hint { font-size: 9px; color: var(--muted); white-space: nowrap; }
+
+/* ── Description box ─────────────────────────────────────────── */
+#desc-row {
+  height:        var(--desc-h);
+  flex-shrink:   0;
+  padding:       6px 12px 8px;
+  background:    var(--panel);
+  border-top:    1px solid var(--border);
+}
+
+#drill-desc {
+  width:         100%;
+  height:        100%;
+  background:    var(--hover);
+  border:        1px solid var(--border);
+  border-radius: 4px;
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     12px;
+  line-height:   1.5;
+  padding:       6px 8px;
   resize:        none;
+  outline:       none;
 }
-.meta-field input[type=text]:focus,
-.meta-field textarea:focus {
-  border-color: var(--accent);
-  background:   #1a1a1a;
-}
+#drill-desc:focus { border-color: var(--accent); }
 
-#meta-field-title        { flex: 2; min-width: 160px; }
-#meta-field-title input  { width: 100%; }
-#meta-field-tags         { flex: 2; min-width: 160px; }
-#meta-field-tags input   { width: 100%; }
-#meta-field-desc         { flex: 4; min-width: 200px; }
-#meta-field-desc textarea { width: 100%; height: 48px; line-height: 1.4; }
-
-.meta-hint { font-size: 9px; color: var(--muted); letter-spacing: .04em; }
-
-/* ── Toast notification ──────────────────────────────────── */
+/* ── Toast ───────────────────────────────────────────────────── */
 #toast {
   position:       fixed;
   bottom:         20px;
@@ -263,12 +338,12 @@ canvas.cursor-text   { cursor: text; }
   background:     var(--panel);
   border:         1px solid var(--accent);
   color:          var(--accent);
-  padding:        8px 20px;
+  padding:        7px 18px;
   border-radius:  4px;
   font-size:      11px;
   letter-spacing: .08em;
   opacity:        0;
-  transition:     .25s;
+  transition:     opacity .25s, transform .25s;
   z-index:        999;
   pointer-events: none;
 }
