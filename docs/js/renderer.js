@@ -146,11 +146,14 @@ function drawPlayer(el) {
   const color = el.strokeColor ?? '#000000';
 
   // Circle outline
-  ctx.beginPath();
-  ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = color;
-  ctx.lineWidth   = Math.max(1.5, r * 0.1);
-  ctx.stroke();
+  if (el.isCoach) {
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    // Make the coach's circle slightly bolder
+    ctx.lineWidth   = Math.max(2, r * 0.15); 
+    ctx.stroke();
+  }
 
   // Label centred inside — shrink font slightly so it fits within the circle
   const label    = el.playerType ?? 'F';

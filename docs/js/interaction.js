@@ -9,6 +9,16 @@ function initInteraction() {
   initToolbarInputs();
   initPropsPanel();
   document.getElementById('btn-del').addEventListener('click', deleteSelected);
+  document.getElementById('p-is-coach').addEventListener('change', (e) => {
+    const selectedIds = Array.isArray(State.selected) ? State.selected : [State.selected];
+
+    State.elements.forEach(el => {
+      if (selectedIds.includes(el.id) && el.type === 'player') {
+        el.isCoach = e.target.checked;
+      }
+    });
+    render();
+  });
 }
 
 // ── Hit testing ──────────────────────────────────────────────
@@ -133,6 +143,7 @@ function onMouseDown(e) {
       y,
       strokeColor: State.defStroke,
       opacity:     100,
+      isCoach: false
     };
     State.elements.push(el);
     State.selected = el.id;
@@ -446,7 +457,10 @@ function updatePropsPanel() {
   if (isPlayer) {
     document.getElementById('p-player-type').value = el.playerType ?? 'F';
     document.getElementById('p-player-size').value = el.fontSize   ?? 32;
+    document.getElementById('p-is-coach').checked = !!el.isCoach;
+    document.getElementById('row-is-coach').style.display = 'flex';
   }
+  
   if (isStrokable) document.getElementById('p-line-style').value = el.lineStyle ?? 'solid';
 }
 
