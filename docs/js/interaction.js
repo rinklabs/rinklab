@@ -348,6 +348,13 @@ function initKeyboard() {
       return;
     }
 
+    if (e.key === 'Escape') {
+      State.selected = []; // Or State.selected = null depending on your array setup
+      render();
+      updatePropsPanel();
+      return;
+    }
+
     if ((e.key === 'Delete' || e.key === 'Backspace') && State.selected) {
       deleteSelected();
       return;
@@ -364,6 +371,7 @@ function initToolButtons() {
   document.querySelectorAll('.tool-btn').forEach(btn => {
     btn.addEventListener('click', () => setTool(btn.dataset.tool));
   });
+  State.selected = [];
 }
 
 function setTool(t) {
@@ -372,6 +380,7 @@ function setTool(t) {
     btn.classList.toggle('active', btn.dataset.tool === t);
   });
   canvas.className = t === 'select' ? 'cursor-select' : t === 'text' ? 'cursor-text' : '';
+  State.selected = [];
 }
 
 // ── Toolbar colour / width inputs ────────────────────────────
