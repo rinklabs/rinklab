@@ -1,210 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hockey Drills Lab</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hockey Drills Labs</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Home-specific layout overrides */
+    .hero-section {
+      max-width: 900px;
+      margin: 80px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .mission-statement {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 50px;
+      border-left: 3px solid var(--accent);
+      padding-left: 20px;
+      text-align: left;
+    }
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+    }
+    .hub-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .hub-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--accent);
+    }
+    .hub-card h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
+    .hub-card p {
+      font-size: 14px;
+      color: var(--text);
+      opacity: 0.8;
+    }
+    .extra-space {
+      margin-bottom: 1em; /* Adjust the value as needed (e.g., 20px, 1.5em) */
+    }
+    /* Divider to separate Hub from Motivation */
+    .section-divider {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 40px auto;
+    max-width: 600px;
+    }
+
+    .motivation-section {
+    margin-top: 40px !important;
+    text-align: left !important; /* Makes the long text easier to read */
+    }
+
+    .motivation-section h2 {
+    text-align: center;
+    color: var(--accent);
+    }
+
+    .values-box {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 25px 0;
+    }
+
+    .values-list {
+    margin-top: 15px;
+    list-style: none;
+    padding-left: 0;
+    }
+
+    .values-list li {
+    margin-bottom: 12px;
+    padding-left: 25px;
+    position: relative;
+    }
+
+    .values-list li::before {
+    content: "🏒";
+    position: absolute;
+    left: 0;
+    font-size: 14px;
+    }
+
+    .final-note {
+    font-style: italic;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── Top bar: title + action buttons ──────────────────────── -->
-<div id="top-bar">
-  <span id="logo">🏒 Hockey Drills Lab</span>
-  <input type="text" id="drill-title"
-         placeholder="Drill Title"
-         autocomplete="off"/>
-  <div id="top-actions">
-    <button class="btn btn-toggle" id="btn-toggle">◑ Half Rink</button>
-    <button class="btn btn-secondary" id="btn-load">Load JSON</button>
-    <button class="btn btn-primary"   id="btn-save">Save JSON ↓</button>
-  </div>
-</div>
+  <header id="toolbar">
+    <div id="logo">⬡ HOCKEY DRILLS LAB</div>
+  </header>
 
-<!-- ── Main row: canvas (left, flex) + toolbar (right, fixed) ── -->
-<div id="main-row">
-
-  <!-- Canvas area -->
-  <div id="canvas-wrap">
-    <div id="rink-layer"></div>
-    <canvas id="c"></canvas>
-  </div><!-- /canvas-wrap -->
-
-  <!-- Right toolbar (vertical) -->
-  <div id="toolbar">
-
-    <!-- Tool buttons: 2-column grid -->
-    <div id="tools">
-      <button class="tool-btn active" data-tool="select"  title="Select (V)">⌖</button>
-      <button class="tool-btn"        data-tool="rect"    title="Rectangle (R)">▭</button>
-      <button class="tool-btn"        data-tool="ellipse" title="Ellipse (E)">◯</button>
-      <button class="tool-btn"        data-tool="line"    title="Line (L)">╱</button>
-      <button class="tool-btn"        data-tool="arrow"   title="Arrow (A)">→</button>
-      <button class="tool-btn"        data-tool="text"    title="Text (T)">T</button>
-      <button class="tool-btn"        data-tool="pen"     title="Pen (P)">✏</button>
-      <button class="tool-btn"        data-tool="pylon"   title="Pylon">▲</button>
-      <button class="tool-btn"        data-tool="net"     title="Net">🥅</button>
-      <button class="tool-btn"        data-tool="player"  title="Place Player">🏒</button>
+  <section class="hero-section">
+    <h1>Coaching & Practices, Simplified.</h1>
+    <div class="mission-statement">
+      <p>
+        Volunteer coaching is a challenge; building an intuitive practice plan shouldn't be. 
+        Our mission is to provide amateur youth hockey mentors with free, professional-grade 
+        tools to design skills, collaborate with peers, and lead with confidence. 
+        High impact, lightweight, and always open-source.
+      </p>
     </div>
 
-    <div class="tb-sep"></div>
+    <div class="hub-grid">
+      <a href="canvas.html" class="hub-card">
+        <h2>Drills Lab Canvas</h2>
+        <p>Design custom drills using high-fidelity rink templates. Place players, draw complex patterns, and export clear diagrams for your team.</p>
+      </a>
 
-    <!-- Player type + size -->
-    <div class="tb-group">
-      <span class="tb-label">Player type</span>
-      <select id="player-type">
-        <option value="F">F</option>
-        <option value="D">D</option>
-        <option value="G">G</option>
-        <option value="C">C</option>
-        <option value="W">W</option>
-        <option value="X">X</option>
-        <option value="O">O</option>
-      </select>
+      <a href="generator.html" class="hub-card">
+        <h2>Practice Generator</h2>
+        <p><strong>Coming Soon:</strong> Transform your saved drills into a structured 60-minute practice plan tailored to your team's development goals.</p>
+      </a>
     </div>
-
-    <div class="tb-group">
-      <span class="tb-label">Player size</span>
-      <select id="p-player-size">
-        <option value="24">Small</option>
-        <option value="32" selected>Medium</option>
-        <option value="40">Large</option>
-        <option value="48">X-Large</option>
-      </select>
+    <div class="motivation-box">
+      <h3>Our Motivation</h3>
+      <p>Our goal is simple: <strong>Make sure the kids have enough fun that they want to play again next year.</strong></p>
+      
+      <ul class="values-list">
+        <li><strong>Relentless Effort:</strong> Give your best every single shift.</li>
+        <li><strong>Active Learning:</strong> Listen, engage, and ask questions.</li>
+        <li><strong>Team First:</strong> Support your teammates on and off the ice.</li>
+      </ul>
+      
+      <p style="font-style: italic; opacity: 0.7; font-size: 0.9em;">
+        * This tool is non-profit. No fees should ever be charged for its use.
+      </p>
     </div>
+  </section>
 
-    <div class="tb-sep"></div>
+  <hr class="section-divider">
 
-    <!-- Stroke / fill -->
-    <div class="tb-group">
-      <span class="tb-label">Stroke</span>
-      <input type="color" id="stroke-color" value="#000000"/>
+  <section class="hero-section motivation-section">
+    <h2>Our Motivation</h2>
+    <p class="extra-space">
+      This tool is built by volunteers, for volunteers. We believe coaching resources should be accessible. 
+      All we ask is that this tool remains non-profit: no fees for yourself, your team, or your league. 
+      Our goal is simple: <strong>Make sure the kids have enough fun that they want to play again next year.</strong>
+    </p>
+    
+    <div class="values-box">
+      <p>In house leagues, ice time is precious. We focus on three core pillars for every session:</p>
+      <ul class="values-list">
+          <li><strong>Relentless Effort:</strong> Give your best every single shift.</li>
+          <li><strong>Active Learning:</strong> Listen, engage, and never hesitate to ask "why."</li>
+          <li><strong>Team First:</strong> Support your teammates on and off the ice.</li>
+      </ul>
     </div>
+    
+    <p class="final-note">
+      We hope this makes your coaching journey more rewarding, translating into a better experience for every young player on your roster.
+    </p>
+  </section>
 
-    <div class="tb-group">
-      <span class="tb-label">Fill</span>
-      <div class="tb-inline">
-        <input type="color" id="fill-color" value="#000000"/>
-        <input type="checkbox" id="fill-check" title="Enable fill"/>
-      </div>
-    </div>
-
-    <div class="tb-group">
-      <span class="tb-label">Stroke width</span>
-      <input type="range" id="stroke-width" min="1" max="20" value="2" class="tb-range"/>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <!-- Line style -->
-    <div class="tb-group">
-      <span class="tb-label">Line style</span>
-      <select id="line-style">
-        <option value="solid">— Solid</option>
-        <option value="dashed">-- Dashed</option>
-        <option value="dotted">·· Dotted</option>
-        <option value="wiggle">〜 Wiggle</option>
-      </select>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <button class="btn btn-danger btn-full" id="btn-del"
-            title="Delete selected (Del)">✕ Delete</button>
-
-    <!-- Selected-element properties (shown only when something is selected) -->
-    <div id="props">
-      <div class="tb-sep" style="margin:0 -8px 6px;"></div>
-      <h3>Selected</h3>
-      <div class="prop-row">
-        <label>Stroke</label>
-        <input type="color" id="p-stroke"/>
-      </div>
-      <div class="prop-row" id="row-fill">
-        <label>Fill</label>
-        <input type="checkbox" id="p-fill-check"/>
-        <input type="color" id="p-fill"/>
-      </div>
-      <div class="prop-row" id="row-sw">
-        <label>Width</label>
-        <input type="range" id="p-sw" min="1" max="20"/>
-      </div>
-      <div class="prop-row">
-        <label>Opacity</label>
-        <input type="range" id="p-opacity" min="0" max="100" value="100"/>
-      </div>
-      <div class="prop-row" id="row-font">
-        <label>Font size</label>
-        <input type="number" id="p-font" min="8" max="200" value="20"/>
-      </div>
-      <div class="prop-row" id="row-player-type">
-        <label>Player</label>
-        <select id="p-player-type">
-          <option value="F">F</option>
-          <option value="D">D</option>
-          <option value="G">G</option>
-          <option value="C">C</option>
-          <option value="W">W</option>
-          <option value="X">X</option>
-          <option value="O">O</option>
-        </select>
-        <div class="prop-row" id="row-is-coach" style="display:none;">
-          <label>Circle</label>
-          <input type="checkbox" id="p-is-coach">
-        </div>
-      </div>
-      <div class="prop-row" id="row-line-style">
-        <label>Line style</label>
-        <select id="p-line-style">
-          <option value="solid">— Solid</option>
-          <option value="dashed">-- Dashed</option>
-          <option value="dotted">·· Dotted</option>
-          <option value="wiggle">〜 Wiggle</option>
-        </select>
-      </div>
-    </div>
-
-  </div><!-- /toolbar -->
-
-</div><!-- /main-row -->
-
-<!-- ── Tags: single line under the canvas ───────────────────── -->
-<div id="tags-row">
-  <span class="tb-label">Tags</span>
-  <input type="text" id="drill-tags"
-         placeholder="breakout; forecheck; 2-on-1"/>
-  <span class="meta-hint">(semicolon separated)</span>
-</div>
-
-<!-- ── Description: big box at the bottom ───────────────────── -->
-<div id="desc-row">
-  <textarea id="drill-desc"
-            placeholder="Drill description — coaching points, key cues, variations…"></textarea>
-</div>
-
-<!-- ── Toast + hidden file input ────────────────────────────── -->
-<div id="toast"></div>
-<input type="file" id="file-input" accept=".json" style="display:none"/>
-
-<!-- ── Scripts ───────────────────────────────────────────────── -->
-<script src="js/state.js"></script>
-<script src="js/toast.js"></script>
-<script src="js/rink.js"></script>
-<script src="js/assets.js"></script>
-<script src="js/renderer.js"></script>
-<script src="js/interaction.js"></script>
-<script src="js/io.js"></script>
-<script>
-  window.addEventListener('DOMContentLoaded', async () => {
-    await initRink();
-    await initAssets();
-    initRenderer();     // ResizeObserver fires immediately + sizes canvas
-    initInteraction();
-    initIO();
-    // rAF ensures the browser has finished layout before we paint
-    requestAnimationFrame(render);
-  });
-</script>
-
+  <div id="toast"></div>
 </body>
 </html>

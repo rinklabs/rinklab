@@ -329,6 +329,47 @@ select:focus { outline: none; border-color: var(--accent); }
 }
 #drill-desc:focus { border-color: var(--accent); }
 
+/* Specific for Landing/Home pages only */
+.scroll-layout {
+  height: auto !important;
+  overflow-y: auto !important;
+  display: block !important;
+  background: var(--bg);
+}
+
+.motivation-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  padding: 30px;
+  border-radius: 8px;
+  margin: 40px 0;
+  text-align: left;
+}
+
+.motivation-box h3 {
+  color: var(--accent);
+  margin-top: 0;
+}
+
+.values-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.values-list li {
+  padding: 10px 0 10px 30px;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.values-list li::before {
+  content: "🏒";
+  position: absolute;
+  left: 0;
+}
+
 /* ── Toast ───────────────────────────────────────────────────── */
 #toast {
   position:       fixed;
