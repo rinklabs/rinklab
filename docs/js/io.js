@@ -8,6 +8,18 @@ function initIO() {
     document.getElementById('file-input').click();
   });
   document.getElementById('file-input').addEventListener('change', loadJSON);
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    if (!confirm('Clear the canvas? This cannot be undone.')) return;
+    State.elements  = [];
+    State.selected  = null;
+    // Reset metadata fields
+    document.getElementById('drill-title').value = '';
+    document.getElementById('drill-tags').value  = '';
+    document.getElementById('drill-desc').value  = '';
+    updatePropsPanel();
+    render();
+    showToast('Canvas cleared');
+  });
 }
 
 // ── Save ─────────────────────────────────────────────────────
