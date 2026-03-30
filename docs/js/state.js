@@ -57,12 +57,12 @@ function uid() {
 function toExcalidrawType(t) {
   return { rect: 'rectangle', pen: 'freedraw', arrow: 'arrow',
            ellipse: 'ellipse', line: 'line', text: 'text',
-           player: 'player' ,pylon: 'pylon', net: 'net'}[t] ?? 'rectangle';
+           player: 'player' ,pylon: 'pylon', net: 'net', puck: 'puck'}[t] ?? 'rectangle';
 }
 
 /** Serialized type → internal type */
 function fromExcalidrawType(t) {
   return { rectangle: 'rect', freedraw: 'pen', arrow: 'arrow',
            ellipse: 'ellipse', line: 'line', text: 'text',
-           player: 'player', pylon: 'pylon', net: 'net' }[t] ?? 'rect';
+           player: 'player', pylon: 'pylon', net: 'net', puck: 'puck' }[t] ?? 'rect';
 }

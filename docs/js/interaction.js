@@ -64,6 +64,10 @@ function hitEl(el, x, y) {
       const r = playerRadius(el) + 4;   // matches the selection circle
       return Math.hypot(x - el.x, y - el.y) <= r;
     }
+    case 'puck': {
+      const r = (el.r ?? 12) + 4;
+      return Math.hypot(x - el.x, y - el.y) <= r;
+    }
     default: return false;
   }
 }
@@ -183,6 +187,22 @@ function onMouseDown(e) {
       h:           H,
       strokeColor: State.defStroke,
       fillColor:   '#4488cc',    // ice-blue default
+      opacity:     100,
+    };
+    State.elements.push(el);
+    State.selected = el.id;
+    updatePropsPanel();
+    render();
+    return;
+  }
+
+  if (State.tool === 'puck') {
+    const el = {
+      id:          uid(),
+      type:        'puck',
+      x,
+      y,
+      r:           12,           // default radius in px
       opacity:     100,
     };
     State.elements.push(el);
@@ -547,6 +567,11 @@ function applyResize(el, handle, origEl, dx, dy) {
 
   if (el.type === 'player' && handle === 'scale') {
     el.fontSize = Math.max(10, Math.round(origEl.fontSize + (dx + dy) / 2));
+    return;
+  }
+
+  if (el.type === 'puck' && handle === 'scale') {
+    el.r = Math.max(4, Math.round((origEl.r ?? 12) + (dx + dy) / 2));
     return;
   }
 

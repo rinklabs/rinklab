@@ -111,6 +111,9 @@ function serializeElement(el) {
     base.backgroundColor = el.fillColor ?? 'transparent';
     base.fillStyle       = el.fillColor ? 'solid' : 'hachure';
   }
+  if (el.type === 'puck') {
+    base.r = el.r ?? 12;
+  }
 
   return base;
 }
@@ -168,6 +171,7 @@ function deserializeElement(el) {
     fontSize:    el.fontSize    ?? (el.type === 'player' ? 32 : 20),
     lineStyle:   el.lineStyle   ?? 'solid',
     angle:       el.angle       ?? 0,
+    r:           el.r           ?? 12,
     x:           el.x,
     y:           el.y,
     w:           el.width       ?? 0,

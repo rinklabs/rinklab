@@ -55,6 +55,7 @@ function drawElement(el, selected) {
     case 'player':  drawPlayer(el);  break;
     case 'pylon':   drawPylon(el);   break;
     case 'net':     drawNet(el);     break;
+    case 'puck':    drawPuck(el);    break;
   }
 
   ctx.restore();
@@ -212,7 +213,20 @@ function drawNet(el) {
   }
 }
 
-// ── Selection handles ────────────────────────────────────────
+function drawPuck(el) {
+  const r = 6;
+  // Black rubber disc with a subtle highlight ring
+  ctx.beginPath();
+  ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#111111';
+  ctx.fill();
+  // Thin highlight ring so it reads against dark backgrounds
+  ctx.beginPath();
+  ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = '#444444';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
 const HANDLE_R     = 5;    // half-size of resize handle squares
 const HANDLE_HIT_R = 9;    // hit-detection radius (slightly larger for usability)
 const ROT_OFFSET   = 22;   // px above element top for rotation handle
@@ -227,7 +241,19 @@ function drawSelection(el) {
   const resizeH  = handles.filter(h => h.id !== 'rot');
 
   // ── Dashed bounding outline ──────────────────────────
-  const hasBox = !['line', 'arrow', 'player'].includes(el.type);
+  const hasBox = !['line', 'arrow', 'player', 'puck'].includes(el.type);
+
+  // Puck gets a dashed circle (same pattern as player)
+  if (el.type === 'puck') {
+    const r = el.r ?? 12;
+    ctx.strokeStyle = '#ff6b35';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, r + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 
   // Player gets a dashed circle instead of a rect
   if (el.type === 'player') {
@@ -423,7 +449,7 @@ function penBounds(pts) {
 
 /** Returns the visual center of an element in screen space (unaffected by angle). */
 function getElementCenter(el) {
-  if (el.type === 'player') return { x: el.x, y: el.y };
+  if (el.type === 'player' || el.type === 'puck') return { x: el.x, y: el.y };
   if (el.type === 'pen') {
     const bb = penBounds(el.points);
     return { x: bb.x + bb.w / 2, y: bb.y + bb.h / 2 };
@@ -452,6 +478,13 @@ function getElementHandles(el) {
       { id: 'p1', x: el.x,        y: el.y },
       { id: 'p2', x: el.x + el.w, y: el.y + el.h },
     ];
+  }
+
+  // Puck — scale handle on circle edge at bottom-right (45°)
+  if (el.type === 'puck') {
+    const r   = el.r ?? 12;
+    const off = r / Math.SQRT2;
+    return [{ id: 'scale', x: el.x + off, y: el.y + off }];
   }
 
   // Player — scale handle on the circle edge at bottom-right (45°)
