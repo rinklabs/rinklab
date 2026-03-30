@@ -672,25 +672,27 @@ function flipSelection(axis = 'horizontal') {
   render();
 }
 
-function rotateSelection(angleDeg = 90) {
+function rotateSelection(degrees) {
   const bounds = getSelectionBounds();
   if (!bounds) return;
 
-  const rad = (angleDeg * Math.PI) / 180;
+  const rad = (degrees * Math.PI) / 180;
   const ids = Array.from(State.multiSelected);
+  if (State.selected) ids.push(State.selected);
 
   State.elements.forEach(el => {
     if (ids.includes(el.id)) {
-      // 1. Rotate the position relative to group center
-      const nx = bounds.cx + (el.x - bounds.cx) * Math.cos(rad) - (el.y - bounds.cy) * Math.sin(rad);
-      const ny = bounds.cy + (el.x - bounds.cx) * Math.sin(rad) + (el.y - bounds.cy) * Math.cos(rad);
+      // 1. Rotate the position [x, y] around group center [cx, cy]
+      const dx = el.x - bounds.cx;
+      const dy = el.y - bounds.cy;
       
-      el.x = nx;
-      el.y = ny;
+      el.x = bounds.cx + dx * Math.cos(rad) - dy * Math.sin(rad);
+      el.y = bounds.cy + dx * Math.sin(rad) + dy * Math.cos(rad);
 
-      // 2. Rotate the element's internal orientation
+      // 2. Update the element's own rotation angle
       el.angle = (el.angle || 0) + rad;
     }
   });
+
   render();
 }
