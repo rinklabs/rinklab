@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import json
 import os
-from typing import List
+from typing import List, Any
 
 app = FastAPI()
 
@@ -29,7 +29,7 @@ class DrillData(BaseModel):
     tags: str
     explanation: str
     rinkMode: str
-    canvasState: dict
+    canvasState: List[Any]
 
 @app.post("/save-drill")
 async def save_drill(drill: DrillData):
@@ -57,6 +57,16 @@ async def get_drill(filename: str):
     
     with open(file_path, "r") as f:
         return json.load(f)
+
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "Hockey Drill API is active"}
+
+@app.get("/list-drills")
+def list_drills():
+    if not os.path.exists(DRILLS_DIR):
+        return {"drills": []}
+    return {"drills": os.listdir(DRILLS_DIR)}
 
 if __name__ == "__main__":
     import uvicorn

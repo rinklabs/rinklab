@@ -194,28 +194,24 @@ function deserializeElement(el) {
 }
 
 async function saveToCloud() {
-    // 1. Find your direct Hugging Face URL. 
-    // It usually looks like: https://username-spacename.hf.space
     const HF_URL = "https://imo06-hockey-drill-lab.hf.space";
 
-    // 2. Collect all the data into one object
+    // 1. Gather the data exactly how your app expects it
     const drillPacket = {
-        name: document.getElementById('drillName').value || "Unnamed Drill",
-        tags: document.getElementById('drillTags').value || "",
-        explanation: document.getElementById('drillExplanation').value || "",
-        rinkMode: document.getElementById('rinkView').value,
-        canvasState: canvas.toJSON() // This captures all your players/lines
+        name: document.getElementById('drill-title').value || "Unnamed Drill",
+        tags: document.getElementById('drill-tags').value || "",
+        explanation: document.getElementById('drill-desc').value || "",
+        rinkMode: getRinkView(), // Pulls the current rink setting
+        // CRITICAL: This is the "toJSON" equivalent for your app
+        canvasState: State.elements.map(serializeElement) 
     };
 
-    console.log("Attempting to save...", drillPacket);
+    console.log("Attempting to save to cloud...", drillPacket);
 
     try {
-        // 3. Send the data using "fetch"
         const response = await fetch(`${HF_URL}/save-drill`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(drillPacket)
         });
 
@@ -223,10 +219,13 @@ async function saveToCloud() {
             const result = await response.json();
             alert("Success! " + result.message);
         } else {
-            alert("Server responded with an error. Check Hugging Face Logs.");
+            // This helps you debug if Hugging Face is rejecting the data
+            const errorText = await response.text();
+            console.error("Server Error:", errorText);
+            alert("Server error. Check Hugging Face Logs.");
         }
     } catch (error) {
         console.error("Connection failed:", error);
-        alert("Could not connect to the backend. Is it running?");
+        alert("Could not connect to the backend.");
     }
 }
