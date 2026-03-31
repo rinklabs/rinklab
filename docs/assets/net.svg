@@ -9,23 +9,10 @@
    height="26.954962"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs10">
-    <linearGradient
-       id="linearGradient17"
-       inkscape:collect="always">
-      <stop
-         style="stop-color:#969696;stop-opacity:0.60714287;"
-         offset="0"
-         id="stop17" />
-      <stop
-         style="stop-color:#ffffff;stop-opacity:0;"
-         offset="1"
-         id="stop18" />
-    </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath11">
@@ -37,16 +24,6 @@
          x="17.42845"
          y="29.311485" />
     </clipPath>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient17"
-       id="linearGradient18"
-       x1="6.1298208"
-       y1="24.756323"
-       x2="26.746572"
-       y2="24.756323"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0206478,0,0,0.66549847,-5.6446473,-3.1293458)" />
   </defs>
   <sodipodi:namedview
      id="namedview10"
@@ -58,9 +35,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="5.0492155"
-     inkscape:cx="61.494702"
+     inkscape:cx="61.395676"
      inkscape:cy="33.17347"
-     inkscape:window-width="1272"
+     inkscape:window-width="1261"
      inkscape:window-height="768"
      inkscape:window-x="0"
      inkscape:window-y="33"
@@ -81,6 +58,6 @@
   <!-- Posts (circles at ends of crossbar) -->
   <path
      id="rect17"
-     style="fill:url(#linearGradient18);stroke:#f80429;stroke-width:1.64832;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     style="fill:none;stroke:#f80429;stroke-width:1.64832;stroke-linecap:butt;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
      d="m 4.058535,0.82415998 c -1.791768,0 -3.23437502,1.70472902 -3.23437502,3.82226602 v 17.662109 c 0,2.117537 1.44260702,3.822266 3.23437502,3.822266 h 6.666016 V 0.82415998 Z" />
 </svg>
