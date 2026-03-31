@@ -10,6 +10,8 @@ function initInteraction() {
   initPropsPanel();
   document.getElementById('btn-del').addEventListener('click', deleteSelected);
   document.getElementById('btn-dup').addEventListener('click', duplicateSelected);
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-redo').addEventListener('click', redo);
   // Group interaction
   document.getElementById('btn-group-flip-h').addEventListener('click', () => flipSelection('horizontal'));
   document.getElementById('btn-group-flip-v').addEventListener('click', () => flipSelection('vertical'));
@@ -185,6 +187,7 @@ function onMouseDown(e) {
     };
     State.elements.push(el);
     State.selected = el.id;
+    pushHistory();
     updatePropsPanel();
     render();
     return;
@@ -204,6 +207,7 @@ function onMouseDown(e) {
     };
     State.elements.push(el);
     State.selected = el.id;
+    pushHistory();
     updatePropsPanel();
     render();
     return;
@@ -225,6 +229,7 @@ function onMouseDown(e) {
     };
     State.elements.push(el);
     State.selected = el.id;
+    pushHistory();
     updatePropsPanel();
     render();
     return;
@@ -241,6 +246,7 @@ function onMouseDown(e) {
     };
     State.elements.push(el);
     State.selected = el.id;
+    pushHistory();
     updatePropsPanel();
     render();
     return;
@@ -350,6 +356,7 @@ function onMouseUp(e) {
     State.dragElementSnap  = null;
     State.rotateCenter     = null;
     State.rotateStartAngle = null;
+    pushHistory();
     updatePropsPanel();
     render();
     return;
@@ -368,6 +375,7 @@ function onMouseUp(e) {
                    lineStyle: State.defLineStyle, opacity: 100 };
       State.elements.push(el);
       State.selected = el.id;
+      pushHistory();
     }
     State.penPoints = [];
     render();
@@ -390,6 +398,7 @@ function onMouseUp(e) {
   if (['line', 'arrow'].includes(State.tool)) el.lineStyle = State.defLineStyle;
   State.elements.push(el);
   State.selected = el.id;
+  pushHistory();
   render();
   updatePropsPanel();
 }
@@ -420,6 +429,7 @@ function commitText() {
   State.editingText = null;
   State.textCursor  = '';
   canvas.classList.remove('cursor-text');
+  pushHistory();
   render();
   updatePropsPanel();
 }
@@ -448,6 +458,12 @@ function initKeyboard() {
     if ((e.key === 'd' || e.key === 'D') && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       duplicateSelected();
+      return;
+    }
+
+    if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      e.shiftKey ? redo() : undo();
       return;
     }
 
@@ -596,6 +612,10 @@ function syncPropsToElement() {
   const el = State.elements.find(e => e.id === State.selected);
   if (!el) return;
 
+  // Debounce: don't flood history while dragging a slider
+  clearTimeout(syncPropsToElement._t);
+  syncPropsToElement._t = setTimeout(pushHistory, 400);
+
   el.strokeColor = document.getElementById('p-stroke').value;
   el.opacity     = +document.getElementById('p-opacity').value;
 
@@ -618,6 +638,7 @@ function syncPropsToElement() {
 function deleteSelected() {
   const ids = allSelectedIds();
   if (!ids.length) return;
+  pushHistory();
   State.elements    = State.elements.filter(e => !ids.includes(e.id));
   State.selected    = null;
   State.multiSelected.clear();
@@ -650,6 +671,7 @@ function duplicateSelected() {
     newIds.forEach(id => State.multiSelected.add(id));
     State.selected = newIds[newIds.length - 1];
   }
+  pushHistory();
   updatePropsPanel();
   render();
   showToast(`✓ Duplicated ${newIds.length} element${newIds.length > 1 ? 's' : ''}`);

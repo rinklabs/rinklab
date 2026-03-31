@@ -650,6 +650,7 @@ function getSelectionBounds() {
 function flipSelection(axis = 'horizontal') {
   const bounds = getSelectionBounds();
   if (!bounds) return;
+  pushHistory();
 
   const selectedIds = Array.from(State.multiSelected);
   if (State.selected) selectedIds.push(State.selected);
@@ -675,6 +676,7 @@ function flipSelection(axis = 'horizontal') {
 function rotateSelection(degrees) {
   const bounds = getSelectionBounds();
   if (!bounds) return;
+  pushHistory();
 
   const rad = (degrees * Math.PI) / 180;
   const cos = Math.cos(rad), sin = Math.sin(rad);

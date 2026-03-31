@@ -10,16 +10,21 @@ function initIO() {
   document.getElementById('file-input').addEventListener('change', loadJSON);
   document.getElementById('btn-clear').addEventListener('click', () => {
     if (!confirm('Clear the canvas? This cannot be undone.')) return;
+    pushHistory();   // save current state before wiping
     State.elements  = [];
     State.selected  = null;
-    // Reset metadata fields
+    State.multiSelected.clear();
     document.getElementById('drill-title').value = '';
     document.getElementById('drill-tags').value  = '';
     document.getElementById('drill-desc').value  = '';
+    pushHistory();   // seed the blank state as undoable too
     updatePropsPanel();
     render();
     showToast('Canvas cleared');
   });
+
+  // Seed initial empty-canvas state so Undo can always return here
+  pushHistory();
 }
 
 // ── Save ─────────────────────────────────────────────────────
@@ -152,6 +157,8 @@ async function loadJSON(e) {
       .map(deserializeElement);
 
     State.selected = null;
+    State.multiSelected.clear();
+    pushHistory();
     updatePropsPanel();
     render();
     showToast('✓ Scene loaded');

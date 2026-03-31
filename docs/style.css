@@ -270,6 +270,7 @@ select:focus { outline: none; border-color: var(--accent); }
 .btn-primary:hover   { background: #ff8559; }
 .btn-secondary       { background: transparent; color: #999; border: 1px solid var(--border); }
 .btn-secondary:hover { border-color: #666; color: var(--text); }
+.btn:disabled        { opacity: .35; cursor: not-allowed; pointer-events: none; }
 .btn-danger          { background: transparent; color: #e05a5a; border: 1px solid #e05a5a44; }
 .btn-danger:hover    { background: #e05a5a22; }
 

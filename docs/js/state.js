@@ -58,6 +58,52 @@ function uid() {
 
 // ── Type mapping helpers ─────────────────────────────────────
 
+// ── History (undo / redo) ────────────────────────────────────
+const History = {
+  _stack:  [],   // array of JSON-serialised elements snapshots
+  _cursor: -1,   // points to the current snapshot
+  MAX:     80,   // max steps kept
+};
+
+/** Call before every user mutation. Snapshots current elements array. */
+function pushHistory() {
+  // Discard any "future" states after the current cursor
+  History._stack.splice(History._cursor + 1);
+  History._stack.push(JSON.stringify(State.elements));
+  if (History._stack.length > History.MAX) History._stack.shift();
+  History._cursor = History._stack.length - 1;
+  _updateHistoryButtons();
+}
+
+function undo() {
+  if (History._cursor <= 0) return;
+  History._cursor--;
+  _applySnapshot(History._stack[History._cursor]);
+}
+
+function redo() {
+  if (History._cursor >= History._stack.length - 1) return;
+  History._cursor++;
+  _applySnapshot(History._stack[History._cursor]);
+}
+
+function _applySnapshot(json) {
+  State.elements     = JSON.parse(json);
+  State.selected     = null;
+  State.multiSelected.clear();
+  updatePropsPanel();
+  render();
+  _updateHistoryButtons();
+}
+
+function _updateHistoryButtons() {
+  const u = document.getElementById('btn-undo');
+  const r = document.getElementById('btn-redo');
+  if (!u || !r) return;
+  u.disabled = History._cursor <= 0;
+  r.disabled = History._cursor >= History._stack.length - 1;
+}
+
 /** Internal type → serialized type */
 function toExcalidrawType(t) {
   return { rect: 'rectangle', pen: 'freedraw', arrow: 'arrow',
