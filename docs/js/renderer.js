@@ -158,26 +158,44 @@ function drawPlayer(el) {
   const r     = playerRadius(el);
   const color = el.strokeColor ?? '#000000';
 
-  // Circle outline
+  // Circle outline (coach mode)
   if (el.isCoach) {
     ctx.beginPath();
     ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
     ctx.strokeStyle = color;
-    // Make the coach's circle slightly bolder
-    ctx.lineWidth   = Math.max(2, r * 0.15); 
+    ctx.lineWidth   = Math.max(2, r * 0.15);
     ctx.stroke();
   }
 
-  // Label centred inside — shrink font slightly so it fits within the circle
+  // Main label — shift slightly up-left when a subscript is present
   const label    = el.playerType ?? 'F';
   const fontSize = label.length > 1 ? r * 0.9 : r * 1.1;
+  const hasSubscript = el.subscript != null && el.subscript !== '';
+
+  // Nudge the main label toward top-left to make room
+  const labelOffsetX = hasSubscript ? -r * 0.15 : 0;
+  const labelOffsetY = hasSubscript ? -r * 0.15 : 0;
+
   ctx.font         = `bold ${fontSize}px sans-serif`;
   ctx.fillStyle    = color;
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(label, el.x, el.y);
+  ctx.fillText(label, el.x + labelOffsetX, el.y + labelOffsetY);
 
-  // Reset text props so other draw calls aren't affected
+  // Subscript — bottom-right of the label
+  if (hasSubscript) {
+    const subSize = fontSize * 0.55;
+    const subX    = el.x + r * 0.45;
+    const subY    = el.y + r * 0.45;
+
+    ctx.font         = `bold ${subSize}px sans-serif`;
+    ctx.fillStyle    = color;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(el.subscript), subX, subY);
+  }
+
+  // Reset text props
   ctx.textAlign    = 'left';
   ctx.textBaseline = 'alphabetic';
 }
