@@ -551,7 +551,8 @@ function applyToSelected(key, value) {
 // ── Properties panel ─────────────────────────────────────────
 function initPropsPanel() {
   ['p-stroke', 'p-fill', 'p-sw', 'p-opacity', 'p-font',
-   'p-fill-check', 'p-player-type', 'p-player-size', 'p-line-style'].forEach(id => {
+   'p-fill-check', 'p-player-type', 'p-player-size', 'p-line-style',
+   'prop-subscript'].forEach(id => {
     document.getElementById(id).addEventListener('input',  syncPropsToElement);
     document.getElementById(id).addEventListener('change', syncPropsToElement);
   });
@@ -598,10 +599,11 @@ function updatePropsPanel() {
   document.getElementById('row-line-style').style.display  = isStrokable         ? 'flex' : 'none';
 
   if (isPlayer) {
-    document.getElementById('p-player-type').value = el.playerType ?? 'F';
-    document.getElementById('p-player-size').value = el.fontSize   ?? 32;
-    document.getElementById('p-is-coach').checked = !!el.isCoach;
+    document.getElementById('p-player-type').value  = el.playerType  ?? 'F';
+    document.getElementById('p-player-size').value  = el.fontSize    ?? 32;
+    document.getElementById('p-is-coach').checked   = !!el.isCoach;
     document.getElementById('row-is-coach').style.display = 'flex';
+    document.getElementById('prop-subscript').value = el.subscript   ?? '';
   }
   
   if (isStrokable) document.getElementById('p-line-style').value = el.lineStyle ?? 'solid';
@@ -620,8 +622,10 @@ function syncPropsToElement() {
   el.opacity     = +document.getElementById('p-opacity').value;
 
   if (el.type === 'player') {
-    el.playerType = document.getElementById('p-player-type').value;
-    el.fontSize   = parseInt(document.getElementById('p-player-size').value);
+    el.playerType  = document.getElementById('p-player-type').value;
+    el.fontSize    = parseInt(document.getElementById('p-player-size').value);
+    const subVal   = document.getElementById('prop-subscript').value.trim();
+    el.subscript   = subVal === '' ? null : subVal;
   } else {
     el.fillColor   = document.getElementById('p-fill-check').checked
                      ? document.getElementById('p-fill').value : null;
