@@ -452,6 +452,8 @@ function initKeyboard() {
       State.multiSelected.clear();
       render();
       updatePropsPanel();
+      e.preventDefault();
+      setTool('select');
       return;
     }
 
