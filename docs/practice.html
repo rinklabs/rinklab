@@ -614,41 +614,63 @@ let dragSrcIdx    = null;
 let libDragId     = null;
 
 // ─────────────────────────────────────────────
-//  Mock Library  (replace with fetch('/api/drills'))
+//  Coach (read from localStorage — same key as canvas editor)
 // ─────────────────────────────────────────────
-const MOCK_DRILLS = [
-  { id:'d1',  name:'2-on-1 Rush',       desc:'Offensive zone entry drill' },
-  { id:'d2',  name:'D-to-D Breakout',   desc:'Defensemen breakout passing' },
-  { id:'d3',  name:'Regroup & Attack',  desc:'Neutral zone regroup into attack' },
-  { id:'d4',  name:'Gap Control',       desc:'Defensive gap control progression' },
-  { id:'d5',  name:'Corner Battle',     desc:'1-on-1 puck battle along boards' },
-  { id:'d6',  name:'Puck Protection',   desc:'Power position below the dots' },
-  { id:'d7',  name:'3-on-2 Cycle',      desc:'Offensive zone cycle and support' },
-  { id:'d8',  name:'Penalty Kill Box',  desc:'4-player PK shell positioning' },
-  { id:'d9',  name:'Power Play Setup',  desc:'5-on-4 umbrella formation entry' },
-  { id:'d10', name:'Skating Edges',     desc:'Edge work and crossover warmup' },
-];
+const coach = localStorage.getItem('coach') || '';
 
 // ─────────────────────────────────────────────
 //  Init
 // ─────────────────────────────────────────────
-function init() {
-  drillLibrary = MOCK_DRILLS;
-  renderLibrary();
-  loadFromURL();
+async function init() {
   document.getElementById('practice-date').value = new Date().toISOString().slice(0, 10);
+  loadFromURL();
   updateEmpty();
   updateTimeline();
+  await fetchDrills();
+}
+
+// ─────────────────────────────────────────────
+//  Fetch drills from backend
+// ─────────────────────────────────────────────
+async function fetchDrills() {
+  const el = document.getElementById('drill-library');
+  el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">Loading\u2026</div>`;
+
+  try {
+    const params = coach ? `?coach=${encodeURIComponent(coach)}` : '';
+    const res    = await fetch(`/list-drills${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Normalise to internal shape
+    drillLibrary = (data.drills || []).map(d => ({
+      id:        d.id,
+      name:      d.title,
+      desc:      (d.tags || []).join(', '),
+      tags:      d.tags || [],
+      coach:     d.coach,
+      thumbnail: d.thumbnail || null,
+    }));
+
+    renderLibrary();
+  } catch (err) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:#e05a5a">
+      Could not load drills.<br><span style="color:var(--muted)">${err.message}</span>
+    </div>`;
+  }
 }
 
 // ─────────────────────────────────────────────
 //  Library
 // ─────────────────────────────────────────────
 function renderLibrary(filter = '') {
-  const el    = document.getElementById('drill-library');
-  const f     = filter.toLowerCase();
+  const el = document.getElementById('drill-library');
+  const f  = filter.toLowerCase();
   const items = drillLibrary.filter(d =>
-    !f || d.name.toLowerCase().includes(f) || d.desc.toLowerCase().includes(f)
+    !f ||
+    d.name.toLowerCase().includes(f) ||
+    d.desc.toLowerCase().includes(f) ||
+    (d.coach || '').toLowerCase().includes(f)
   );
 
   if (!items.length) {
@@ -656,26 +678,35 @@ function renderLibrary(filter = '') {
     return;
   }
 
-  el.innerHTML = items.map(d => `
-    <div class="lib-item" draggable="true"
-         ondragstart="libDragStart(event,'${d.id}')"
-         onclick="addFromLibrary('${d.id}')">
-      <div class="lib-icon">🏒</div>
-      <div class="lib-info">
-        <div class="lib-name">${esc(d.name)}</div>
-        <div class="lib-desc">${esc(d.desc)}</div>
-      </div>
-      <button class="lib-add" onclick="event.stopPropagation();addFromLibrary('${d.id}')" title="Add">+</button>
-    </div>
-  `).join('');
+  el.innerHTML = items.map(d => {
+    const iconHtml = d.thumbnail
+      ? `<img src="${d.thumbnail}" style="width:26px;height:26px;object-fit:cover;border-radius:3px;display:block;" />`
+      : `🏒`;
+    const coachLabel = d.coach ? `<span style="color:var(--muted);font-size:9px">${esc(d.coach)}</span>` : '';
+    return `
+      <div class="lib-item" draggable="true"
+           ondragstart="libDragStart(event,${d.id})"
+           onclick="addFromLibrary(${d.id})">
+        <div class="lib-icon" style="${d.thumbnail ? 'padding:0;overflow:hidden;' : ''}">${iconHtml}</div>
+        <div class="lib-info">
+          <div class="lib-name">${esc(d.name)}</div>
+          <div class="lib-desc">${d.desc ? esc(d.desc) : ''} ${coachLabel}</div>
+        </div>
+        <button class="lib-add" onclick="event.stopPropagation();addFromLibrary(${d.id})" title="Add">+</button>
+      </div>`;
+  }).join('');
 }
 
 function filterLibrary(val) { renderLibrary(val); }
 
 function addFromLibrary(id) {
-  const d = drillLibrary.find(x => x.id === id);
+  // id may arrive as number (from API) — use == for loose match
+  const d = drillLibrary.find(x => x.id == id);
   if (!d) return;
-  practiceItems.push({ id: uid(), sourceId: d.id, name: d.name, desc: d.desc, type: 'diagram', duration: 10 });
+  practiceItems.push({
+    id: uid(), sourceId: d.id, name: d.name,
+    desc: d.desc, type: 'diagram', duration: 10,
+  });
   renderList();
   showToast('Added: ' + d.name);
   if (window.innerWidth <= 680) closeSidebar();
@@ -778,7 +809,7 @@ function updateTimeline() {
 //  Drag & Drop
 // ─────────────────────────────────────────────
 function libDragStart(e, id) {
-  libDragId = id;
+  libDragId = +id;  // ensure numeric, matching API response
   e.dataTransfer.effectAllowed = 'copy';
 }
 
@@ -809,7 +840,7 @@ function itemDrop(e, idx) {
   document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('drag-over', 'dragging'));
 
   if (libDragId !== null) {
-    const d = drillLibrary.find(x => x.id === libDragId);
+    const d = drillLibrary.find(x => x.id == libDragId);
     if (d) {
       practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, type: 'diagram', duration: 10 });
       renderList();
