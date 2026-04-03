@@ -1,6 +1,10 @@
 // ─────────────────────────────────────────────────────────────
-//  io.js  —  save / load drill JSON  (local-first)
+//  io.js  —  save / load drill JSON
+//  Saves go to the FastAPI backend at API_BASE, which writes
+//  them into HockeyDrills/drills/ on disk.
 // ─────────────────────────────────────────────────────────────
+
+const API_BASE = 'http://localhost:8000';
 
 function initIO() {
   document.getElementById('btn-save').addEventListener('click', saveJSON);
@@ -8,7 +12,7 @@ function initIO() {
     document.getElementById('file-input').click();
   });
   document.getElementById('file-input').addEventListener('change', loadJSON);
-  document.getElementById('btn-save-local').addEventListener('click', saveToLocal);
+  document.getElementById('btn-save-local').addEventListener('click', saveToServer);
   document.getElementById('btn-library').addEventListener('click', openLibrary);
 
   document.getElementById('btn-clear').addEventListener('click', () => {
@@ -31,14 +35,8 @@ function initIO() {
 
 
 // ─────────────────────────────────────────────────────────────
-//  Save JSON (download)
+//  Scene helpers
 // ─────────────────────────────────────────────────────────────
-
-function saveJSON() {
-  const { scene, slug } = buildScene();
-  downloadJSON(scene, `${slug}.json`);
-  showToast('✓ Scene exported as JSON');
-}
 
 function buildScene() {
   const title = document.getElementById('drill-title').value.trim();
@@ -69,7 +67,7 @@ function buildScene() {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
-  return { scene, slug, title, tags, desc };
+  return { scene, slug };
 }
 
 function serializeElement(el) {
@@ -128,33 +126,6 @@ function serializeElement(el) {
   return base;
 }
 
-function downloadJSON(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  Object.assign(document.createElement('a'), { href: url, download: filename }).click();
-  URL.revokeObjectURL(url);
-}
-
-
-// ─────────────────────────────────────────────────────────────
-//  Load JSON (file picker)
-// ─────────────────────────────────────────────────────────────
-
-async function loadJSON(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  try {
-    const data = JSON.parse(await file.text());
-    applySceneData(data);
-    showToast('✓ Scene loaded');
-  } catch (err) {
-    showToast('✗ Invalid JSON: ' + err.message, true);
-  }
-
-  e.target.value = '';
-}
-
 function deserializeElement(el) {
   return {
     id:          el.id ?? uid(),
@@ -178,21 +149,15 @@ function deserializeElement(el) {
   };
 }
 
-// Shared helper — applies a parsed scene object to the canvas.
 function applySceneData(data) {
   if (data.appState?.rinkView) setRinkView(data.appState.rinkView);
-
   if (data.metadata) {
     const m = data.metadata;
     document.getElementById('drill-title').value = m.title === 'Untitled Drill' ? '' : (m.title ?? '');
     document.getElementById('drill-tags').value  = (m.tags ?? []).join('; ');
     document.getElementById('drill-desc').value  = m.description ?? '';
   }
-
-  State.elements = (data.elements ?? [])
-    .filter(el => !el.isDeleted)
-    .map(deserializeElement);
-
+  State.elements = (data.elements ?? []).filter(el => !el.isDeleted).map(deserializeElement);
   State.selected = null;
   State.multiSelected.clear();
   pushHistory();
@@ -202,103 +167,62 @@ function applySceneData(data) {
 
 
 // ─────────────────────────────────────────────────────────────
-//  Local save — File System Access API with download fallback
+//  Save JSON — browser download (no server needed)
 // ─────────────────────────────────────────────────────────────
 
-// Directory handle is kept for the session so the picker only
-// appears once per page load.
-let _dirHandle = null;
+function saveJSON() {
+  const { scene, slug } = buildScene();
+  const blob = new Blob([JSON.stringify(scene, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), { href: url, download: `${slug}.json` }).click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Scene exported as JSON');
+}
 
-async function getOrPickDir() {
-  if (_dirHandle) return _dirHandle;
-  if (!window.showDirectoryPicker) return null;
+
+// ─────────────────────────────────────────────────────────────
+//  Load JSON — file picker (no server needed)
+// ─────────────────────────────────────────────────────────────
+
+async function loadJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
   try {
-    _dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-    return _dirHandle;
-  } catch {
-    // User cancelled.
-    return null;
+    applySceneData(JSON.parse(await file.text()));
+    showToast('✓ Scene loaded');
+  } catch (err) {
+    showToast('✗ Invalid JSON: ' + err.message, true);
+  }
+  e.target.value = '';
+}
+
+
+// ─────────────────────────────────────────────────────────────
+//  Save to server  →  POST /save-drill
+// ─────────────────────────────────────────────────────────────
+
+async function saveToServer() {
+  const { scene } = buildScene();
+  try {
+    const res = await fetch(`${API_BASE}/save-drill`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(scene),
+    });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    const { filename } = await res.json();
+    showToast(`✓ Saved to drills/${filename}`);
+  } catch (err) {
+    showToast('✗ Could not reach server: ' + err.message, true);
   }
 }
 
-async function saveToLocal() {
-  const { scene, slug, title, tags, desc } = buildScene();
-  const filename = `${slug}-${Date.now()}.json`;
-  const json     = JSON.stringify(scene, null, 2);
-  let   savedViaAPI = false;
-
-  // Try File System Access API (Chrome / Edge).
-  if (window.showDirectoryPicker) {
-    const dir = await getOrPickDir();
-    if (dir) {
-      try {
-        const fileHandle = await dir.getFileHandle(filename, { create: true });
-        const writable   = await fileHandle.createWritable();
-        await writable.write(json);
-        await writable.close();
-        savedViaAPI = true;
-      } catch (err) {
-        showToast('✗ Could not write file: ' + err.message, true);
-        return;
-      }
-    }
-  }
-
-  // Fallback: normal browser download.
-  if (!savedViaAPI) downloadJSON(scene, filename);
-
-  // Always update the localStorage index.
-  indexDrill({
-    title: title || 'Untitled Drill',
-    tags,
-    description: desc,
-    filename,
-    savedAt: scene.metadata.savedAt,
-  });
-
-  showToast(savedViaAPI ? `✓ Saved: ${filename}` : `✓ Downloaded: ${filename}`);
-}
-
 
 // ─────────────────────────────────────────────────────────────
-//  localStorage index  (lightweight "database")
-//  Each entry: { title, tags[], description, filename, savedAt }
-//  The actual JSON lives on disk; this is just the catalogue.
-// ─────────────────────────────────────────────────────────────
-
-const INDEX_KEY = 'drillLab:index';
-
-function getIndex() {
-  try { return JSON.parse(localStorage.getItem(INDEX_KEY)) ?? []; }
-  catch { return []; }
-}
-
-function saveIndex(entries) {
-  localStorage.setItem(INDEX_KEY, JSON.stringify(entries));
-}
-
-function indexDrill(entry) {
-  // Replace existing entry with the same filename, then prepend.
-  const entries = getIndex().filter(e => e.filename !== entry.filename);
-  entries.unshift(entry);
-  saveIndex(entries.slice(0, 200)); // cap at 200
-}
-
-function removeFromIndex(filename) {
-  saveIndex(getIndex().filter(e => e.filename !== filename));
-}
-
-
-// ─────────────────────────────────────────────────────────────
-//  Library panel
+//  Library  →  GET /list-drills, then load via GET /get-drill
 // ─────────────────────────────────────────────────────────────
 
 async function openLibrary() {
-  // Ask for the folder so Load buttons can read files back.
-  // (No-op if already granted this session.)
-  const dir = window.showDirectoryPicker ? await getOrPickDir() : null;
-
-  // Remove any existing panel.
   document.getElementById('drill-library')?.remove();
 
   const modal = document.createElement('div');
@@ -310,8 +234,6 @@ async function openLibrary() {
     z-index: 9999;
   `;
 
-  const entries = getIndex();
-
   const panel = document.createElement('div');
   panel.style.cssText = `
     background: #1e1e2e; color: #cdd6f4;
@@ -321,89 +243,108 @@ async function openLibrary() {
     box-shadow: 0 8px 32px rgba(0,0,0,.6);
   `;
 
-  panel.innerHTML = `
-    <h2 style="margin: 0 0 16px; font-size: 1.1rem;">📂 Drill Library</h2>
-    ${entries.length === 0
-      ? '<p style="color:#6c7086; margin:0">No drills saved yet. Use <strong>💾 Save Local</strong> to add one.</p>'
-      : entries.map(e => `
-          <div class="lib-entry" data-filename="${e.filename}" style="
-            background: #313244; border-radius: 6px; padding: 12px 14px;
-            margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 12px;
-          ">
-            <div style="min-width:0; flex:1;">
-              <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                ${e.title}
-              </strong>
-              <span style="font-size:.8em; color:#a6adc8;">
-                ${e.tags?.length ? e.tags.join(', ') + ' · ' : ''}
-                ${new Date(e.savedAt).toLocaleDateString()}
-              </span>
-            </div>
-            <div style="display:flex; gap:8px; flex-shrink:0;">
-              ${dir
-                ? `<button class="lib-btn-load"
-                     style="background:#89b4fa;color:#1e1e2e;border:none;border-radius:4px;
-                            padding:6px 12px;cursor:pointer;font-size:.85rem;">
-                     Load
-                   </button>`
-                : ''}
-              <button class="lib-btn-del"
-                style="background:#f38ba8;color:#1e1e2e;border:none;border-radius:4px;
-                       padding:6px 10px;cursor:pointer;font-size:.85rem;"
-                title="Remove from library (does not delete the file)">
-                ✕
-              </button>
-            </div>
-          </div>
-        `).join('')
-    }
-    <div style="margin-top:16px; display:flex; justify-content:flex-end;">
-      <button id="lib-close"
-        style="background:#45475a;color:#cdd6f4;border:none;border-radius:4px;
-               padding:8px 18px;cursor:pointer;">
-        Close
-      </button>
-    </div>
-  `;
+  const closeRow = document.createElement('div');
+  closeRow.style.cssText = 'margin-top:16px;display:flex;justify-content:flex-end;';
+  closeRow.innerHTML = `<button id="lib-close"
+    style="background:#45475a;color:#cdd6f4;border:none;border-radius:4px;
+           padding:8px 18px;cursor:pointer;">Close</button>`;
 
+  panel.innerHTML = `<h2 style="margin:0 0 16px;font-size:1.1rem;">📂 Drill Library</h2>`;
+  panel.appendChild(closeRow);
   modal.appendChild(panel);
   document.body.appendChild(modal);
 
-  // Close on backdrop click or Close button.
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
   panel.querySelector('#lib-close').addEventListener('click', () => modal.remove());
 
-  // Wire up Load buttons.
-  panel.querySelectorAll('.lib-btn-load').forEach(btn => {
-    const entry = btn.closest('.lib-entry');
-    btn.addEventListener('click', () => loadFromFolder(entry.dataset.filename));
+  // Loading state
+  const status = Object.assign(document.createElement('p'), {
+    textContent: 'Loading…',
+    style: 'color:#6c7086;margin:0 0 12px;',
   });
+  panel.insertBefore(status, closeRow);
 
-  // Wire up Delete buttons.
-  panel.querySelectorAll('.lib-btn-del').forEach(btn => {
-    const entry = btn.closest('.lib-entry');
-    btn.addEventListener('click', () => {
-      removeFromIndex(entry.dataset.filename);
-      entry.remove();
-      showToast('Removed from library');
+  let drills;
+  try {
+    const res = await fetch(`${API_BASE}/list-drills`);
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    ({ drills } = await res.json());
+  } catch (err) {
+    status.textContent = '✗ Could not reach server: ' + err.message;
+    return;
+  }
+
+  status.remove();
+
+  if (drills.length === 0) {
+    panel.insertBefore(
+      Object.assign(document.createElement('p'), {
+        textContent: 'No drills saved yet. Use 💾 Save Local to add one.',
+        style: 'color:#6c7086;margin:0 0 12px;',
+      }),
+      closeRow
+    );
+    return;
+  }
+
+  drills.forEach(({ filename, title, tags, savedAt }) => {
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: #313244; border-radius: 6px; padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    `;
+    card.innerHTML = `
+      <div style="min-width:0;flex:1;">
+        <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${title}
+        </strong>
+        <span style="font-size:.8em;color:#a6adc8;">
+          ${tags?.length ? tags.join(', ') + ' · ' : ''}
+          ${savedAt ? new Date(savedAt).toLocaleDateString() : ''}
+        </span>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="lib-btn-load"
+          style="background:#89b4fa;color:#1e1e2e;border:none;border-radius:4px;
+                 padding:6px 12px;cursor:pointer;font-size:.85rem;">Load</button>
+        <button class="lib-btn-del"
+          style="background:#f38ba8;color:#1e1e2e;border:none;border-radius:4px;
+                 padding:6px 10px;cursor:pointer;font-size:.85rem;"
+          title="Delete from disk">✕</button>
+      </div>
+    `;
+
+    card.querySelector('.lib-btn-load').addEventListener('click', async () => {
+      await loadFromServer(filename);
+      modal.remove();
     });
+
+    card.querySelector('.lib-btn-del').addEventListener('click', async () => {
+      if (!confirm(`Delete "${title}" from disk?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/delete-drill/${encodeURIComponent(filename)}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        card.remove();
+        showToast(`Deleted ${filename}`);
+      } catch (err) {
+        showToast('✗ Could not delete: ' + err.message, true);
+      }
+    });
+
+    panel.insertBefore(card, closeRow);
   });
 }
 
-async function loadFromFolder(filename) {
-  const dir = await getOrPickDir();
-  if (!dir) return showToast('✗ No folder selected', true);
-
+async function loadFromServer(filename) {
   try {
-    const fileHandle = await dir.getFileHandle(filename);
-    const file       = await fileHandle.getFile();
-    const data       = JSON.parse(await file.text());
-    applySceneData(data);
-    document.getElementById('drill-library')?.remove();
+    const res = await fetch(`${API_BASE}/get-drill/${encodeURIComponent(filename)}`);
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    applySceneData(await res.json());
     showToast(`✓ Loaded: ${filename}`);
   } catch (err) {
-    showToast('✗ Could not read file: ' + err.message, true);
+    showToast('✗ Could not load: ' + err.message, true);
   }
 }
