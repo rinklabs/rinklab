@@ -12,7 +12,6 @@
       display: block !important;
     }
 
-    /* ── Coach selector ───────────────────────────────────────── */
     #coach-selector {
       max-width: 900px;
       margin: 32px auto 0;
@@ -30,32 +29,12 @@
       padding: 16px 24px;
     }
 
-    #coach-banner .welcome-text {
-      font-size: 15px;
-      color: var(--muted);
-    }
-
-    #coach-banner .welcome-text strong {
-      color: var(--text);
-      font-size: 17px;
-    }
-
-    #coach-banner .change-link {
-      font-size: 13px;
-      color: var(--accent);
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      text-decoration: underline;
-    }
-
-    /* First-visit prompt */
     #coach-prompt {
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+      width: 100%;
     }
 
     #coach-prompt label {
@@ -64,15 +43,6 @@
       white-space: nowrap;
     }
 
-    /* Shared styles for both dropdown and future text input */
-    #coach-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-
-    #coach-select,
     #coach-text {
       flex: 1;
       min-width: 180px;
@@ -84,13 +54,35 @@
       font-size: 14px;
     }
 
-    #coach-confirm {
-      padding: 8px 18px;
-      font-size: 14px;
-      white-space: nowrap;
+    #coach-confirm { padding: 8px 18px; font-size: 14px; white-space: nowrap; }
+
+    #coach-error {
+      font-size: 13px;
+      color: #f38ba8;
+      display: none;
+      width: 100%;
+      margin-top: 4px;
     }
 
-    /* ── Rest of page ─────────────────────────────────────────── */
+    #coach-greeting {
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .welcome-text { font-size: 15px; color: var(--muted); }
+    .welcome-text strong { color: var(--text); font-size: 17px; }
+
+    .change-link {
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+    }
+
     .hero-section {
       max-width: 900px;
       margin: 40px auto;
@@ -123,22 +115,9 @@
       transition: transform 0.2s, border-color 0.2s;
     }
 
-    .hub-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--accent);
-    }
-
-    .hub-card h2 {
-      color: var(--accent);
-      margin-bottom: 15px;
-      font-size: 22px;
-    }
-
-    .hub-card p {
-      font-size: 14px;
-      color: var(--text);
-      opacity: 0.8;
-    }
+    .hub-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+    .hub-card h2 { color: var(--accent); margin-bottom: 15px; font-size: 22px; }
+    .hub-card p  { font-size: 14px; color: var(--text); opacity: 0.8; }
 
     .section-divider {
       border: 0;
@@ -148,50 +127,22 @@
       max-width: 600px;
     }
 
-    .motivation-section {
-      margin-top: 40px !important;
-      text-align: left !important;
-    }
-
-    .motivation-section h2 {
-      text-align: center;
-      color: var(--accent);
-    }
+    .motivation-section { margin-top: 40px !important; text-align: left !important; }
+    .motivation-section h2 { text-align: center; color: var(--accent); }
 
     .values-box {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255,255,255,.03);
       padding: 25px;
       border-radius: 8px;
       border: 1px solid var(--border);
       margin: 25px 0;
     }
 
-    .values-list {
-      margin-top: 15px;
-      list-style: none;
-      padding-left: 0;
-    }
+    .values-list { margin-top: 15px; list-style: none; padding-left: 0; }
+    .values-list li { margin-bottom: 12px; padding-left: 25px; position: relative; }
+    .values-list li::before { content: "🏒"; position: absolute; left: 0; font-size: 14px; }
 
-    .values-list li {
-      margin-bottom: 12px;
-      padding-left: 25px;
-      position: relative;
-    }
-
-    .values-list li::before {
-      content: "🏒";
-      position: absolute;
-      left: 0;
-      font-size: 14px;
-    }
-
-    .final-note {
-      font-style: italic;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 30px;
-    }
-
+    .final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
     .extra-space { margin-bottom: 1em; }
   </style>
 </head>
@@ -201,22 +152,23 @@
     <div id="logo">⬡ HOCKEY DRILLS LAB</div>
   </header>
 
-  <!-- ── Coach identity banner ──────────────────────────────── -->
+  <!-- ── Coach identity ─────────────────────────────────────── -->
   <div id="coach-selector">
     <div id="coach-banner">
 
-      <!-- Shown when no coach is set yet -->
-      <div id="coach-prompt" style="width:100%;">
-        <label for="coach-input-wrap">Who are you?</label>
-        <div id="coach-input-wrap">
-          <!-- Populated by JS: dropdown (roster) or text input (self-register) -->
-        </div>
+      <!-- First visit: type your name -->
+      <div id="coach-prompt">
+        <label for="coach-text">Who are you?</label>
+        <input type="text" id="coach-text"
+               placeholder="Enter your name"
+               autocomplete="off"
+               spellcheck="false"/>
         <button class="btn btn-primary" id="coach-confirm">Let's go →</button>
+        <span id="coach-error">Name not recognised — please try again.</span>
       </div>
 
-      <!-- Shown once a coach is identified -->
-      <div id="coach-greeting" style="display:none; width:100%;
-           display:none; justify-content:space-between; align-items:center;">
+      <!-- Return visit: welcome back -->
+      <div id="coach-greeting" style="display:none;">
         <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
         <button class="change-link" id="coach-change">Not you?</button>
       </div>
@@ -241,7 +193,6 @@
         <h2>Drills Lab Canvas</h2>
         <p>Design custom drills using high-fidelity rink templates. Place players, draw complex patterns, and export clear diagrams for your team.</p>
       </a>
-
       <a href="generator.html" class="hub-card">
         <h2>Practice Generator</h2>
         <p><strong>Coming Soon:</strong> Transform your saved drills into a structured 60-minute practice plan tailored to your team's development goals.</p>
@@ -258,7 +209,6 @@
       All we ask is that this tool remains non-profit: no fees for yourself, your team, or your league.
       Our goal is simple: <strong>Make sure the kids have enough fun that they want to play again next year.</strong>
     </p>
-
     <div class="values-box">
       <p>In house leagues, ice time is precious. We focus on three core pillars for every session:</p>
       <ul class="values-list">
@@ -267,7 +217,6 @@
         <li><strong>Team First:</strong> Support your teammates on and off the ice.</li>
       </ul>
     </div>
-
     <p class="final-note">
       We hope this makes your coaching journey more rewarding, translating into a better experience for every young player on your roster.
     </p>
@@ -276,118 +225,82 @@
   <div id="toast"></div>
 
   <script>
-    // ── Config ────────────────────────────────────────────────
     const API_BASE    = 'http://localhost:8000';
     const STORAGE_KEY = 'drillLab:coach';
 
-    // ── Elements ──────────────────────────────────────────────
-    const prompt      = document.getElementById('coach-prompt');
-    const greeting    = document.getElementById('coach-greeting');
-    const greetName   = document.getElementById('coach-greeting-name');
-    const inputWrap   = document.getElementById('coach-input-wrap');
-    const confirmBtn  = document.getElementById('coach-confirm');
-    const changeBtn   = document.getElementById('coach-change');
-
-    // ── Roster fetch & UI build ───────────────────────────────
-    async function initCoachUI() {
-      const stored = localStorage.getItem(STORAGE_KEY) || '';
-
-      let cfg = { allow_self_register: false, coaches: [] };
-      try {
-        const res = await fetch(`${API_BASE}/coaches`);
-        if (res.ok) cfg = await res.json();
-      } catch {
-        // Server unreachable — fall back gracefully to self-register
-        cfg.allow_self_register = true;
-      }
-
-      buildInput(cfg);
-
-      if (stored) {
-        showGreeting(stored);
-      } else {
-        showPrompt();
-      }
-    }
-
-    /**
-     * Builds either a <select> (fixed roster) or <input type="text">
-     * (self-register) inside #coach-input-wrap.
-     *
-     * To switch modes in the future, flip allow_self_register in
-     * coaches.json — no JS changes needed.
-     */
-    function buildInput(cfg) {
-      inputWrap.innerHTML = '';
-
-      if (cfg.allow_self_register) {
-        // ── Future: free-text entry ───────────────────────────
-        const input   = document.createElement('input');
-        input.type    = 'text';
-        input.id      = 'coach-text';
-        input.placeholder = 'Your name';
-        input.autocomplete = 'off';
-        input.addEventListener('keydown', e => {
-          if (e.key === 'Enter') confirmCoach();
-        });
-        inputWrap.appendChild(input);
-      } else {
-        // ── Now: dropdown from roster ─────────────────────────
-        const select  = document.createElement('select');
-        select.id     = 'coach-select';
-
-        const blank   = document.createElement('option');
-        blank.value   = '';
-        blank.textContent = '— Select your name —';
-        blank.disabled = true;
-        blank.selected = true;
-        select.appendChild(blank);
-
-        cfg.coaches.forEach(name => {
-          const opt = document.createElement('option');
-          opt.value = name;
-          opt.textContent = name;
-          select.appendChild(opt);
-        });
-
-        inputWrap.appendChild(select);
-      }
-    }
-
-    function getInputValue() {
-      const sel  = document.getElementById('coach-select');
-      const text = document.getElementById('coach-text');
-      return (sel?.value || text?.value || '').trim();
-    }
-
-    function confirmCoach() {
-      const name = getInputValue();
-      if (!name) return;
-      localStorage.setItem(STORAGE_KEY, name);
-      showGreeting(name);
-    }
+    const promptEl   = document.getElementById('coach-prompt');
+    const greetingEl = document.getElementById('coach-greeting');
+    const greetName  = document.getElementById('coach-greeting-name');
+    const textInput  = document.getElementById('coach-text');
+    const confirmBtn = document.getElementById('coach-confirm');
+    const changeBtn  = document.getElementById('coach-change');
+    const errorEl    = document.getElementById('coach-error');
 
     function showGreeting(name) {
-      greetName.textContent = name;
-      prompt.style.display   = 'none';
-      greeting.style.display = 'flex';
+      greetName.textContent    = name;
+      promptEl.style.display   = 'none';
+      greetingEl.style.display = 'flex';
     }
 
     function showPrompt() {
-      prompt.style.display   = 'flex';
-      greeting.style.display = 'none';
+      promptEl.style.display   = 'flex';
+      greetingEl.style.display = 'none';
+      errorEl.style.display    = 'none';
+      textInput.value          = '';
+      textInput.focus();
     }
 
-    // ── Events ────────────────────────────────────────────────
-    confirmBtn.addEventListener('click', confirmCoach);
+    async function confirmCoach() {
+      const name = textInput.value.trim();
+      if (!name) return;
 
+      errorEl.style.display = 'none';
+      confirmBtn.disabled   = true;
+      confirmBtn.textContent = 'Checking…';
+
+      try {
+        // Validate by attempting a lightweight check:
+        // POST to /save-drill would be too destructive for a check,
+        // so we use a dedicated /check-coach endpoint.
+        const res = await fetch(`${API_BASE}/check-coach`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ coach: name }),
+        });
+
+        if (res.ok) {
+          localStorage.setItem(STORAGE_KEY, name);
+          showGreeting(name);
+        } else {
+          errorEl.style.display = 'inline';
+          textInput.select();
+        }
+      } catch {
+        // Server unreachable — accept anyway so the page isn't broken locally
+        localStorage.setItem(STORAGE_KEY, name);
+        showGreeting(name);
+      } finally {
+        confirmBtn.disabled    = false;
+        confirmBtn.textContent = "Let's go →";
+      }
+    }
+
+    confirmBtn.addEventListener('click', confirmCoach);
+    textInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmCoach();
+    });
     changeBtn.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
       showPrompt();
     });
 
-    // ── Boot ──────────────────────────────────────────────────
-    initCoachUI();
+    // Boot
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      showGreeting(stored);
+    } else {
+      showPrompt();
+    }
   </script>
 
 </body>

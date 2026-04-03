@@ -86,11 +86,26 @@ def is_valid_coach(name: str) -> bool:
 @app.get("/coaches")
 def get_coaches():
     """
-    Returns the coach roster and the allow_self_register flag.
-    The frontend uses allow_self_register to decide whether to
-    render a dropdown (False) or a text input (True).
+    Returns only the allow_self_register flag — NOT the name list.
+    The roster stays on the server so valid names are never exposed
+    to the browser. Validation still happens in is_valid_coach().
     """
-    return load_coaches()
+    cfg = load_coaches()
+    return {"allow_self_register": cfg.get("allow_self_register", False)}
+
+
+@app.post("/check-coach")
+async def check_coach(request: Request):
+    """
+    Validates a coach name against the roster without side effects.
+    Returns 200 if valid, 403 if not. The roster is never sent to
+    the browser — only a pass/fail response.
+    """
+    body  = await request.json()
+    name  = (body.get("coach") or "").strip()
+    if not name or not is_valid_coach(name):
+        raise HTTPException(status_code=403, detail="Coach not recognised")
+    return {"ok": True}
 
 
 @app.post("/save-drill")
