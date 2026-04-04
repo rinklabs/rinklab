@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Practice Generator | Rink Draw</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <style>
     /* ── Page-specific styles (style.css variables used throughout) ── */
 
@@ -554,25 +555,27 @@
 
       .pc-drill-img-cell {
         display: table-cell;
-        width: 92mm;
-        padding: 5pt;
-        background: #f7f9fb;
+        width: 105mm; /* Adjusted width for rink */
+        height: 60mm; /* Fixed height for consistency */
+        padding: 0;
+        background: #fff; /* Clean white background */
         border-right: 1pt solid #d0d8e0;
         vertical-align: middle;
-        text-align: center;
+        position: relative;
+        overflow: hidden;
       }
-      .pc-drill-img-cell img {
-        max-width: 90mm;
-        max-height: 68mm;
-        width: auto;
-        height: auto;
+      
+      .pc-drill-img-cell svg {
+        width: 100%;
+        height: 100%;
         display: block;
-        margin: 0 auto;
       }
+
       .pc-no-img {
         font-size: 8pt; color: #bbb;
         padding: 20pt 0;
         font-style: italic;
+        text-align: center;
       }
 
       .pc-drill-desc-cell {
@@ -623,7 +626,6 @@
 </head>
 <body>
 
-  <!-- ── Top Bar ── -->
   <div id="top-bar">
     <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -643,16 +645,13 @@
     </div>
   </div>
 
-  <!-- ── App Shell ── -->
   <div class="pg-shell">
 
     <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
 
-    <!-- ── Sidebar ── -->
     <aside id="pg-sidebar">
       <button class="sb-close" onclick="closeSidebar()">✕</button>
 
-      <!-- Quick Drill -->
       <div class="sb-section">
         <span class="tb-label">Quick Drill</span>
         <input class="sb-input" id="qd-name" type="text" placeholder="Drill name…" maxlength="60" />
@@ -660,7 +659,6 @@
         <button class="btn btn-secondary btn-full" onclick="addQuickDrill()">+ Add to Practice</button>
       </div>
 
-      <!-- Library -->
       <div class="sb-section">
         <span class="tb-label">Drill Library</span>
         <div class="search-wrap">
@@ -674,16 +672,13 @@
       <div id="drill-library"></div>
     </aside>
 
-    <!-- ── Main ── -->
     <div id="pg-main">
 
-      <!-- Print-only header (legacy, unused) -->
       <div class="print-only" style="display:none">
         <h2 id="print-title">Practice Plan</h2>
         <p id="print-meta"></p>
       </div>
 
-      <!-- Meta strip -->
       <div id="pg-meta">
         <div class="meta-field">
           <span class="tb-label">Date</span>
@@ -710,7 +705,6 @@
         </div>
       </div>
 
-      <!-- List -->
       <div id="pg-list-wrap">
         <div id="practice-list"></div>
         <div id="practice-empty">
@@ -723,7 +717,6 @@
         </div>
       </div>
 
-      <!-- Timeline -->
       <div id="pg-timeline">
         <div id="timeline-track">
           <div id="timeline-fill" style="width:0%"></div>
@@ -735,7 +728,6 @@
     </div>
   </div>
 
-  <!-- Share Modal -->
   <div class="modal-backdrop" id="share-modal" style="display:none">
     <div class="modal">
       <h3>Share Practice</h3>
@@ -750,8 +742,8 @@
     </div>
   </div>
 
-  <!-- Rich print container — populated by exportPDF() -->
   <div id="print-container"></div>
+
 
   <div id="toast"></div>
 
@@ -816,6 +808,7 @@ async function fetchDrills() {
       tags:      d.tags || [],
       coach:     d.coach,
       thumbnail: d.thumbnail || null,
+      jsonData:  d.canvas_json || null // Need to store the JSON data if provided
     }));
 
     renderLibrary();
@@ -877,20 +870,29 @@ async function addFromLibrary(id) {
   const d = drillLibrary.find(x => x.id == id);
   if (!d) return;
 
-  // Fetch full scene to get the description from metadata
   let desc = '';
+  let jsonData = d.jsonData;
+  
   try {
     const res  = await fetch(`/get-drill/${d.id}`);
     if (res.ok) {
       const scene = await res.json();
       desc = scene?.metadata?.description || scene?.description || '';
+      
+      // Handle different potential FastAPI JSON response structures
+      if (scene.canvas_json) {
+         jsonData = scene.canvas_json;
+      } else if (scene.objects) { 
+         // If the API returns the raw Fabric.js JSON directly
+         jsonData = scene;
+      }
     }
-  } catch (_) { /* fall through — no description */ }
+  } catch (_) { /* fall through */ }
 
   practiceItems.push({
     id: uid(), sourceId: d.id, name: d.name,
     desc, tags: d.tags || [], thumbnail: d.thumbnail || null,
-    type: 'diagram', duration: 10,
+    jsonData: jsonData, type: 'diagram', duration: 10,
   });
   renderList();
   showToast('Added: ' + d.name);
@@ -1027,7 +1029,7 @@ function itemDrop(e, idx) {
   if (libDragId !== null) {
     const d = drillLibrary.find(x => x.id == libDragId);
     if (d) {
-      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, type: 'diagram', duration: 10 });
+      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, jsonData: d.jsonData || null, type: 'diagram', duration: 10 });
       renderList();
       showToast('Added: ' + d.name);
     }
@@ -1062,7 +1064,6 @@ function getPracticeData() {
 }
 
 function savePractice() {
-  // TODO: POST /api/practices
   localStorage.setItem('hdl_last_practice', JSON.stringify({ id: 'practice_' + Date.now(), ...getPracticeData() }));
   showToast('Practice saved!');
 }
@@ -1093,7 +1094,55 @@ function loadFromURL() {
   } catch (e) { showToast('Could not load from link', true); }
 }
 
-function exportPDF() {
+// Helper to generate SVG from Fabric JSON
+async function generateSVGFromData(item) {
+    if (!item.jsonData) {
+        return `<div class="pc-no-img">No JSON data. Please remove and re-add this drill from the sidebar.</div>`;
+    }
+
+    return new Promise((resolve) => {
+        // FIX: Create an isolated, in-memory canvas for each drill.
+        const canvasEl = document.createElement('canvas');
+        canvasEl.width = 800; 
+        canvasEl.height = 340; 
+        const tempCanvas = new fabric.StaticCanvas(canvasEl);
+
+        tempCanvas.loadFromJSON(item.jsonData, () => {
+             let objectsSVG = tempCanvas.toSVG({
+                viewBox: { x: 0, y: 0, width: tempCanvas.width, height: tempCanvas.height }
+             });
+             
+             // NOTE: If your rink.svg is NOT inside an "assets" folder, change this to fetch('rink.svg')
+             fetch('assets/rink.svg')
+                .then(res => {
+                    if (!res.ok) throw new Error("Rink SVG not found");
+                    return res.text();
+                })
+                .then(rinkSVGData => {
+                     const parser = new DOMParser();
+                     const svgDoc = parser.parseFromString(rinkSVGData, "image/svg+xml");
+                     const svgElement = svgDoc.documentElement;
+                     
+                     const fabricDoc = parser.parseFromString(objectsSVG, "image/svg+xml");
+                     const fabricElements = Array.from(fabricDoc.documentElement.childNodes);
+                     
+                     fabricElements.forEach(node => {
+                         svgElement.appendChild(node.cloneNode(true));
+                     });
+
+                     resolve(svgElement.outerHTML);
+                     tempCanvas.dispose();
+                })
+                .catch(err => {
+                    console.error("Error loading rink SVG:", err);
+                    resolve(`<div class="pc-no-img">Error loading rink template. Check path.</div>`);
+                    tempCanvas.dispose();
+                });
+        });
+    });
+}
+
+async function exportPDF() {
   const data  = getPracticeData();
   const total = practiceItems.reduce((s, x) => s + x.duration, 0);
 
@@ -1134,7 +1183,9 @@ function exportPDF() {
     </table>`;
 
   // ── Drill cards ──
-  const drillCards = practiceItems.map((item, i) => {
+  
+  // We need to await the generation of SVGs for all diagram items
+  const drillCardPromises = practiceItems.map(async (item, i) => {
     const tagPills = (item.tags || []).map(t =>
       `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
 
@@ -1152,11 +1203,14 @@ function exportPDF() {
       </div>`;
 
     // Image cell (diagram drills only)
+    let imgCellContent = '';
+    if (item.type === 'diagram') {
+         imgCellContent = await generateSVGFromData(item);
+    }
+
     const imgCell = item.type === 'diagram' ? `
       <td class="pc-drill-img-cell">
-        ${item.thumbnail
-          ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
-          : `<div class="pc-no-img">No diagram saved</div>`}
+        ${imgCellContent}
       </td>` : '';
 
     // Description cell — render line breaks as <br>
@@ -1175,7 +1229,10 @@ function exportPDF() {
       <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
         ${bar}${body}
       </div>`;
-  }).join('');
+  });
+
+  const drillCardsArray = await Promise.all(drillCardPromises);
+  const drillCards = drillCardsArray.join('');
 
   document.getElementById('print-container').innerHTML =
     pageHeader + summaryTable +
