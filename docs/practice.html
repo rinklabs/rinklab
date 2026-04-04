@@ -1091,69 +1091,45 @@ function loadFromURL() {
 }
 
 function exportPDF() {
-  const data  = getPracticeData();
-  const total = practiceItems.reduce((s, x) => s + x.duration, 0);
+  const data = getPracticeData();
+  const total = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
 
-  // ── Page header ──
-  const metaCells = [
-    data.date ? `<span><span class="pc-meta-lbl">Date:</span> ${esc(data.date)}</span>` : '',
-    data.team ? `<span><span class="pc-meta-lbl">Team:</span> ${esc(data.team)}</span>` : '',
-    `<span><span class="pc-meta-lbl">Duration:</span> ${total} min</span>`,
-    `<span><span class="pc-meta-lbl">Target:</span> ${data.target} min</span>`,
-  ].filter(Boolean).join('');
-
+  // 1. GENERATE THE MISSING PAGE HEADER
   const pageHeader = `
     <div class="pc-page-header">
       <h1>${esc(data.name)}</h1>
-      <div class="pc-meta-row">${metaCells}</div>
+      <div class="pc-meta-row">
+        <span><span class="pc-meta-lbl">Date:</span> ${esc(data.date)}</span>
+        <span><span class="pc-meta-lbl">Team:</span> ${esc(data.team)}</span>
+        <span><span class="pc-meta-lbl">Duration:</span> ${total} / ${data.target} min</span>
+      </div>
     </div>`;
 
-  // ── Summary table ──
-  const summaryRows = practiceItems.map((item, i) => {
-    const tags = (item.tags || []).map(t =>
-      `<span class="pc-summary-tag">${esc(t)}</span>`).join('');
-    const typeLabel = item.type === 'quick'
-      ? `<span class="pc-summary-quick">Quick drill</span>` : tags;
-    return `<tr>
+  // 2. GENERATE THE MISSING SUMMARY TABLE
+  const summaryRows = practiceItems.map((item, i) => `
+    <tr>
       <td class="pc-summary-num">${i + 1}</td>
       <td class="pc-summary-name">${esc(item.name)}</td>
-      <td>${typeLabel}</td>
+      <td>${item.type === 'quick' ? 'Quick Drill' : (item.tags || []).join(', ')}</td>
       <td>${item.duration} min</td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 
   const summaryTable = `
     <table class="pc-summary">
-      <thead><tr>
-        <th>#</th><th>Drill</th><th>Tags</th><th>Duration</th>
-      </tr></thead>
+      <thead><tr><th>#</th><th>Drill</th><th>Tags</th><th>Time</th></tr></thead>
       <tbody>${summaryRows}</tbody>
     </table>`;
 
-  // ── Drill cards ──
+  // 3. GENERATE DRILL CARDS
   const drillCards = practiceItems.map((item, i) => {
     const tagPills = (item.tags || []).map(t =>
       `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
 
-    const bar = `
-      <div class="pc-drill-bar">
-        <div class="pc-drill-bar-left">
-          <span class="pc-drill-num">${i + 1}.</span>
-          <span class="pc-drill-title">${esc(item.name)}</span>
-          ${tagPills}
-        </div>
-        <div class="pc-drill-bar-right">
-          <span class="pc-drill-time">${item.duration}</span>
-          <span class="pc-drill-time-lbl">min</span>
-        </div>
-      </div>`;
-
-    // Diagram drills: embed the stored high-res thumbnail
     const imgCell = item.type === 'diagram' ? `
       <td class="pc-drill-img-cell">
         ${item.thumbnail
-          ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
-          : `<div class="pc-no-img">No diagram — re-save this drill from the canvas.</div>`}
+          ? `<img src="${item.thumbnail}" style="width:100%; display:block;" />`
+          : `<div class="pc-no-img">No diagram available.</div>`}
       </td>` : '';
 
     const descHtml = item.desc
@@ -1162,23 +1138,36 @@ function exportPDF() {
 
     return `
       <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
-        ${bar}
+        <div class="pc-drill-bar">
+          <div class="pc-drill-bar-left">
+            <span class="pc-drill-num">${i + 1}.</span>
+            <span class="pc-drill-title">${esc(item.name)}</span>
+            ${tagPills}
+          </div>
+          <div class="pc-drill-bar-right">${item.duration} min</div>
+        </div>
         <table class="pc-drill-body">
           <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
         </table>
       </div>`;
   }).join('');
 
-  document.getElementById('print-container').innerHTML =
-    pageHeader + summaryTable +
-    `<div class="pc-section-label">Drill Details</div>` +
-    drillCards;
+  // 4. INJECT AND PRINT
+  const container = document.getElementById('print-container');
+  container.innerHTML = pageHeader + summaryTable + `<div class="pc-section-label">Drill Details</div>` + drillCards;
 
-  window.print();
+  const images = container.getElementsByTagName('img');
+  const promises = Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+  });
 
-  setTimeout(() => {
-    document.getElementById('print-container').innerHTML = '';
-  }, 1200);
+  Promise.all(promises).then(() => {
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { container.innerHTML = ''; }, 500);
+    }, 250);
+  });
 }
 
 // ─────────────────────────────────────────────
