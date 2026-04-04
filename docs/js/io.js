@@ -37,57 +37,60 @@ async function captureThumbnail() {
   const source = document.getElementById('c');
   if (!source || source.width === 0) return null;
 
-  // 2× source canvas resolution, capped at 1500px wide
   const scale = Math.min(2, 1500 / source.width);
-  const W = Math.round(source.width  * scale);
+  const W = Math.round(source.width * scale);
   const H = Math.round(source.height * scale);
 
   const offscreen = document.createElement('canvas');
-  offscreen.width  = W;
+  offscreen.width = W;
   offscreen.height = H;
   const ctx = offscreen.getContext('2d');
 
-  // ── Step 1: draw the rink ──────────────────────────────────
-  // Always fetch and inject explicit width/height into the SVG root
-  // tag — without these attributes, drawImage() silently draws nothing
-  // even if the SVG renders fine in the DOM via CSS.
+  // 1. FILL BACKGROUND WHITE FIRST
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. DRAW THE RINK
   let rinkDrawn = false;
   try {
-    const res = await fetch('rink.svg');
+    // We use a cache-busting fetch to ensure we get the latest SVG
+    const res = await fetch('assets/rink.svg', { cache: 'no-cache' });
     if (res.ok) {
       const svgText = await res.text();
-      // Inject width + height onto the root <svg> element.
-      // [^>]*? matches across newlines (Inkscape SVGs have multiline tags).
-      const sized = svgText.replace(
-        /(<svg\b[^>]*?)(\s*>)/,
-        `$1 width="${W}" height="${H}"$2`
+      // Inject dimensions so the browser knows how to scale it
+      const sizedSvg = svgText.replace(
+        /<svg/,
+        `<svg width="${W}" height="${H}"`
       );
-      await new Promise(resolve => {
-        const blob = new Blob([sized], { type: 'image/svg+xml' });
-        const url  = URL.createObjectURL(blob);
-        const img  = new Image();
+      
+      await new Promise((resolve) => {
+        const blob = new Blob([sizedSvg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
         img.onload = () => {
           ctx.drawImage(img, 0, 0, W, H);
           URL.revokeObjectURL(url);
           rinkDrawn = true;
           resolve();
         };
-        img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+        img.onerror = resolve;
         img.src = url;
       });
     }
-  } catch (_) { /* ignore network errors */ }
-
-  if (!rinkDrawn) {
-    // Ultimate fallback: plain ice colour so thumbnail is never blank
-    ctx.fillStyle = '#e8f0f8';
-    ctx.fillRect(0, 0, W, H);
+  } catch (e) {
+    console.error("Rink overlay failed:", e);
   }
 
-  // ── Step 2: draw drill elements on top ────────────────────
+  // 3. DRAW DRILLS ON TOP (The "Multiply" Fix)
+  // This ensures that if your source canvas has a white background, 
+  // it doesn't wipe out the rink lines.
+  ctx.globalCompositeOperation = 'multiply'; 
   ctx.drawImage(source, 0, 0, W, H);
+  
+  // Reset for safety
+  ctx.globalCompositeOperation = 'source-over';
 
-  return offscreen.toDataURL('image/jpeg', 0.93);
+  return offscreen.toDataURL('image/jpeg', 0.8);
 }
 
 
