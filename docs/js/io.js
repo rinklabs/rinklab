@@ -23,27 +23,71 @@ function initCoachField() {
 
 
 // ─────────────────────────────────────────────────────────────
-//  Thumbnail — captures the canvas as a small JPEG data-URL.
-//  Drawn with a pale ice-blue background so the rink context
-//  is implied even though the rink SVG layer isn't on the canvas.
+//  Thumbnail — composites the rink SVG + drill canvas at 2×
+//  the source canvas resolution for crisp print quality.
+//
+//  Two bugs are avoided here:
+//  1. SVGs without explicit width/height on the root <svg> element
+//     fail silently in drawImage() on all browsers — we inject them.
+//  2. Output size must match source canvas aspect ratio (not the
+//     rink's natural SVG size) so element positions stay correct.
 // ─────────────────────────────────────────────────────────────
 
-function captureThumbnail() {
+async function captureThumbnail() {
   const source = document.getElementById('c');
   if (!source || source.width === 0) return null;
 
-  const MAX_W = 280, MAX_H = 175;
-  const scale  = Math.min(MAX_W / source.width, MAX_H / source.height);
-  const thumb  = document.createElement('canvas');
-  thumb.width  = Math.round(source.width  * scale);
-  thumb.height = Math.round(source.height * scale);
+  // 2× source canvas resolution, capped at 1500px wide
+  const scale = Math.min(2, 1500 / source.width);
+  const W = Math.round(source.width  * scale);
+  const H = Math.round(source.height * scale);
 
-  const ctx = thumb.getContext('2d');
-  ctx.fillStyle = '#c8dff0';          // pale ice-blue background
-  ctx.fillRect(0, 0, thumb.width, thumb.height);
-  ctx.drawImage(source, 0, 0, thumb.width, thumb.height);
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = W;
+  offscreen.height = H;
+  const ctx = offscreen.getContext('2d');
 
-  return thumb.toDataURL('image/jpeg', 0.75);
+  // ── Step 1: draw the rink ──────────────────────────────────
+  // Always fetch and inject explicit width/height into the SVG root
+  // tag — without these attributes, drawImage() silently draws nothing
+  // even if the SVG renders fine in the DOM via CSS.
+  let rinkDrawn = false;
+  try {
+    const res = await fetch('rink.svg');
+    if (res.ok) {
+      const svgText = await res.text();
+      // Inject width + height onto the root <svg> element.
+      // [^>]*? matches across newlines (Inkscape SVGs have multiline tags).
+      const sized = svgText.replace(
+        /(<svg\b[^>]*?)(\s*>)/,
+        `$1 width="${W}" height="${H}"$2`
+      );
+      await new Promise(resolve => {
+        const blob = new Blob([sized], { type: 'image/svg+xml' });
+        const url  = URL.createObjectURL(blob);
+        const img  = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, W, H);
+          URL.revokeObjectURL(url);
+          rinkDrawn = true;
+          resolve();
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+        img.src = url;
+      });
+    }
+  } catch (_) { /* ignore network errors */ }
+
+  if (!rinkDrawn) {
+    // Ultimate fallback: plain ice colour so thumbnail is never blank
+    ctx.fillStyle = '#e8f0f8';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ── Step 2: draw drill elements on top ────────────────────
+  ctx.drawImage(source, 0, 0, W, H);
+
+  return offscreen.toDataURL('image/jpeg', 0.93);
 }
 
 
@@ -261,7 +305,7 @@ async function saveToServer() {
   }
 
   const { scene }   = buildScene();
-  const thumbnail   = captureThumbnail();
+  const thumbnail   = await captureThumbnail();
 
   try {
     const res = await fetch(`${API_BASE}/save-drill`, {

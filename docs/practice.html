@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Practice Generator | Rink Draw</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <style>
     /* ── Page-specific styles (style.css variables used throughout) ── */
 
@@ -555,19 +554,16 @@
 
       .pc-drill-img-cell {
         display: table-cell;
-        width: 105mm; /* Adjusted width for rink */
-        height: 60mm; /* Fixed height for consistency */
+        width: 115mm;
         padding: 0;
-        background: #fff; /* Clean white background */
+        background: #fff;
         border-right: 1pt solid #d0d8e0;
-        vertical-align: middle;
-        position: relative;
-        overflow: hidden;
+        vertical-align: top;
       }
-      
-      .pc-drill-img-cell svg {
+
+      .pc-drill-img-cell img {
         width: 100%;
-        height: 100%;
+        height: auto;
         display: block;
       }
 
@@ -1094,55 +1090,7 @@ function loadFromURL() {
   } catch (e) { showToast('Could not load from link', true); }
 }
 
-// Helper to generate SVG from Fabric JSON
-async function generateSVGFromData(item) {
-    if (!item.jsonData) {
-        return `<div class="pc-no-img">No JSON data. Please remove and re-add this drill from the sidebar.</div>`;
-    }
-
-    return new Promise((resolve) => {
-        // FIX: Create an isolated, in-memory canvas for each drill.
-        const canvasEl = document.createElement('canvas');
-        canvasEl.width = 800; 
-        canvasEl.height = 340; 
-        const tempCanvas = new fabric.StaticCanvas(canvasEl);
-
-        tempCanvas.loadFromJSON(item.jsonData, () => {
-             let objectsSVG = tempCanvas.toSVG({
-                viewBox: { x: 0, y: 0, width: tempCanvas.width, height: tempCanvas.height }
-             });
-             
-             // NOTE: If your rink.svg is NOT inside an "assets" folder, change this to fetch('rink.svg')
-             fetch('assets/rink.svg')
-                .then(res => {
-                    if (!res.ok) throw new Error("Rink SVG not found");
-                    return res.text();
-                })
-                .then(rinkSVGData => {
-                     const parser = new DOMParser();
-                     const svgDoc = parser.parseFromString(rinkSVGData, "image/svg+xml");
-                     const svgElement = svgDoc.documentElement;
-                     
-                     const fabricDoc = parser.parseFromString(objectsSVG, "image/svg+xml");
-                     const fabricElements = Array.from(fabricDoc.documentElement.childNodes);
-                     
-                     fabricElements.forEach(node => {
-                         svgElement.appendChild(node.cloneNode(true));
-                     });
-
-                     resolve(svgElement.outerHTML);
-                     tempCanvas.dispose();
-                })
-                .catch(err => {
-                    console.error("Error loading rink SVG:", err);
-                    resolve(`<div class="pc-no-img">Error loading rink template. Check path.</div>`);
-                    tempCanvas.dispose();
-                });
-        });
-    });
-}
-
-async function exportPDF() {
+function exportPDF() {
   const data  = getPracticeData();
   const total = practiceItems.reduce((s, x) => s + x.duration, 0);
 
@@ -1183,9 +1131,7 @@ async function exportPDF() {
     </table>`;
 
   // ── Drill cards ──
-  
-  // We need to await the generation of SVGs for all diagram items
-  const drillCardPromises = practiceItems.map(async (item, i) => {
+  const drillCards = practiceItems.map((item, i) => {
     const tagPills = (item.tags || []).map(t =>
       `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
 
@@ -1202,37 +1148,26 @@ async function exportPDF() {
         </div>
       </div>`;
 
-    // Image cell (diagram drills only)
-    let imgCellContent = '';
-    if (item.type === 'diagram') {
-         imgCellContent = await generateSVGFromData(item);
-    }
-
+    // Diagram drills: embed the stored high-res thumbnail
     const imgCell = item.type === 'diagram' ? `
       <td class="pc-drill-img-cell">
-        ${imgCellContent}
+        ${item.thumbnail
+          ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
+          : `<div class="pc-no-img">No diagram — re-save this drill from the canvas.</div>`}
       </td>` : '';
 
-    // Description cell — render line breaks as <br>
     const descHtml = item.desc
       ? item.desc.split(/\n|<br>/i).map(l => `<p>${esc(l)}</p>`).join('')
       : `<p style="color:#aaa;font-style:italic">No description provided.</p>`;
 
-    const descCell = `<td class="pc-drill-desc-cell">${descHtml}</td>`;
-
-    const body = `
-      <table class="pc-drill-body">
-        <tr>${imgCell}${descCell}</tr>
-      </table>`;
-
     return `
       <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
-        ${bar}${body}
+        ${bar}
+        <table class="pc-drill-body">
+          <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
+        </table>
       </div>`;
-  });
-
-  const drillCardsArray = await Promise.all(drillCardPromises);
-  const drillCards = drillCardsArray.join('');
+  }).join('');
 
   document.getElementById('print-container').innerHTML =
     pageHeader + summaryTable +
