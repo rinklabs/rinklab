@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Values and Motivation | Rink Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+      display: block !important;
+    }
+
+    #coach-selector {
+      max-width: 900px;
+      margin: 32px auto 0;
+      padding: 0 20px;
+    }
+
+    #coach-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 24px;
+    }
+
+    #coach-prompt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    #coach-prompt label {
+      font-size: 15px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    #coach-text {
+      flex: 1;
+      min-width: 180px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    #coach-confirm { padding: 8px 18px; font-size: 14px; white-space: nowrap; }
+
+    #coach-error {
+      font-size: 13px;
+      color: #f38ba8;
+      display: none;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    #coach-greeting {
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .welcome-text { font-size: 15px; color: var(--muted); }
+    .welcome-text strong { color: var(--text); font-size: 17px; }
+
+    .change-link {
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    .hero-section {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .mission-statement {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 50px;
+      border-left: 3px solid var(--accent);
+      padding-left: 20px;
+      text-align: left;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+    }
+
+    .hub-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .hub-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+    .hub-card h2 { color: var(--accent); margin-bottom: 15px; font-size: 22px; }
+    .hub-card p  { font-size: 14px; color: var(--text); opacity: 0.8; }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 40px auto;
+      max-width: 600px;
+    }
+
+    .motivation-section { margin-top: 40px !important; text-align: left !important; }
+    .motivation-section h2 { text-align: center; color: var(--accent); }
+
+    .values-box {
+      background: rgba(255,255,255,.03);
+      padding: 25px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin: 25px 0;
+    }
+
+    .values-list { margin-top: 15px; list-style: none; padding-left: 0; }
+    .values-list li { margin-bottom: 12px; padding-left: 25px; position: relative; }
+    .values-list li::before { content: "🏒"; position: absolute; left: 0; font-size: 14px; }
+
+    .final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
+    .extra-space { margin-bottom: 1em; }
+  </style>
+</head>
+<body class="scroll-layout">
+
+
+  <hr class="section-divider">
+
+  <section class="hero-section motivation-section">
+    <h2>Our Values</h2>
+    <p class="extra-space">
+      This tool is built by volunteers, for volunteers. We believe coaching resources should be accessible.
+      All we ask is that this tool remains non-profit: no fees for yourself, your team, or your league.
+      Our goal is simple: <strong>We want kids to learn, improve, and continue playing hockey!</strong>
+    </p>
+    <h2>Our Motivation</h2>
+    <p class="extra-space">
+      Playing house league hockey has taught us so much. How to support your teammates, how to respect your oppounents.
+      How to behave when you win. How to behave when you lose. It's also given us lasting friendships, and safe places.
+      We're parents, we're neighbours, and we're coaches to young peoples learning how to be adults.
+      <br><br>
+      We know the challenge of creating a practice plan. Having grown up in house leagues ourselves, we understand 
+      the rink is more than just ice. We built this lab to ensure every coach has the resources to create a high-quality, 
+      collaborative environment without the hurdle of expensive software.
+    </p>
+    <div class="values-box">
+      <p>In house leagues, practices. We focus on three core pillars for every session:</p>
+      <ul class="values-list">
+        <li><strong>Relentless Effort:</strong> Compete on Every Puck. We value perfect effort over perfect performance.</li>
+        <li><strong>Active Learning:</strong> Coachability. Listen with intent and engage with the game.</li>
+        <li><strong>Team First:</strong> Support your teammates on the ice and in the locker room.</li>
+      </ul>
+    </div>
+    <p class="final-note">
+      We hope this makes your coaching journey more rewarding for every players and coaches. See you at the rink!
+    </p>
+  </section>
+
+  <div id="toast"></div>
+
+</body>
+</html>
