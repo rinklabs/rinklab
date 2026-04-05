@@ -89,8 +89,9 @@ def title_to_slug(title: str) -> str:
 
 def load_coaches() -> dict:
     try:
-        with open(COACHES_FILE) as f:
-            return json.load(f)
+        coaches_raw = os.environ.get("COACHES_JSON", "{}")
+        coaches = json.loads(coaches_raw)
+        return coaches
     except FileNotFoundError:
         return {"allow_self_register": False, "coaches": []} 
 
