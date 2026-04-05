@@ -31,24 +31,21 @@
 
 <!-- ── Top bar ───────────────────────────────────────────────── -->
 <div id="top-bar">
+  <a href="index.html" class="btn btn-secondary">← Hub</a>
   <span id="logo">🏒 Drill Lab Canvas</span>
   <input type="text" id="drill-title"
          placeholder="Drill Title"
          autocomplete="off"/>
   <div id="top-actions">
-    <a href="index.html" class="btn btn-secondary">⬡ Home</a>
-    <button class="btn btn-toggle" id="btn-toggle">◑ Half Rink</button>
-    <button class="btn btn-secondary" id="btn-load">Load JSON</button>
-    <button class="btn btn-primary"   id="btn-save">Save JSON ↓</button>
+    <button class="btn btn-outline" id="btn-load">Load JSON</button>
+    <button class="btn btn-outline"   id="btn-save">Save JSON</button> 
     <button class="btn btn-primary"   id="btn-save-local">💾 Save</button>
-    <button class="btn btn-secondary" id="btn-library">📂 Library</button>
-    <button class="btn btn-danger"    id="btn-clear">✕ Clear</button>
+    <button class="btn btn-primary" id="btn-library">📂 Library</button>
   </div>
-  <!-- Read-only coach indicator; editing happens on the home page -->
   <div id="coach-indicator">
     Saving as: <strong id="coach-indicator-name">—</strong>
-    <a href="index.html" title="Change coach on the home page">Change</a>
   </div>
+
 </div>
 
 <!-- ── Main row ──────────────────────────────────────────────── -->
@@ -60,7 +57,8 @@
   </div>
 
   <div id="toolbar">
-
+      <button class="btn btn-full btn-secondary" id="btn-toggle">◑ Half Rink</button>
+      <button class="btn btn-full btn-danger" id="btn-clear">✕ Clear Canvas</button>
     <div id="tools">
       <button class="tool-btn active" data-tool="select"  title="Select (V)">⌖</button>
       <button class="tool-btn"        data-tool="rect"    title="Rectangle (R)">▭</button>

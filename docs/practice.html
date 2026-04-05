@@ -254,11 +254,11 @@
     .practice-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      gap: 12px;
+      padding: 20px 40px; 
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       transition: border-color .1s;
       animation: fadeUp .15s ease;
     }
@@ -270,13 +270,13 @@
     .practice-item.dragging  { opacity: .3; }
 
     .item-num {
-      font-size: 10px; color: var(--muted);
+      font-size: 18px; color: var(--muted);
       width: 14px; text-align: right; flex-shrink: 0;
     }
 
     .drag-handle {
       color: var(--muted); cursor: grab; flex-shrink: 0;
-      font-size: 13px; letter-spacing: -1px; line-height: 1;
+      font-size: 18px; letter-spacing: -1px; line-height: 1;
     }
     .drag-handle:active { cursor: grabbing; }
 
@@ -285,18 +285,18 @@
       border-radius: 3px;
       border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; flex-shrink: 0;
+      font-size: 20px; flex-shrink: 0;
     }
     .item-icon.type-diagram { border-color: #ff6b3540; background: #ff6b3510; }
     .item-icon.type-quick   { border-color: var(--border); background: var(--hover); }
 
     .item-info { flex: 1; min-width: 0; }
     .item-name {
-      font-size: 11px; font-weight: 700; color: var(--text);
+      font-size: 20px; font-weight: 700; color: var(--text);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .item-desc {
-      font-size: 10px; color: var(--muted);
+      font-size: 16px; color: var(--muted);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .item-tag {
@@ -312,17 +312,17 @@
       display: flex; align-items: center; gap: 3px; flex-shrink: 0;
     }
     .item-time input {
-      width: 42px;
+      width: 54px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 3px;
       color: var(--accent);
       font-family: inherit;
-      font-size: 13px; font-weight: 700;
-      padding: 2px 4px; text-align: center; outline: none;
+      font-size: 16px; font-weight: 700;
+      padding: 4px 4px; text-align: center; outline: none;
     }
     .item-time input:focus { border-color: var(--accent); }
-    .item-time-lbl { font-size: 9px; color: var(--muted); }
+    .item-time-lbl { font-size: 16px; color: var(--muted); }
 
     .item-remove {
       width: 22px; height: 22px;
