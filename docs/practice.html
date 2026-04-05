@@ -554,12 +554,15 @@
 
       .pc-drill-img-cell {
         display: table-cell;
-        width: 115mm;
         padding: 0;
         background: #fff;
         border-right: 1pt solid #d0d8e0;
         vertical-align: top;
       }
+      /* Full rink is ~2.15:1 — wider column */
+      .pc-drill-img-cell.rink-full { width: 120mm; }
+      /* Half rink is ~1.09:1 — narrower square-ish column */
+      .pc-drill-img-cell.rink-half { width: 72mm; }
 
       .pc-drill-img-cell img {
         width: 100%;
@@ -867,28 +870,21 @@ async function addFromLibrary(id) {
   if (!d) return;
 
   let desc = '';
-  let jsonData = d.jsonData;
+  let rinkView = 'half'; // default; overwritten by fetched scene below
   
   try {
     const res  = await fetch(`/get-drill/${d.id}`);
     if (res.ok) {
       const scene = await res.json();
       desc = scene?.metadata?.description || scene?.description || '';
-      
-      // Handle different potential FastAPI JSON response structures
-      if (scene.canvas_json) {
-         jsonData = scene.canvas_json;
-      } else if (scene.objects) { 
-         // If the API returns the raw Fabric.js JSON directly
-         jsonData = scene;
-      }
+      rinkView = scene?.appState?.rinkView || 'half';
     }
   } catch (_) { /* fall through */ }
 
   practiceItems.push({
     id: uid(), sourceId: d.id, name: d.name,
     desc, tags: d.tags || [], thumbnail: d.thumbnail || null,
-    jsonData: jsonData, type: 'diagram', duration: 10,
+    rinkView, type: 'diagram', duration: 10,
   });
   renderList();
   showToast('Added: ' + d.name);
@@ -1025,7 +1021,7 @@ function itemDrop(e, idx) {
   if (libDragId !== null) {
     const d = drillLibrary.find(x => x.id == libDragId);
     if (d) {
-      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, jsonData: d.jsonData || null, type: 'diagram', duration: 10 });
+      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
       renderList();
       showToast('Added: ' + d.name);
     }
@@ -1125,11 +1121,12 @@ function exportPDF() {
     const tagPills = (item.tags || []).map(t =>
       `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
 
+    const rinkClass = (item.rinkView === 'full') ? 'rink-full' : 'rink-half';
     const imgCell = item.type === 'diagram' ? `
-      <td class="pc-drill-img-cell">
+      <td class="pc-drill-img-cell ${rinkClass}">
         ${item.thumbnail
-          ? `<img src="${item.thumbnail}" style="width:100%; display:block;" />`
-          : `<div class="pc-no-img">No diagram available.</div>`}
+          ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
+          : `<div class="pc-no-img">No diagram — re-save this drill from the canvas.</div>`}
       </td>` : '';
 
     const descHtml = item.desc

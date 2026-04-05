@@ -42,56 +42,64 @@ async function captureThumbnail() {
   const H = Math.round(source.height * scale);
 
   const offscreen = document.createElement('canvas');
-  offscreen.width = W;
+  offscreen.width  = W;
   offscreen.height = H;
   const ctx = offscreen.getContext('2d');
 
-  // 1. FILL BACKGROUND WHITE FIRST
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
-
-  // 2. DRAW THE RINK
+  // ── Draw the rink ────────────────────────────────────────────
+  // Serialise the live DOM SVG rather than fetching the file.
+  // This avoids two bugs that silently break canvas drawImage():
+  //   1. Inkscape SVGs have an <?xml?> prolog that Chrome refuses
+  //      to render when the SVG is loaded as a blob: URL image.
+  //   2. File-fetched SVGs can have duplicate/missing attributes.
+  // The DOM SVG is already proven to render on screen and
+  // automatically reflects the current half/full rink state.
   let rinkDrawn = false;
-  try {
-    // We use a cache-busting fetch to ensure we get the latest SVG
-    const res = await fetch('assets/rink.svg', { cache: 'no-cache' });
-    if (res.ok) {
-      const svgText = await res.text();
-      // Inject dimensions so the browser knows how to scale it
-      const sizedSvg = svgText.replace(
-        /<svg/,
-        `<svg width="${W}" height="${H}"`
-      );
-      
-      await new Promise((resolve) => {
-        const blob = new Blob([sizedSvg], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const img = new Image();
+  const liveSvg = document.querySelector('#rink-layer svg');
+  if (liveSvg) {
+    await new Promise(resolve => {
+      try {
+        // XMLSerializer never emits an <?xml?> prolog
+        let svgStr = new XMLSerializer().serializeToString(liveSvg);
+
+        // Inject explicit pixel size — SVGs without width/height
+        // attributes draw as 0x0 on canvas even with a viewBox
+        svgStr = svgStr.replace(
+          /(<svg\b[^>]*?)(\s*>)/,
+          `$1 width="${W}" height="${H}"$2`
+        );
+
+        const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+        const url  = URL.createObjectURL(blob);
+        const img  = new Image();
         img.onload = () => {
           ctx.drawImage(img, 0, 0, W, H);
           URL.revokeObjectURL(url);
           rinkDrawn = true;
           resolve();
         };
-        img.onerror = resolve;
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
         img.src = url;
-      });
-    }
-  } catch (e) {
-    console.error("Rink overlay failed:", e);
+      } catch (e) {
+        console.warn('captureThumbnail: SVG serialise failed', e);
+        resolve();
+      }
+    });
   }
 
-  // 3. DRAW DRILLS ON TOP (The "Multiply" Fix)
-  // This ensures that if your source canvas has a white background, 
-  // it doesn't wipe out the rink lines.
-  ctx.globalCompositeOperation = 'multiply'; 
-  ctx.drawImage(source, 0, 0, W, H);
-  
-  // Reset for safety
-  ctx.globalCompositeOperation = 'source-over';
+  if (!rinkDrawn) {
+    // Fallback: plain ice colour so the thumbnail is never blank
+    ctx.fillStyle = '#e8f0f8';
+    ctx.fillRect(0, 0, W, H);
+  }
 
-  return offscreen.toDataURL('image/jpeg', 0.8);
+  // ── Draw drill elements on top ───────────────────────────────
+  ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, W, H);
+
+  return offscreen.toDataURL('image/jpeg', 0.93);
 }
+
+
 
 
 // ─────────────────────────────────────────────────────────────
