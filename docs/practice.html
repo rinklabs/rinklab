@@ -554,20 +554,22 @@
 
       .pc-drill-img-cell {
         display: table-cell;
+        width: 115mm;          /* default / full rink */
         padding: 0;
         background: #fff;
         border-right: 1pt solid #d0d8e0;
         vertical-align: top;
       }
-      /* Full rink is ~2.15:1 — wider column */
+      /* Full rink ~2.15:1 — wider column */
       .pc-drill-img-cell.rink-full { width: 120mm; }
-      /* Half rink is ~1.09:1 — narrower square-ish column */
-      .pc-drill-img-cell.rink-half { width: 72mm; }
+      /* Half rink ~1.09:1 — narrower, roughly square */
+      .pc-drill-img-cell.rink-half { width: 68mm; }
 
       .pc-drill-img-cell img {
         width: 100%;
         height: auto;
         display: block;
+        border: 0;
       }
 
       .pc-no-img {
@@ -870,13 +872,13 @@ async function addFromLibrary(id) {
   if (!d) return;
 
   let desc = '';
-  let rinkView = 'half'; // default; overwritten by fetched scene below
-  
+  let rinkView = 'half'; // overwritten by fetched scene below
+
   try {
     const res  = await fetch(`/get-drill/${d.id}`);
     if (res.ok) {
       const scene = await res.json();
-      desc = scene?.metadata?.description || scene?.description || '';
+      desc     = scene?.metadata?.description || scene?.description || '';
       rinkView = scene?.appState?.rinkView || 'half';
     }
   } catch (_) { /* fall through */ }
@@ -1126,7 +1128,7 @@ function exportPDF() {
       <td class="pc-drill-img-cell ${rinkClass}">
         ${item.thumbnail
           ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
-          : `<div class="pc-no-img">No diagram — re-save this drill from the canvas.</div>`}
+          : `<div class="pc-no-img">No diagram available.</div>`}
       </td>` : '';
 
     const descHtml = item.desc

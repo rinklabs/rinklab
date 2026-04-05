@@ -73,6 +73,10 @@ async function captureThumbnail() {
         const url  = URL.createObjectURL(blob);
         const img  = new Image();
         img.onload = () => {
+          // Fill white first — the rink has rounded corners so the canvas
+          // corners would otherwise be transparent (→ black in JPEG)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, W, H);
           ctx.drawImage(img, 0, 0, W, H);
           URL.revokeObjectURL(url);
           rinkDrawn = true;
