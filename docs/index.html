@@ -192,6 +192,7 @@
         <input type="password" id="coach-pin"     placeholder="Password"     autocomplete="current-password" style="flex:1;min-width:120px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
         <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
         <button id="auth-toggle">Create account</button>
+        <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
         <span id="coach-error">Incorrect email or password — please try again.</span>
       </div>
 
@@ -321,6 +322,23 @@
         passInput.placeholder     = 'Password';
       }
       errorEl.style.display = 'none';
+      document.getElementById('auth-forgot').style.display = isSignUp ? 'none' : 'inline';
+    });
+
+    document.getElementById('auth-forgot').addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        errorEl.style.color   = '#f38ba8';
+        errorEl.textContent   = 'Enter your email above first.';
+        errorEl.style.display = 'inline';
+        return;
+      }
+      const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/index.html'
+      });
+      errorEl.style.color   = error ? '#f38ba8' : '#a6e3a1';
+      errorEl.textContent   = error ? error.message : '✓ Password reset email sent — check your inbox.';
+      errorEl.style.display = 'inline';
     });
 
     function showGreeting(name) {
@@ -383,6 +401,7 @@
         }
 
         showGreeting(name);
+        if (result.data.session) showTeamPanel(result.data.session);
       } catch (err) {
         errorEl.style.color   = '#f38ba8';
         errorEl.textContent   = err.message || 'Something went wrong.';
