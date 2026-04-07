@@ -64,6 +64,17 @@
       margin-top: 4px;
     }
 
+    #auth-toggle {
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+
     #coach-greeting {
       justify-content: space-between;
       align-items: center;
@@ -152,22 +163,21 @@
   <div id="coach-selector">
     <div id="coach-banner">
 
-      <!-- First visit: type your name -->
+      <!-- Auth form -->
       <div id="coach-prompt">
-        <label for="coach-text">Who are you?</label>
-        <input type="text" id="coach-text"
-               placeholder="Enter your name"
-               autocomplete="off"
-               spellcheck="false"/>
-        <input id="coach-pin" type="password" placeholder="PIN" maxlength="6" autocomplete="off" spellcheck="false"/>
-        <button class="btn btn-primary" id="coach-confirm">Let's go →</button>
-        <span id="coach-error">Name / pin combination not recognised — please try again.</span>
+        <label for="coach-text" id="auth-label">Sign in</label>
+        <input type="text"     id="coach-display" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;flex:1;min-width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+        <input type="email"    id="coach-text"    placeholder="Email"        autocomplete="email"    style="flex:1;min-width:160px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+        <input type="password" id="coach-pin"     placeholder="Password"     autocomplete="current-password" style="flex:1;min-width:120px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+        <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
+        <button id="auth-toggle">Create account</button>
+        <span id="coach-error">Incorrect email or password — please try again.</span>
       </div>
 
-      <!-- Return visit: welcome back -->
+      <!-- Signed in: welcome back -->
       <div id="coach-greeting" style="display:none;">
         <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
-        <button class="change-link" id="coach-change">Not you?</button>
+        <button class="change-link" id="coach-change">Sign out</button>
       </div>
 
     </div>
@@ -226,17 +236,42 @@
   <hr class="section-divider">
   <div id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
   <script>
-    const API_BASE    = 'http://localhost:8000';
     const STORAGE_KEY = 'drillLab:coach';
 
     const promptEl   = document.getElementById('coach-prompt');
     const greetingEl = document.getElementById('coach-greeting');
     const greetName  = document.getElementById('coach-greeting-name');
-    const textInput  = document.getElementById('coach-text');
+    const emailInput = document.getElementById('coach-text');
+    const passInput  = document.getElementById('coach-pin');
+    const displayInput = document.getElementById('coach-display');
     const confirmBtn = document.getElementById('coach-confirm');
     const changeBtn  = document.getElementById('coach-change');
     const errorEl    = document.getElementById('coach-error');
+    const toggleBtn  = document.getElementById('auth-toggle');
+    const authLabel  = document.getElementById('auth-label');
+
+    let isSignUp = false;
+
+    toggleBtn.addEventListener('click', () => {
+      isSignUp = !isSignUp;
+      if (isSignUp) {
+        authLabel.textContent     = 'Create account';
+        confirmBtn.textContent    = 'Sign up →';
+        toggleBtn.textContent     = 'Already have an account?';
+        displayInput.style.display = 'block';
+        passInput.placeholder     = 'Password (min 6 chars)';
+      } else {
+        authLabel.textContent     = 'Sign in';
+        confirmBtn.textContent    = 'Sign in →';
+        toggleBtn.textContent     = 'Create account';
+        displayInput.style.display = 'none';
+        passInput.placeholder     = 'Password';
+      }
+      errorEl.style.display = 'none';
+    });
 
     function showGreeting(name) {
       greetName.textContent    = name;
@@ -248,63 +283,91 @@
       promptEl.style.display   = 'flex';
       greetingEl.style.display = 'none';
       errorEl.style.display    = 'none';
-      textInput.value          = '';
-      textInput.focus();
+      emailInput.value         = '';
+      passInput.value          = '';
+      displayInput.value       = '';
+      emailInput.focus();
     }
 
-    async function confirmCoach() {
-      const name = textInput.value.trim();
-      const pin  = document.getElementById('coach-pin').value.trim();
-      if (!name || !pin) return;
+    async function handleAuth() {
+      const email   = emailInput.value.trim();
+      const pass    = passInput.value;
+      const display = displayInput.value.trim();
 
-      errorEl.style.display = 'none';
-      confirmBtn.disabled   = true;
-      confirmBtn.textContent = 'Checking…';
+      if (!email || !pass) return;
+      if (isSignUp && !display) {
+        errorEl.textContent   = 'Please enter a display name.';
+        errorEl.style.display = 'inline';
+        return;
+      }
+
+      errorEl.style.display  = 'none';
+      confirmBtn.disabled    = true;
+      confirmBtn.textContent = isSignUp ? 'Signing up…' : 'Signing in…';
 
       try {
-        const res = await fetch(`${API_BASE}/login`, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ name, pin }),
-        });
-
-        if (res.ok) {
-          const { coach } = await res.json();
-          localStorage.setItem(STORAGE_KEY, coach);
-          showGreeting(coach);
+        let result;
+        if (isSignUp) {
+          result = await _supabase.auth.signUp({
+            email, password: pass,
+            options: { data: { display_name: display } },
+          });
         } else {
-          errorEl.style.display = 'inline';
-          textInput.select();
+          result = await _supabase.auth.signInWithPassword({ email, password: pass });
         }
-      } catch {
-        // Server unreachable — skip auth locally
+
+        if (result.error) throw result.error;
+
+        const user    = result.data.user || result.data.session?.user;
+        const name    = user?.user_metadata?.display_name || email;
         localStorage.setItem(STORAGE_KEY, name);
+
+        if (isSignUp && !result.data.session) {
+          // Email confirmation required
+          errorEl.style.color   = '#a6e3a1';
+          errorEl.textContent   = '✓ Check your email to confirm your account, then sign in.';
+          errorEl.style.display = 'inline';
+          confirmBtn.disabled   = false;
+          confirmBtn.textContent = 'Sign up →';
+          return;
+        }
+
         showGreeting(name);
+      } catch (err) {
+        errorEl.style.color   = '#f38ba8';
+        errorEl.textContent   = err.message || 'Something went wrong.';
+        errorEl.style.display = 'inline';
       } finally {
-        confirmBtn.disabled    = false;
-        confirmBtn.textContent = "Let's go →";
+        if (confirmBtn.disabled) {
+          confirmBtn.disabled    = false;
+          confirmBtn.textContent = isSignUp ? 'Sign up →' : 'Sign in →';
+        }
       }
     }
 
-    confirmBtn.addEventListener('click', confirmCoach);
-    textInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') confirmCoach();
-    });
-    document.getElementById('coach-pin').addEventListener('keydown', e => {
-      if (e.key === 'Enter') confirmCoach();
-    });
-    changeBtn.addEventListener('click', () => {
+    confirmBtn.addEventListener('click', handleAuth);
+    [emailInput, passInput, displayInput].forEach(el =>
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); })
+    );
+
+    changeBtn.addEventListener('click', async () => {
+      await _supabase.auth.signOut();
       localStorage.removeItem(STORAGE_KEY);
       showPrompt();
     });
 
-    // Boot
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      showGreeting(stored);
-    } else {
-      showPrompt();
-    }
+    // Boot — restore session if still active
+    _supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const name = session.user.user_metadata?.display_name || session.user.email;
+        localStorage.setItem(STORAGE_KEY, name);
+        showGreeting(name);
+      } else {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) showGreeting(stored);
+        else showPrompt();
+      }
+    });
   </script>
 
 </body>

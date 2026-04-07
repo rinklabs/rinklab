@@ -78,8 +78,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-COACHES_FILE = os.path.join(os.path.dirname(__file__), 'coaches.json')
-
+class LoginRequest(BaseModel):
+    name: str
+    pin:  str
 
 def title_to_slug(title: str) -> str:
     slug = title.lower().strip()
@@ -87,33 +88,22 @@ def title_to_slug(title: str) -> str:
     return slug or 'untitled-drill'
 
 
-def load_coaches() -> dict:
-    try:
-        coaches_raw = os.environ.get("COACHES_JSON", "{}")
-        coaches = json.loads(coaches_raw)
-        return coaches
-    except FileNotFoundError:
-        return {"allow_self_register": False, "coaches": []} 
-
-class LoginRequest(BaseModel):
-    name: str
-    pin:  str
+def get_coaches_from_env() -> dict:
+    """Returns {name: pin} from COACHES env var (format: 'Alice:1234,Bob:5678')."""
+    raw = os.getenv("COACHES", "")
+    result = {}
+    for entry in raw.split(","):
+        if ":" in entry:
+            name, pin = entry.split(":", 1)
+            result[name.strip()] = pin.strip()
+    return result
 
 def is_valid_coach(req: LoginRequest) -> bool:
-    """Full name + PIN check used at login."""
-    cfg = load_coaches()
-    if cfg.get("allow_self_register", False):
-        return bool(req.name.strip())
-    coaches = cfg.get("coaches", {})
-    return req.name in coaches and coaches[req.name] == req.pin.strip()
-
+    coaches = get_coaches_from_env()
+    return coaches.get(req.name) == req.pin.strip()
 
 def coach_exists(name: str) -> bool:
-    """Name-only check used by save/delete — PIN already verified at login."""
-    cfg = load_coaches()
-    if cfg.get("allow_self_register", False):
-        return bool(name)
-    return name in cfg.get("coaches", {})
+    return name in get_coaches_from_env()
 
 
 # ─────────────────────────────────────────────────────────────
@@ -122,9 +112,7 @@ def coach_exists(name: str) -> bool:
 
 @app.get("/coaches")
 def get_coaches():
-    """Returns only the flag — coach names stay on the server."""
-    cfg = load_coaches()
-    return {"allow_self_register": cfg.get("allow_self_register", False)}
+    return {"allow_self_register": False}
 
 
 @app.post("/login")

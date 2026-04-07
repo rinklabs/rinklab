@@ -1,36 +1,26 @@
 // ─────────────────────────────────────────────────────────────
-//  io.js  —  save / load drill JSON
+//  io.js  —  save / load via Supabase
 // ─────────────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:8000';
+// ─────────────────────────────────────────────────────────────
+//  Auth helpers
+// ─────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────
-//  Coach identity
-// ─────────────────────────────────────────────────────────────
+async function getSession() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  return session;
+}
 
 function getCoach() {
   return (localStorage.getItem('drillLab:coach') || '').trim();
 }
 
-function initCoachField() {
-  const input = document.getElementById('coach-name');
-  if (!input) return;
-  input.value = getCoach();
-  input.addEventListener('input', () => {
-    localStorage.setItem('drillLab:coach', input.value.trim());
-  });
+function _setCoachCache(name) {
+  localStorage.setItem('drillLab:coach', name || '');
 }
 
-
 // ─────────────────────────────────────────────────────────────
-//  Thumbnail — composites the rink SVG + drill canvas at 2×
-//  the source canvas resolution for crisp print quality.
-//
-//  Two bugs are avoided here:
-//  1. SVGs without explicit width/height on the root <svg> element
-//     fail silently in drawImage() on all browsers — we inject them.
-//  2. Output size must match source canvas aspect ratio (not the
-//     rink's natural SVG size) so element positions stay correct.
+//  Thumbnail
 // ─────────────────────────────────────────────────────────────
 
 async function captureThumbnail() {
@@ -38,43 +28,28 @@ async function captureThumbnail() {
   if (!source || source.width === 0) return null;
 
   const scale = Math.min(2, 1500 / source.width);
-  const W = Math.round(source.width * scale);
+  const W = Math.round(source.width  * scale);
   const H = Math.round(source.height * scale);
 
-  const offscreen = document.createElement('canvas');
+  const offscreen  = document.createElement('canvas');
   offscreen.width  = W;
   offscreen.height = H;
   const ctx = offscreen.getContext('2d');
 
-  // ── Draw the rink ────────────────────────────────────────────
-  // Serialise the live DOM SVG rather than fetching the file.
-  // This avoids two bugs that silently break canvas drawImage():
-  //   1. Inkscape SVGs have an <?xml?> prolog that Chrome refuses
-  //      to render when the SVG is loaded as a blob: URL image.
-  //   2. File-fetched SVGs can have duplicate/missing attributes.
-  // The DOM SVG is already proven to render on screen and
-  // automatically reflects the current half/full rink state.
   let rinkDrawn = false;
   const liveSvg = document.querySelector('#rink-layer svg');
   if (liveSvg) {
     await new Promise(resolve => {
       try {
-        // XMLSerializer never emits an <?xml?> prolog
         let svgStr = new XMLSerializer().serializeToString(liveSvg);
-
-        // Inject explicit pixel size — SVGs without width/height
-        // attributes draw as 0x0 on canvas even with a viewBox
         svgStr = svgStr.replace(
           /(<svg\b[^>]*?)(\s*>)/,
           `$1 width="${W}" height="${H}"$2`
         );
-
         const blob = new Blob([svgStr], { type: 'image/svg+xml' });
         const url  = URL.createObjectURL(blob);
         const img  = new Image();
         img.onload = () => {
-          // Fill white first — the rink has rounded corners so the canvas
-          // corners would otherwise be transparent (→ black in JPEG)
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, W, H);
           ctx.drawImage(img, 0, 0, W, H);
@@ -92,18 +67,13 @@ async function captureThumbnail() {
   }
 
   if (!rinkDrawn) {
-    // Fallback: plain ice colour so the thumbnail is never blank
     ctx.fillStyle = '#e8f0f8';
     ctx.fillRect(0, 0, W, H);
   }
 
-  // ── Draw drill elements on top ───────────────────────────────
   ctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, W, H);
-
   return offscreen.toDataURL('image/jpeg', 0.93);
 }
-
-
 
 
 // ─────────────────────────────────────────────────────────────
@@ -111,7 +81,15 @@ async function captureThumbnail() {
 // ─────────────────────────────────────────────────────────────
 
 function initIO() {
-  initCoachField();
+  // Sync coach display name from active Supabase session
+  _supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      const name = session.user.user_metadata?.display_name || session.user.email;
+      _setCoachCache(name);
+      const ind = document.getElementById('coach-indicator-name');
+      if (ind) ind.textContent = name;
+    }
+  });
 
   document.getElementById('btn-save').addEventListener('click', saveJSON);
   document.getElementById('btn-load').addEventListener('click', () => {
@@ -309,31 +287,33 @@ async function loadJSON(e) {
 
 
 // ─────────────────────────────────────────────────────────────
-//  Save to server
+//  Save to Supabase
 // ─────────────────────────────────────────────────────────────
 
 async function saveToServer() {
-  const coach = getCoach();
-  if (!coach) {
-    showToast('✗ Enter your coach name on the home page first', true);
+  const session = await getSession();
+  if (!session) {
+    showToast('✗ Not logged in — sign in from the home page', true);
     return;
   }
 
-  const { scene }   = buildScene();
-  const thumbnail   = await captureThumbnail();
+  const coach           = getCoach();
+  const { scene, slug } = buildScene();
+  const thumbnail       = await captureThumbnail();
 
-  try {
-    const res = await fetch(`${API_BASE}/save-drill`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ coach, scene, thumbnail }),
-    });
-    if (!res.ok) throw new Error(`Server returned ${res.status}`);
-    const { message } = await res.json();
-    showToast(`✓ ${message}`);
-  } catch (err) {
-    showToast('✗ Could not reach server: ' + err.message, true);
-  }
+  const { error } = await _supabase.from('drill').upsert({
+    user_id:   session.user.id,
+    coach,
+    slug,
+    title:     scene.metadata.title,
+    tags:      JSON.stringify(scene.metadata.tags || []),
+    scene:     JSON.stringify(scene),
+    thumbnail: thumbnail || null,
+    saved_at:  new Date().toISOString(),
+  }, { onConflict: 'user_id,slug' });
+
+  if (error) showToast('✗ ' + error.message, true);
+  else       showToast('✓ Saved "' + scene.metadata.title + '"');
 }
 
 
@@ -344,174 +324,132 @@ async function saveToServer() {
 async function openLibrary() {
   document.getElementById('drill-library')?.remove();
 
-  // Floating preview that follows the mouse
   const preview = document.createElement('div');
   preview.style.cssText = `
     position: fixed; z-index: 10001; pointer-events: none;
-    display: none;
-    background: #1e1e2e;
-    border: 1px solid #45475a;
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 8px 28px rgba(0,0,0,.65);
+    display: none; background: #1e1e2e;
+    border: 1px solid #45475a; border-radius: 8px;
+    padding: 8px; box-shadow: 0 8px 28px rgba(0,0,0,.65);
   `;
   const previewImg = document.createElement('img');
   previewImg.style.cssText = 'display:block; width:280px; border-radius:4px;';
   preview.appendChild(previewImg);
   document.body.appendChild(preview);
 
-  function showPreview(src, e) {
-    previewImg.src        = src;
-    preview.style.display = 'block';
-    movePreview(e);
-  }
+  function showPreview(src, e) { previewImg.src = src; preview.style.display = 'block'; movePreview(e); }
   function movePreview(e) {
-    const gap = 16;
-    const pw  = 280 + 18;   // image + padding
-    const x   = (e.clientX + gap + pw > window.innerWidth)
-                  ? e.clientX - pw - gap
-                  : e.clientX + gap;
-    const y   = Math.min(e.clientY - 40, window.innerHeight - 220);
+    const gap = 16, pw = 280 + 18;
+    const x = (e.clientX + gap + pw > window.innerWidth) ? e.clientX - pw - gap : e.clientX + gap;
+    const y = Math.min(e.clientY - 40, window.innerHeight - 220);
     preview.style.left = x + 'px';
     preview.style.top  = Math.max(y, 8) + 'px';
   }
   function hidePreview() { preview.style.display = 'none'; }
 
-  // ── Modal shell ─────────────────────────────────────────────
   const modal = document.createElement('div');
   modal.id    = 'drill-library';
   modal.style.cssText = `
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.65);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999;
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: flex; align-items: center; justify-content: center; z-index: 9999;
   `;
-
   const panel = document.createElement('div');
   panel.style.cssText = `
-    background: #1e1e2e; color: #cdd6f4;
-    border-radius: 10px; padding: 24px;
-    width: 580px; max-height: 72vh;
-    overflow-y: auto; font-family: sans-serif;
+    background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 24px;
+    width: 580px; max-height: 72vh; overflow-y: auto; font-family: sans-serif;
     box-shadow: 0 8px 32px rgba(0,0,0,.6);
   `;
-
   const closeRow = document.createElement('div');
   closeRow.style.cssText = 'margin-top:16px;display:flex;justify-content:flex-end;';
   closeRow.innerHTML = `<button id="lib-close"
     style="background:#45475a;color:#cdd6f4;border:none;border-radius:4px;
            padding:8px 18px;cursor:pointer;">Close</button>`;
-
   panel.innerHTML = `<h2 style="margin:0 0 16px;font-size:1.1rem;">📂 Drill Library</h2>`;
   panel.appendChild(closeRow);
   modal.appendChild(panel);
   document.body.appendChild(modal);
 
-  function closeLibrary() {
-    modal.remove();
-    preview.remove();
-  }
-
+  function closeLibrary() { modal.remove(); preview.remove(); }
   modal.addEventListener('click', e => { if (e.target === modal) closeLibrary(); });
   panel.querySelector('#lib-close').addEventListener('click', closeLibrary);
 
   const status = Object.assign(document.createElement('p'), {
-    textContent: 'Loading…',
-    style: 'color:#6c7086;margin:0 0 12px;',
+    textContent: 'Loading…', style: 'color:#6c7086;margin:0 0 12px;',
   });
   panel.insertBefore(status, closeRow);
 
-  const coach = getCoach();
+  const [session, { data: drills, error }] = await Promise.all([
+    getSession(),
+    _supabase.from('drill')
+      .select('id, title, coach, tags, saved_at, thumbnail, user_id')
+      .order('saved_at', { ascending: false }),
+  ]);
 
-  let drills;
-  try {
-    const res = await fetch(`${API_BASE}/list-drills?coach=${encodeURIComponent(coach)}`);
-    if (!res.ok) throw new Error(`Server returned ${res.status}`);
-    ({ drills } = await res.json());
-  } catch (err) {
-    status.textContent = '✗ Could not reach server: ' + err.message;
-    return;
-  }
-
+  if (error) { status.textContent = '✗ ' + error.message; return; }
   status.remove();
 
-  if (drills.length === 0) {
+  if (!drills.length) {
     panel.insertBefore(
       Object.assign(document.createElement('p'), {
         textContent: 'No drills saved yet. Use 💾 Save to add one.',
         style: 'color:#6c7086;margin:0 0 12px;',
-      }),
-      closeRow
+      }), closeRow
     );
     return;
   }
 
-  // ── Cards ───────────────────────────────────────────────────
-  drills.forEach(({ id, title, coach: drillCoach, tags, saved_at, is_mine, thumbnail }) => {
-    const card = document.createElement('div');
-    card.style.cssText = `
-      background: #313244; border-radius: 6px; padding: 12px 14px;
-      margin-bottom: 10px;
-      display: flex; justify-content: space-between; align-items: center; gap: 12px;
-      cursor: default;
-    `;
+  const userId = session?.user?.id || null;
 
-    const tagStr    = tags?.length ? tags.join(', ') : '—';
-    const dateStr   = saved_at ? new Date(saved_at).toLocaleDateString() : '';
-    const deleteBtn = is_mine
+  drills.forEach(d => {
+    d.tags    = JSON.parse(d.tags || '[]');
+    d.is_mine = d.user_id === userId;
+
+    const card    = document.createElement('div');
+    const tagStr  = d.tags?.length ? d.tags.join(', ') : '—';
+    const dateStr = d.saved_at ? new Date(d.saved_at).toLocaleDateString() : '';
+    const delBtn  = d.is_mine
       ? `<button class="lib-btn-del"
            style="background:#f38ba8;color:#1e1e2e;border:none;border-radius:4px;
-                  padding:6px 10px;cursor:pointer;font-size:.85rem;"
-           title="Delete your drill">✕</button>`
+                  padding:6px 10px;cursor:pointer;font-size:.85rem;" title="Delete">✕</button>`
       : '';
 
+    card.style.cssText = `
+      background: #313244; border-radius: 6px; padding: 12px 14px;
+      margin-bottom: 10px; display: flex; justify-content: space-between;
+      align-items: center; gap: 12px; cursor: default;
+    `;
     card.innerHTML = `
       <div style="min-width:0;flex:1;">
         <strong style="display:block;white-space:nowrap;overflow:hidden;
-                        text-overflow:ellipsis;margin-bottom:4px;">
-          ${title}
-        </strong>
-        <span style="font-size:.78em;color:#a6adc8;display:block;margin-bottom:2px;">
-          🏷 ${tagStr}
-        </span>
-        <span style="font-size:.75em;color:#6c7086;">
-          ${drillCoach} · ${dateStr}
-        </span>
+                        text-overflow:ellipsis;margin-bottom:4px;">${d.title}</strong>
+        <span style="font-size:.78em;color:#a6adc8;display:block;margin-bottom:2px;">🏷 ${tagStr}</span>
+        <span style="font-size:.75em;color:#6c7086;">${d.coach} · ${dateStr}</span>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="lib-btn-load"
           style="background:#89b4fa;color:#1e1e2e;border:none;border-radius:4px;
                  padding:6px 12px;cursor:pointer;font-size:.85rem;">Load</button>
-        ${deleteBtn}
+        ${delBtn}
       </div>
     `;
 
-    // Hover preview
-    if (thumbnail) {
-      card.addEventListener('mouseenter', e => showPreview(thumbnail, e));
+    if (d.thumbnail) {
+      card.addEventListener('mouseenter', e => showPreview(d.thumbnail, e));
       card.addEventListener('mousemove',  e => movePreview(e));
       card.addEventListener('mouseleave', hidePreview);
     }
 
     card.querySelector('.lib-btn-load').addEventListener('click', async () => {
       hidePreview();
-      await loadFromServer(id, title);
+      await loadFromServer(d.id, d.title);
       closeLibrary();
     });
 
     card.querySelector('.lib-btn-del')?.addEventListener('click', async () => {
-      if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-      try {
-        const res = await fetch(
-          `${API_BASE}/delete-drill/${id}?coach=${encodeURIComponent(coach)}`,
-          { method: 'DELETE' }
-        );
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        card.remove();
-        showToast(`Deleted "${title}"`);
-      } catch (err) {
-        showToast('✗ Could not delete: ' + err.message, true);
-      }
+      if (!confirm(`Delete "${d.title}"? This cannot be undone.`)) return;
+      const { error } = await _supabase.from('drill').delete()
+        .eq('id', d.id).eq('user_id', userId);
+      if (error) showToast('✗ Could not delete: ' + error.message, true);
+      else { card.remove(); showToast(`Deleted "${d.title}"`); }
     });
 
     panel.insertBefore(card, closeRow);
@@ -519,12 +457,8 @@ async function openLibrary() {
 }
 
 async function loadFromServer(id, title) {
-  try {
-    const res = await fetch(`${API_BASE}/get-drill/${id}`);
-    if (!res.ok) throw new Error(`Server returned ${res.status}`);
-    applySceneData(await res.json());
-    showToast(`✓ Loaded: ${title}`);
-  } catch (err) {
-    showToast('✗ Could not load: ' + err.message, true);
-  }
+  const { data, error } = await _supabase.from('drill').select('scene').eq('id', id).single();
+  if (error) { showToast('✗ Could not load: ' + error.message, true); return; }
+  applySceneData(JSON.parse(data.scene));
+  showToast('✓ Loaded: ' + title);
 }
