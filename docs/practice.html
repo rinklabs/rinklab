@@ -17,26 +17,6 @@
     .btn-lab:hover {
       background: #9d0000;
     }
-    #coach-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    #coach-indicator strong {
-      color: var(--text);
-    }
-    #coach-indicator a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-size: 12px;
-    }
-    #coach-indicator.unset strong {
-      color: #f38ba8;  /* red-ish warning */
-    }
-
     #practice-name {
       flex: 1;
       min-width: 100px;
@@ -701,16 +681,12 @@
 
     <div id="top-actions">
       <button class="btn btn-primary" onclick="savePractice()">💾 Save</button>
-      <label id="share-team-label" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;white-space:nowrap;">
-        <input type="checkbox" id="practice-share-team" style="accent-color:var(--accent);"/> Share with team
-      </label>
       <button class="btn btn-primary" onclick="openLoadModal()">📂 Library</button>
       <button class="btn btn-outline" onclick="exportPDF()">PDF</button>
       <button class="btn btn-outline" onclick="openShareModal()">Share</button>
-      <div id="coach-indicator">
-        Save to Team:
-        <select id="save-team-selector" style="background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; font-size:12px; padding:2px 4px;">
-          </select>
+      <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
+        Save to team:
+        <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
       </div>
     </div>
   </div>
@@ -843,19 +819,7 @@ window.addEventListener('keydown', function(e) {
     }
   }
 });
-// ── Coach indicator (read-only on this page) ───────────────
-function initCoachIndicator() {
-  const name = localStorage.getItem('drillLab:coach') || '';
-  const el   = document.getElementById('coach-indicator');
-  const span = document.getElementById('coach-indicator-name');
-  if (name) {
-    span.textContent = name;
-    el.classList.remove('unset');
-  } else {
-    span.textContent = 'Not set — click Change';
-    el.classList.add('unset');
-  }
-}
+
 // ─────────────────────────────────────────────
 //  Sidebar toggle
 // ─────────────────────────────────────────────
@@ -888,21 +852,57 @@ function getCoach() {
 const coach = getCoach();
 
 // ─────────────────────────────────────────────
+//  Team selector
+// ─────────────────────────────────────────────
+async function initTeamSelector() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) return;
+
+  const { data: memberships } = await _supabase
+    .from('team_member')
+    .select('team_id, team(id, name)')
+    .eq('user_id', session.user.id);
+
+  const teams = (memberships || []).map(m => m.team).filter(Boolean);
+
+  const wrap   = document.getElementById('team-selector-wrap');
+  const select = document.getElementById('save-team-selector');
+  select.innerHTML = '';
+
+  const noneOpt = document.createElement('option');
+  noneOpt.value = '';
+  noneOpt.textContent = 'None (private)';
+  select.appendChild(noneOpt);
+
+  if (teams.length > 0) {
+    wrap.style.display = 'flex';
+    teams.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.name;
+      select.appendChild(opt);
+    });
+    const stored = localStorage.getItem('drillLab:teamId');
+    if (stored && teams.find(t => t.id === stored)) {
+      select.value = stored;
+    }
+    select.addEventListener('change', () => {
+      if (select.value) localStorage.setItem('drillLab:teamId', select.value);
+      else localStorage.removeItem('drillLab:teamId');
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
 //  Init
 // ─────────────────────────────────────────────
 async function init() {
-  initCoachIndicator();
   document.getElementById('practice-date').value = new Date().toISOString().slice(0, 10);
   loadFromURL();
   updateEmpty();
   updateTimeline();
   await fetchDrills();
-
-  // Show "Share with team" toggle only if coach is in a team
-  if (localStorage.getItem('drillLab:teamId')) {
-    document.getElementById('share-team-label').style.display = 'flex';
-  }
-  loadCoachTeams();
+  await initTeamSelector();
 }
 
 // ─────────────────────────────────────────────
@@ -1256,13 +1256,7 @@ async function savePractice() {
   const coach  = getCoach();
   const data   = getPracticeData();
   const slug   = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'untitled';
-  const share  = document.getElementById('practice-share-team')?.checked;
-  // const teamId = share ? (localStorage.getItem('drillLab:teamId') || null) : null;
-  const teamId = document.getElementById('save-team-selector').value;
-  if (!teamId) {
-    showToast("Please select a team first", true);
-    return;
-  }
+  const teamId = document.getElementById('save-team-selector').value || null;
 
   const { error } = await _supabase.from('practice').upsert({
     user_id:  session.user.id,
@@ -1291,16 +1285,29 @@ async function openLoadModal() {
   try {
     const { data: { session } } = await _supabase.auth.getSession();
     const userId = session?.user?.id || null;
+    const sel = document.getElementById('save-team-selector');
+    const selectedTeamId = sel?.value || null;
+    const teamLabel = selectedTeamId
+      ? (sel.options[sel.selectedIndex]?.text || 'team')
+      : 'private';
 
-    const { data: list, error } = await _supabase
+    // Scope to selected team, or to user\'s own private practices
+    let query = _supabase
       .from('practice')
       .select('id, name, coach, date, team, target, items, saved_at, user_id, team_id')
       .order('saved_at', { ascending: false });
 
+    if (selectedTeamId) {
+      query = query.eq('team_id', selectedTeamId);
+    } else {
+      query = query.eq('user_id', userId).is('team_id', null);
+    }
+
+    const { data: list, error } = await query;
     if (error) throw new Error(error.message);
 
-    if (!list.length) {
-      el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">No saved practices found.</div>`;
+    if (!list || !list.length) {
+      el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">No saved practices found for <strong>${esc(teamLabel)}</strong>.</div>`;
       return;
     }
     el.innerHTML = list.map(p => {
@@ -1308,20 +1315,17 @@ async function openLoadModal() {
       const isMine = p.user_id === userId;
       const meta = [
         p.date || null,
-        p.team ? `Team: ${esc(p.team)}` : null,
+        p.team || null,
         `${count} drill${count !== 1 ? 's' : ''}`,
         `${p.target} min target`,
       ].filter(Boolean).join(' · ');
-      const teamBadge = p.team_id
-        ? `<span style="font-size:10px;background:rgba(137,180,250,.15);color:#89b4fa;border:1px solid #89b4fa55;border-radius:3px;padding:1px 6px;margin-left:4px;">👥 Team</span>`
-        : '';
       const delBtn = isMine
         ? `<button class="load-item-del" onclick="event.stopPropagation();deletePractice(${p.id},this)" title="Delete">✕</button>`
         : '';
       return `
         <div class="load-item" onclick="loadPractice(${p.id})">
           <div class="load-item-info">
-            <div class="load-item-name">${esc(p.name)}${teamBadge}</div>
+            <div class="load-item-name">${esc(p.name)}</div>
             <div class="load-item-meta">${meta}</div>
           </div>
           ${delBtn}
@@ -1546,20 +1550,6 @@ document.getElementById('qd-desc').addEventListener('keydown', e => {
   if (e.key === 'Enter') addQuickDrill();
 });
 
-async function loadCoachTeams() {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) return;
-
-  // Fetch all teams the user belongs to
-  const { data: owned } = await _supabase.from('team').select('id, name').eq('owner_id', session.user.id);
-  const { data: memberData } = await _supabase.from('team_member').select('team(id, name)').eq('user_id', session.user.id);
-  
-  const memberTeams = memberData ? memberData.map(m => m.team) : [];
-  const allTeams = [...(owned || []), ...memberTeams];
-
-  const selector = document.getElementById('save-team-selector');
-  selector.innerHTML = allTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-}
 
 init();
 </script>
