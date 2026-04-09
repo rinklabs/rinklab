@@ -130,14 +130,17 @@ function initTouchEvents() {
 }
 
 function canvasPos(e) {
-  const r = canvas.getBoundingClientRect();
-  // Support both mouse events and touch events
+  const r   = canvas.getBoundingClientRect();
   const src = (e.touches && e.touches.length > 0)
     ? e.touches[0]
     : (e.changedTouches && e.changedTouches.length > 0)
       ? e.changedTouches[0]
       : e;
-  return { x: src.clientX - r.left, y: src.clientY - r.top };
+  const rT = getRinkTransform();
+  return {
+    x: (src.clientX - r.left  - rT.x) / rT.s,
+    y: (src.clientY - r.top   - rT.y) / rT.s,
+  };
 }
 
 function onMouseDown(e) {

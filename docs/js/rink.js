@@ -2,8 +2,8 @@
 //  rink.js  —  SVG background layer + half / full toggle
 // ─────────────────────────────────────────────────────────────
 
-const RINK_W = 748.498;
-const RINK_H = 347.5;
+const RINK_W = 1000;
+const RINK_H = 431;
 const HALF_X = RINK_W / 2;
 
 let showHalf = true;
@@ -64,6 +64,7 @@ function setupRinkLogic(rinkSvg) {
     showHalf = !showHalf;
     updateToggleButton();
     applyRinkView();
+    render();
   });
 }
 

@@ -42,9 +42,12 @@ async function captureThumbnail() {
     await new Promise(resolve => {
       try {
         let svgStr = new XMLSerializer().serializeToString(liveSvg);
-        svgStr = svgStr.replace(
-          /(<svg\b[^>]*?)(\s*>)/,
-          `$1 width="${W}" height="${H}"$2`
+        // Strip width/height only from the root <svg> tag, then inject thumbnail size
+        svgStr = svgStr.replace(/(<svg\b[^>]*>)/, match =>
+          match
+            .replace(/\s+width="[^"]*"/, '')
+            .replace(/\s+height="[^"]*"/, '')
+            .replace(/(<svg\b)/, `$1 width="${W}" height="${H}"`)
         );
         const blob = new Blob([svgStr], { type: 'image/svg+xml' });
         const url  = URL.createObjectURL(blob);
@@ -141,8 +144,9 @@ function buildScene() {
     appState: {
       viewBackgroundColor: 'transparent',
       rinkView: getRinkView(),
+      _rinkNormalized: true,   // coords are fractions of RINK_W × RINK_H
     },
-    elements: State.elements.map(serializeElement),
+    elements: State.elements.map(el => serializeElement(el)),
     files: {},
   };
 
@@ -158,10 +162,10 @@ function serializeElement(el) {
   const base = {
     id:              el.id,
     type:            toExcalidrawType(el.type),
-    x:               el.x,
-    y:               el.y,
-    width:           el.w ?? 0,
-    height:          el.h ?? 0,
+    x:               (el.x ?? 0) / RINK_W,
+    y:               (el.y ?? 0) / RINK_H,
+    width:           (el.w ?? 0) / RINK_W,
+    height:          (el.h ?? 0) / RINK_H,
     angle:           el.angle ?? 0,
     strokeColor:     el.strokeColor ?? '#e8e8e8',
     backgroundColor: el.fillColor   ?? 'transparent',
@@ -179,7 +183,8 @@ function serializeElement(el) {
   };
 
   if (el.type === 'pen') {
-    base.points    = el.points.map(([x, y]) => [x - el.x, y - el.y]);
+    // Store pen points as absolute rink-space fractions
+    base.points    = el.points.map(([x, y]) => [x / RINK_W, y / RINK_H]);
     base.lineStyle = el.lineStyle ?? 'solid';
   }
   if (el.type === 'text') {
@@ -192,7 +197,6 @@ function serializeElement(el) {
     });
   }
   if (el.type === 'line' || el.type === 'arrow') {
-    base.points    = [[0, 0], [el.w ?? 0, el.h ?? 0]];
     base.lineStyle = el.lineStyle ?? 'solid';
   }
   if (el.type === 'player') {
@@ -211,6 +215,19 @@ function serializeElement(el) {
 }
 
 function deserializeElement(el) {
+  // Coords are stored as fractions of RINK_W × RINK_H — convert back to rink space
+  const rinkNorm = true; // all new saves use _rinkNormalized; legacy files fall back gracefully
+  const x = (el.x ?? 0) * RINK_W;
+  const y = (el.y ?? 0) * RINK_H;
+  const w = (el.width  ?? 0) * RINK_W;
+  const h = (el.height ?? 0) * RINK_H;
+
+  let points = el.points ?? null;
+  if (points) {
+    // Pen points are absolute rink-fraction coords
+    points = points.map(([px, py]) => [px * RINK_W, py * RINK_H]);
+  }
+
   return {
     id:          el.id ?? uid(),
     type:        fromExcalidrawType(el.type),
@@ -219,29 +236,27 @@ function deserializeElement(el) {
     lineStyle:   el.lineStyle   ?? 'solid',
     angle:       el.angle       ?? 0,
     r:           el.r           ?? 12,
-    x:           el.x,
-    y:           el.y,
-    w:           el.width       ?? 0,
-    h:           el.height      ?? 0,
+    x, y, w, h,
     strokeColor: el.strokeColor ?? '#000000',
     fillColor:   (el.backgroundColor === 'transparent' || !el.backgroundColor)
                    ? null : el.backgroundColor,
     strokeWidth: el.strokeWidth ?? 2,
     opacity:     el.opacity     ?? 100,
     text:        el.text        ?? '',
-    points:      el.points      ?? null,
+    points,
   };
 }
 
 function applySceneData(data) {
   if (data.appState?.rinkView) setRinkView(data.appState.rinkView);
+
   if (data.metadata) {
     const m = data.metadata;
     document.getElementById('drill-title').value = m.title === 'Untitled Drill' ? '' : (m.title ?? '');
     document.getElementById('drill-tags').value  = (m.tags ?? []).join('; ');
     document.getElementById('drill-desc').value  = m.description ?? '';
   }
-  State.elements = (data.elements ?? []).filter(el => !el.isDeleted).map(deserializeElement);
+  State.elements = (data.elements ?? []).filter(el => !el.isDeleted).map(el => deserializeElement(el));
   State.selected = null;
   State.multiSelected.clear();
   pushHistory();

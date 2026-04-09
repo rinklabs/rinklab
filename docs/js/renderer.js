@@ -6,37 +6,67 @@ const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
 const wrap   = document.getElementById('canvas-wrap');
 
-// Keep canvas pixel-perfect on resize
+// ── Rink → canvas transform ───────────────────────────────────
+// Elements are stored in rink-coordinate space (0–RINK_W × 0–RINK_H).
+// This transform maps rink coords to canvas pixels at render time,
+// matching exactly how the SVG rink is positioned via preserveAspectRatio.
+let _rinkTransform = { x: 0, y: 0, s: 1 };
+
+function computeRinkTransform() {
+  const isHalf = getRinkView() === 'half';
+  const vbW    = isHalf ? HALF_X : RINK_W;
+  const vbH    = RINK_H;
+  const cW     = canvas.width;
+  const cH     = canvas.height;
+  const s      = Math.min(cW / vbW, cH / vbH);
+  const x      = isHalf ? 0 : (cW - s * vbW) / 2;
+  const y      = (cH - s * vbH) / 2;
+  _rinkTransform = { x, y, s };
+  return _rinkTransform;
+}
+
+function getRinkTransform() { return _rinkTransform; }
+
+// Keep canvas pixel-perfect on resize — elements stay in rink coords, no scaling needed
 function initRenderer() {
-  // Size the canvas immediately so the very first render (e.g. placing a player)
-  // draws to a real pixel buffer rather than a 0×0 one.
   canvas.width  = wrap.clientWidth;
   canvas.height = wrap.clientHeight;
+  computeRinkTransform();
 
   new ResizeObserver(() => {
     canvas.width  = wrap.clientWidth;
     canvas.height = wrap.clientHeight;
+    computeRinkTransform();
     render();
   }).observe(wrap);
 }
 
 // ── Main render loop ─────────────────────────────────────────
 function render() {
+  const rT = computeRinkTransform();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(rT.x, rT.y);
+  ctx.scale(rT.s, rT.s);
+
   State.elements.forEach(el => drawElement(el, el.id === State.selected || State.multiSelected.has(el.id)));
   if (State.editingText) drawTextCursor();
-  // Rubber-band selection box
+
+  // Rubber-band selection box (coords are in rink space)
   if (State.bandRect) {
     const { x, y, w, h } = State.bandRect;
     ctx.save();
     ctx.strokeStyle = '#ff6b35';
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([4, 3]);
+    ctx.lineWidth   = 1 / rT.s;
+    ctx.setLineDash([4 / rT.s, 3 / rT.s]);
     ctx.fillStyle   = 'rgba(255,107,53,0.06)';
     ctx.fillRect(x, y, w, h);
     ctx.strokeRect(x, y, w, h);
     ctx.restore();
   }
+
+  ctx.restore();
 }
 
 // ── Individual element drawing ───────────────────────────────
@@ -384,8 +414,11 @@ function drawTextCursor() {
 // ── Live preview while drawing ───────────────────────────────
 function renderDragPreview(a, b) {
   render();
+  const rT = getRinkTransform();
   const dx = b.x - a.x, dy = b.y - a.y;
   ctx.save();
+  ctx.translate(rT.x, rT.y);
+  ctx.scale(rT.s, rT.s);
   ctx.strokeStyle = State.defStroke;
   ctx.lineWidth   = State.defSW;
   ctx.lineCap     = 'round';
@@ -440,7 +473,10 @@ function renderDragPreview(a, b) {
 function renderPenPreview(pts) {
   render();
   if (pts.length < 2) return;
+  const rT = getRinkTransform();
   ctx.save();
+  ctx.translate(rT.x, rT.y);
+  ctx.scale(rT.s, rT.s);
   ctx.strokeStyle = State.defStroke;
   ctx.lineWidth   = State.defSW;
   ctx.lineCap     = 'round';
