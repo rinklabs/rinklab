@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="svg2"
+   viewBox="0 0 748.498 347.5"
+   space="preserve"
+   version="1.1"
+   sodipodi:docname="rink.svg"
+   inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.1895512"
+     inkscape:cx="374.09065"
+     inkscape:cy="174.0152"
+     inkscape:window-width="1373"
+     inkscape:window-height="885"
+     inkscape:window-x="0"
+     inkscape:window-y="33"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <!--
+    Lightened rink — colours desaturated ~60 %, stroke widths halved.
+    Background: pale ice-blue  (#e8f0f8)
+    Rink border: mid-grey      (#9aabb8)  was #000  4.0 px → 2.0 px
+    Blue lines:  soft blue     (#7a9bd4)  was #4466bb  8.0 px → 4.0 px
+    Red lines:   soft red      (#d47a7a)  was #cc3333  6.6 / 3.0 px → 3.0 / 1.5 px
+    Dots/fills:  soft red      (#d47a7a)  was #cc3333
+    Centre dot:  soft blue     (#7a9bd4)  was #5567b0
+    Crease arc:  soft red      (#d47a7a)  was #cc3333  2.1 px → 1.0 px
+    Goal crease rects: soft blue (#7a9bd4) was #4466bb
+  -->
+  <!-- Ice surface -->
+  <path
+     id="rect2206"
+     style="stroke-linejoin:round;stroke:#9aabb8;stroke-width:2.0;stroke-linecap:round;fill:#e8f0f8"
+     d="m105.38 2.002h537.75c57.091 0 103.37 41.346 103.37 92.348v158.8c0 51.003-46.281 92.349-103.37 92.349h-537.75c-57.096 0-103.38-41.35-103.38-92.35v-158.8c0.002-51.002 46.284-92.348 103.38-92.348z" />
+  <!-- Centre circle -->
+  <ellipse
+     id="path2208"
+     style="stroke-linejoin:round;stroke:#7a9bd4;stroke-width:1.5;stroke-linecap:round;fill:none"
+     rx="37.321"
+     ry="38.21"
+     transform="matrix(1.224 0 0 1.1955 -86.868 -29.518)"
+     cy="170.03"
+     cx="376.74" />
+  <!-- Left face-off dots (top & bottom) -->
+  <g
+     id="g3845"
+     transform="translate(34)">
+    <ellipse
+       id="path2210"
+       style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:0.5;stroke-linecap:round;fill:#d47a7a"
+       rx="5.269"
+       ry="5.334"
+       cy="82.169"
+       cx="249.02" />
+    <ellipse
+       id="path2212"
+       style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:0.5;stroke-linecap:round;fill:#d47a7a"
+       rx="5.269"
+       ry="5.335"
+       cy="258.41"
+       cx="249.02" />
+  </g>
+  <!-- Right face-off dots (top & bottom) -->
+  <g
+     id="g3852"
+     transform="translate(-34)">
+    <ellipse
+       id="path2214"
+       style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:0.5;stroke-linecap:round;fill:#d47a7a"
+       rx="5.269"
+       ry="5.335"
+       cy="258.41"
+       cx="504.02" />
+    <ellipse
+       id="path2216"
+       style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:0.5;stroke-linecap:round;fill:#d47a7a"
+       rx="5.269"
+       ry="5.334"
+       cy="82.169"
+       cx="504.02" />
+  </g>
+  <!-- Centre (red dashed) line -->
+  <line
+     id="path2218"
+     style="stroke:#d47a7a;stroke-linecap:square;stroke-dasharray:9.88,9.88;stroke-width:3.0;fill:none"
+     x1="373.4"
+     y1="7.2479"
+     x2="375.1"
+     y2="340.21" />
+  <!-- Blue lines -->
+  <line
+     id="path3093"
+     style="stroke:#7a9bd4;stroke-width:4.0;fill:none"
+     x1="261.51"
+     y1="3.583"
+     x2="261.77"
+     y2="343.48" />
+  <line
+     id="path3095"
+     style="stroke:#7a9bd4;stroke-width:4.0;fill:none"
+     x1="492.63"
+     y1="3.993"
+     x2="492.64"
+     y2="343.48" />
+  <!-- Left face-off circles + hash marks (top & bottom) -->
+  <path
+     id="path25"
+     style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m170.67 256.73c0 22.072-18.294 39.986-40.834 39.986s-40.834-17.914-40.834-39.986c0-22.073 18.294-39.988 40.834-39.988s40.834 17.915 40.834 39.988zm-50.054-39.988v-9.773m17.563-0.001v10.662m1.756 79.086v9.775m-20.197-8.886v8.887" />
+  <path
+     id="path24203"
+     style="fill:#d47a7a"
+     d="m136.59 257.94c0 3.343-2.681 6.056-5.983 6.056s-5.983-2.713-5.983-6.056c0-3.342 2.681-6.055 5.983-6.055 3.296 0 5.973 2.699 5.983 6.035" />
+  <path
+     id="path28"
+     style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m170.67 81.729c0 22.073-18.294 39.988-40.834 39.988s-40.834-17.915-40.834-39.988 18.294-39.987 40.834-39.987 40.834 17.915 40.834 39.987zm-50.054-39.987v-9.774m17.563 0v10.663m1.756 79.086v9.774m-20.197-8.886v8.886" />
+  <path
+     id="path24191"
+     style="fill:#d47a7a"
+     d="m136.28 81.699c0 3.343-2.681 6.055-5.983 6.055-3.304 0-5.984-2.712-5.984-6.055 0-3.342 2.681-6.055 5.984-6.055 3.296 0 5.972 2.699 5.983 6.034" />
+  <!-- Right face-off circles + hash marks (top & bottom) -->
+  <path
+     id="path31"
+     style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m656.67 81.729c0 22.073-18.294 39.988-40.834 39.988s-40.834-17.915-40.834-39.988 18.294-39.987 40.834-39.987 40.834 17.915 40.834 39.987zm-50.054-39.987v-9.774m17.562 0v10.663m1.757 79.086v9.774m-20.197-8.886v8.886" />
+  <path
+     id="path24179"
+     style="fill:#d47a7a"
+     d="m622.47 81.699c0 3.343-2.682 6.055-5.984 6.055s-5.983-2.712-5.983-6.055c0-3.342 2.681-6.055 5.983-6.055 3.296 0 5.973 2.699 5.983 6.034" />
+  <path
+     id="path34"
+     style="stroke-linejoin:round;stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m656.67 256.73c0 22.072-18.294 39.986-40.834 39.986s-40.834-17.914-40.834-39.986c0-22.073 18.294-39.988 40.834-39.988s40.834 17.915 40.834 39.988zm-50.054-39.988v-9.773m17.562-0.001v10.662m1.757 79.086v9.775m-20.197-8.886v8.887" />
+  <path
+     id="path24167"
+     style="fill:#d47a7a"
+     d="m622.47 257.94c0 3.343-2.681 6.056-5.983 6.056-3.304 0-5.984-2.713-5.984-6.056 0-3.342 2.681-6.055 5.984-6.055 3.296 0 5.972 2.699 5.983 6.035" />
+  <!-- Left goal crease (blue rect) -->
+  <rect
+     id="rect3044"
+     style="fill:#7a9bd4"
+     ry="0"
+     height="34.126"
+     width="14.027"
+     y="159.89"
+     x="67.007" />
+  <!-- Left goal line + crease arc -->
+  <path
+     id="path39"
+     style="stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m65.6 12.586-0.045 322.59m0.691-188.06c42.611-0.1 44.025 60.907-0.423 60.649m0.336-48.495c1.011 0.146 15.232-0.098 15.232-0.098l0.277 35.943h-15.962" />
+  <!-- Right goal crease (blue rect) -->
+  <rect
+     id="rect3075"
+     style="fill:#7a9bd4"
+     ry="0"
+     height="34.126"
+     width="14.027"
+     y="158.12"
+     x="664.5" />
+  <!-- Right goal line + crease arc -->
+  <path
+     id="path43"
+     style="stroke:#d47a7a;stroke-width:1.5;stroke-linecap:round;fill:none"
+     d="m679.86 335.94 0.187-324.49m-0.176 194.04c-43.341-0.202-45.17-60.536 0.062-60.65m-0.003 48.849c-6.295-0.432-15.113-0.372-15.113-0.372l-0.356-35.948 15.493 0.121" />
+  <!-- Centre ice dot -->
+  <path
+     id="path29529"
+     style="fill:#7a9bd4"
+     d="m378.11 173.75c0.002 1.435-0.733 2.762-1.928 3.48s-2.668 0.718-3.863 0c-1.195-0.71899-1.931-2.046-1.929-3.48-0.002-1.436 0.733-2.763 1.929-3.48 1.195-0.719 2.668-0.719 3.863 0 1.195 0.717 1.93 2.044 1.928 3.48z" />
+  <!-- Centre ice crease arc -->
+  <path
+     id="path6578"
+     style="stroke:#d47a7a;stroke-width:1.0;fill:none"
+     d="m312.83 343.92c-0.445-16.982 11.167-32.822 30.357-41.411 19.191-8.589 42.964-8.585 62.15 0.01s30.79 24.438 30.336 41.42" />
+</svg>
