@@ -202,6 +202,7 @@ function serializeElement(el) {
   if (el.type === 'player') {
     base.playerType = el.playerType ?? 'F';
     base.fontSize   = el.fontSize   ?? 32;
+    base.isCoach    = el.isCoach    ?? false;
   }
   if (el.type === 'pylon' || el.type === 'net') {
     base.backgroundColor = el.fillColor ?? 'transparent';
@@ -232,6 +233,7 @@ function deserializeElement(el) {
     id:          el.id ?? uid(),
     type:        fromExcalidrawType(el.type),
     playerType:  el.playerType  ?? 'F',
+    isCoach:     el.isCoach     ?? false,
     fontSize:    el.fontSize    ?? (el.type === 'player' ? 32 : 20),
     lineStyle:   el.lineStyle   ?? 'solid',
     angle:       el.angle       ?? 0,

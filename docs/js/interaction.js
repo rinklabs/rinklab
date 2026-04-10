@@ -131,15 +131,18 @@ function initTouchEvents() {
 
 function canvasPos(e) {
   const r   = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
   const src = (e.touches && e.touches.length > 0)
     ? e.touches[0]
     : (e.changedTouches && e.changedTouches.length > 0)
       ? e.changedTouches[0]
       : e;
   const rT = getRinkTransform();
+  // getBoundingClientRect() and clientX/Y are in CSS pixels; rT is in physical
+  // pixels (canvas.width = cssWidth × dpr), so scale up before applying the transform.
   return {
-    x: (src.clientX - r.left  - rT.x) / rT.s,
-    y: (src.clientY - r.top   - rT.y) / rT.s,
+    x: ((src.clientX - r.left) * dpr - rT.x) / rT.s,
+    y: ((src.clientY - r.top)  * dpr - rT.y) / rT.s,
   };
 }
 

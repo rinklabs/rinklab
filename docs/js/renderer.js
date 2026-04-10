@@ -27,15 +27,24 @@ function computeRinkTransform() {
 
 function getRinkTransform() { return _rinkTransform; }
 
-// Keep canvas pixel-perfect on resize — elements stay in rink coords, no scaling needed
+// Size the canvas backing store at physical pixels so rendering is crisp on
+// HiDPI / retina screens. CSS size is kept at logical (CSS) pixels so the
+// element occupies the same layout space — the browser then maps the denser
+// backing store onto that area, giving sharper lines and text.
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = wrap.clientWidth  * dpr;
+  canvas.height = wrap.clientHeight * dpr;
+  canvas.style.width  = wrap.clientWidth  + 'px';
+  canvas.style.height = wrap.clientHeight + 'px';
+}
+
 function initRenderer() {
-  canvas.width  = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
+  resizeCanvas();
   computeRinkTransform();
 
   new ResizeObserver(() => {
-    canvas.width  = wrap.clientWidth;
-    canvas.height = wrap.clientHeight;
+    resizeCanvas();
     computeRinkTransform();
     render();
   }).observe(wrap);
