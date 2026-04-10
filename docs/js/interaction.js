@@ -58,7 +58,8 @@ function hitEl(el, x, y) {
     case 'line':
     case 'arrow':
       return pointSegDist(x, y, el.x, el.y, el.x + el.w, el.y + el.h) < 8;
-    case 'pen': {
+    case 'pen':
+    case 'penArrow': {
       const bb = penBounds(el.points);
       return tx >= bb.x - 8 && tx <= bb.x + bb.w + 8 && ty >= bb.y - 8 && ty <= bb.y + bb.h + 8;
     }
@@ -189,7 +190,7 @@ function onMouseDown(e) {
         State.multiMoveOrigins = new Map(
           ids.map(id => {
             const el = State.elements.find(e => e.id === id);
-            return el ? [id, el.type === 'pen'
+            return el ? [id, el.type === 'pen' || el.type === 'penArrow'
               ? { isPen: true, points: el.points.map(p => [...p]) }
               : { x: el.x, y: el.y }] : null;
           }).filter(Boolean)
@@ -301,7 +302,7 @@ function onMouseDown(e) {
 
   State.drawing   = true;
   State.dragStart = { x, y };
-  if (State.tool === 'pen') State.penPoints = [[x, y]];
+  if (State.tool === 'pen' || State.tool === 'penArrow') State.penPoints = [[x, y]];
 }
 
 function onMouseMove(e) {
@@ -358,7 +359,7 @@ function onMouseMove(e) {
 
   if (!State.drawing) return;
 
-  if (State.tool === 'pen') {
+  if (State.tool === 'pen' || State.tool === 'penArrow') {
     State.penPoints.push([x, y]);
     renderPenPreview(State.penPoints);
     return;
@@ -415,9 +416,9 @@ function onMouseUp(e) {
   if (!State.drawing) return;
   State.drawing = false;
 
-  if (State.tool === 'pen') {
-    if (State.penPoints.length > 2) {
-      const el = { id: uid(), type: 'pen', points: [...State.penPoints],
+  if (State.tool === 'pen' || State.tool === 'penArrow') {
+    if (State.penPoints?.length > 2) {
+      const el = { id: uid(), type: State.tool, points: [...State.penPoints],
                    strokeColor: State.defStroke, strokeWidth: State.defSW,
                    lineStyle: State.defLineStyle, opacity: 100 };
       State.elements.push(el);
@@ -574,7 +575,7 @@ function initToolbarInputs() {
     State.defLineStyle = e.target.value;
     if (State.selected) {
       const el = State.elements.find(el => el.id === State.selected);
-      if (el && ['line', 'arrow', 'pen'].includes(el.type)) {
+      if (el && ['line', 'arrow', 'pen', 'penArrow'].includes(el.type)) {
         el.lineStyle = e.target.value;
         render();
       }
@@ -638,7 +639,7 @@ function updatePropsPanel() {
   document.getElementById('p-font').value          = el.fontSize    ?? 20;
 
   const isPlayer    = el.type === 'player';
-  const isStrokable = ['line', 'arrow', 'pen'].includes(el.type);
+  const isStrokable = ['line', 'arrow', 'pen', 'penArrow'].includes(el.type);
   const isPylonNet  = el.type === 'pylon' || el.type === 'net';
 
   document.getElementById('row-font').style.display        = el.type === 'text'  ? 'flex' : 'none';
@@ -680,7 +681,7 @@ function syncPropsToElement() {
                      ? document.getElementById('p-fill').value : null;
     el.strokeWidth = +document.getElementById('p-sw').value;
     if (el.type === 'text') el.fontSize = +document.getElementById('p-font').value;
-    if (['line', 'arrow', 'pen'].includes(el.type)) {
+    if (['line', 'arrow', 'pen', 'penArrow'].includes(el.type)) {
       el.lineStyle = document.getElementById('p-line-style').value;
     }
   }
@@ -775,7 +776,7 @@ function applyResize(el, handle, origEl, dx, dy) {
     ldy = dx * sin + dy * cos;
   }
 
-  if (el.type === 'pen') { scalePenPoints(el, origEl, handle, ldx, ldy); return; }
+  if (el.type === 'pen' || el.type === 'penArrow') { scalePenPoints(el, origEl, handle, ldx, ldy); return; }
 
   if (el.type === 'player' && handle === 'scale') {
     el.fontSize = Math.max(10, Math.round(origEl.fontSize + (dx + dy) / 2));

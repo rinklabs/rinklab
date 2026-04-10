@@ -101,7 +101,8 @@ function drawElement(el, selected) {
     case 'ellipse': drawEllipse(el); break;
     case 'line':    drawLine(el);    break;
     case 'arrow':   drawArrow(el);   break;
-    case 'pen':     drawPen(el);     break;
+    case 'pen':      drawPen(el);      break;
+    case 'penArrow': drawPenArrow(el); break;
     case 'text':    drawText(el);    break;
     case 'player':  drawPlayer(el);  break;
     case 'pylon':   drawPylon(el);   break;
@@ -211,6 +212,48 @@ function drawPen(el) {
   }
   ctx.stroke();
   ctx.setLineDash([]);
+}
+
+function drawPenArrow(el) {
+  if (el.points.length < 2) return;
+  const pts = el.points;
+  const hs  = Math.max(10, (el.strokeWidth ?? 2) * 3.5);
+
+  // End tangent: average direction over the last few captured points
+  // for a stable arrow angle that isn't jittered by the last tiny segment.
+  const last = pts[pts.length - 1];
+  const ref  = pts[Math.max(0, pts.length - 5)];
+  const tipX = last[0], tipY = last[1];
+  const ang  = Math.atan2(last[1] - ref[1], last[0] - ref[0]);
+
+  // Walk back along the path to find where the shaft should end,
+  // so the line doesn't bleed out from under the arrowhead.
+  let cutIdx = 0;
+  let acc    = 0;
+  for (let i = pts.length - 1; i > 0; i--) {
+    acc += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]);
+    if (acc >= hs) { cutIdx = i; break; }
+  }
+
+  applyLineStyle(el.lineStyle);
+  ctx.beginPath();
+  if (el.lineStyle === 'wiggle') {
+    wigglyPenPath(pts.slice(0, cutIdx + 1));
+  } else {
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i <= cutIdx; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arrowhead at the tip of the stroke
+  ctx.beginPath();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
+  ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = el.strokeColor ?? '#000000';
+  ctx.fill();
 }
 
 function drawText(el) {
@@ -372,7 +415,7 @@ function drawSelection(el) {
     ctx.lineWidth   = 1.5;
     ctx.setLineDash([5, 3]);
 
-    if (el.type === 'pen') {
+    if (el.type === 'pen' || el.type === 'penArrow') {
       const bb = penBounds(el.points);
       ctx.strokeRect(bb.x - 4, bb.y - 4, bb.w + 8, bb.h + 8);
     } else if (el.type === 'text') {
@@ -541,16 +584,47 @@ function renderPenPreview(pts) {
   ctx.lineWidth   = State.defSW;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
+
+  const isPenArrow = State.tool === 'penArrow';
+  const hs = Math.max(10, State.defSW * 3.5);
+
+  // Determine cut point for penArrow so the shaft stops before the head
+  let drawPts = pts;
+  if (isPenArrow) {
+    let cutIdx = 0, acc = 0;
+    for (let i = pts.length - 1; i > 0; i--) {
+      acc += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]);
+      if (acc >= hs) { cutIdx = i; break; }
+    }
+    drawPts = pts.slice(0, cutIdx + 1);
+  }
+
   applyLineStyle(State.defLineStyle);
   ctx.beginPath();
   if (State.defLineStyle === 'wiggle') {
-    wigglyPenPath(pts);
+    wigglyPenPath(drawPts);
   } else {
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    pts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.moveTo(drawPts[0][0], drawPts[0][1]);
+    drawPts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
   }
   ctx.stroke();
   ctx.setLineDash([]);
+
+  // Arrowhead for penArrow tool
+  if (isPenArrow) {
+    const last = pts[pts.length - 1];
+    const ref  = pts[Math.max(0, pts.length - 5)];
+    const tipX = last[0], tipY = last[1];
+    const ang  = Math.atan2(last[1] - ref[1], last[0] - ref[0]);
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
+    ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = State.defStroke;
+    ctx.fill();
+  }
+
   ctx.restore();
 }
 
@@ -576,7 +650,7 @@ function penBounds(pts) {
 /** Returns the visual center of an element in screen space (unaffected by angle). */
 function getElementCenter(el) {
   if (el.type === 'player' || el.type === 'puck') return { x: el.x, y: el.y };
-  if (el.type === 'pen') {
+  if (el.type === 'pen' || el.type === 'penArrow') {
     const bb = penBounds(el.points);
     return { x: bb.x + bb.w / 2, y: bb.y + bb.h / 2 };
   }
@@ -620,8 +694,8 @@ function getElementHandles(el) {
     return [{ id: 'scale', x: el.x + off, y: el.y + off }];
   }
 
-  // Pen — four bounding-box corners, no rotation
-  if (el.type === 'pen') {
+  // Pen / PenArrow — four bounding-box corners, no rotation
+  if (el.type === 'pen' || el.type === 'penArrow') {
     const bb = penBounds(el.points);
     return [
       { id: 'nw', x: bb.x,        y: bb.y },
@@ -809,7 +883,7 @@ function rotateSelection(degrees) {
   State.elements.forEach(el => {
     if (!ids.includes(el.id)) return;
 
-    if (el.type === 'pen') {
+    if (el.type === 'pen' || el.type === 'penArrow') {
       // Rotate every point around the group center
       el.points = el.points.map(([px, py]) => {
         const dx = px - bounds.cx, dy = py - bounds.cy;

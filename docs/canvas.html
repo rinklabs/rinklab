@@ -233,9 +233,10 @@
 </div>
 
 <div class="tool-flyout" id="flyout-lines">
-  <button class="tool-btn flyout-item" data-tool="line"  title="Line (L)">╱ <span>Line</span></button>
-  <button class="tool-btn flyout-item" data-tool="arrow" title="Arrow (A)">→ <span>Arrow</span></button>
-  <button class="tool-btn flyout-item" data-tool="pen"   title="Pen (P)">✏ <span>Pen</span></button>
+  <button class="tool-btn flyout-item" data-tool="line"     title="Line (L)">╱ <span>Line</span></button>
+  <button class="tool-btn flyout-item" data-tool="arrow"    title="Arrow (A)">→ <span>Arrow</span></button>
+  <button class="tool-btn flyout-item" data-tool="pen"      title="Pen (P)">✏ <span>Pen</span></button>
+  <button class="tool-btn flyout-item" data-tool="penArrow" title="Pen Arrow">✏→ <span>Pen Arrow</span></button>
 </div>
 
 <div class="tool-flyout" id="flyout-equip">
@@ -305,7 +306,7 @@
 
     // ── Flyout palette logic ───────────────────────────────
     const FLYOUT_MAP = {
-      'group-btn-lines': { flyoutId: 'flyout-lines', tools: ['line','arrow','pen'] },
+      'group-btn-lines': { flyoutId: 'flyout-lines', tools: ['line','arrow','pen','penArrow'] },
       'group-btn-equip': { flyoutId: 'flyout-equip', tools: ['pylon','net','puck'] },
     };
 
