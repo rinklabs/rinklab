@@ -307,6 +307,14 @@ select:focus { outline: none; border-color: var(--accent); }
 .btn-toggle:hover    { background: #6678c1; }
 .btn-toggle.full     { background: transparent; color: #999; border: 1px solid var(--border); }
 .btn-toggle.full:hover { border-color: #666; color: var(--text); }
+.btn-lab { 
+      background: #d00000;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      border: 1px solid #ff4d4d;
+    }
+.btn-lab:hover { background: #9d0000; }
 
 /* ── Tags row ────────────────────────────────────────────────── */
 #tags-row {

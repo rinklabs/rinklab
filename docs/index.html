@@ -180,67 +180,6 @@
 </head>
 <body class="scroll-layout">
 
-  <!-- ── Coach identity ─────────────────────────────────────── -->
-  <div id="coach-selector">
-    <div id="coach-banner">
-
-      <!-- Auth form -->
-      <div id="coach-prompt">
-        <label for="coach-text" id="auth-label">Sign in</label>
-        <input type="text"     id="coach-display" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;flex:1;min-width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
-        <input type="email"    id="coach-text"    placeholder="Email"        autocomplete="email"    style="flex:1;min-width:160px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
-        <input type="password" id="coach-pin"     placeholder="Password"     autocomplete="current-password" style="flex:1;min-width:120px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
-        <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
-        <button id="auth-toggle">Create account</button>
-        <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
-        <span id="coach-error">Incorrect email or password — please try again.</span>
-      </div>
-
-      <!-- Signed in: welcome back -->
-      <div id="coach-greeting" style="display:none;">
-        <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
-        <button class="change-link" id="coach-change">Sign out</button>
-      </div>
-
-    </div>
-  </div>
-
-
-  <!-- ── Team panel ────────────────────────────────────────── -->
-  <div id="team-panel">
-    <div id="team-banner">
-
-      <!-- No team yet -->
-      <div id="team-prompt" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
-        <span class="team-label">My Team:</span>
-        <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off"/>
-        <button class="btn btn-primary" id="btn-create-team" style="padding:7px 16px;font-size:14px;">Create team</button>
-        <span class="team-label" style="margin-left:8px;">or enter code:</span>
-        <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:120px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
-        <button class="btn btn-outline" id="btn-join-team" style="padding:7px 16px;font-size:14px;">Join</button>
-        <span class="team-error" id="team-error"></span>
-      </div>
-
-      <!-- In a team -->
-      <div id="team-info" style="display:none;flex-direction:column;gap:10px;width:100%;">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-          <span class="team-label">My Teams:</span>
-          <div id="team-chips" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;"></div>
-          <button class="change-link" id="btn-add-team" style="margin-left:auto;">+ Add team</button>
-        </div>
-        <div id="team-add-form" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
-          <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:180px;"/>
-          <button class="btn btn-primary" id="btn-create-team2" style="padding:7px 14px;font-size:14px;">Create</button>
-          <span class="team-label" style="margin-left:8px;">or join:</span>
-          <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
-          <button class="btn btn-outline" id="btn-join-team2" style="padding:7px 14px;font-size:14px;">Join</button>
-          <button class="change-link" id="btn-cancel-add" style="font-size:13px;">Cancel</button>
-          <span class="team-error" id="team-error2"></span>
-        </div>
-      </div>
-
-    </div>
-  </div>
 
   <!-- ── Main content ───────────────────────────────────────── -->
    <section class="hero-section">
@@ -262,6 +201,76 @@
     </div>
   <hr class="section-divider">
 
+    <!-- ── Coach identity ─────────────────────────────────────── -->
+  <section class="hero-section">
+    <h1>Coach Identity & Team Selector</h1>
+    <div id="coach-selector">
+      <div id="coach-banner">
+
+        <!-- Auth form -->
+        <div id="coach-prompt">
+          <label for="coach-text" id="auth-label">Sign in</label>
+          <input type="text"     id="coach-display" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;flex:1;min-width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+          <input type="email"    id="coach-text"    placeholder="Email"        autocomplete="email"    style="flex:1;min-width:160px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+          <input type="password" id="coach-pin"     placeholder="Password"     autocomplete="current-password" style="flex:1;min-width:120px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+          <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
+          <button id="auth-toggle">Create account</button>
+          <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
+          <span id="coach-error">Incorrect email or password — please try again.</span>
+        </div>
+
+        <!-- Signed in: welcome back -->
+        <div id="coach-greeting" style="display:none;">
+          <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
+          <button class="change-link" id="coach-change">Sign out</button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ── Team panel ────────────────────────────────────────── -->
+    <div id="team-panel">
+      <div id="team-banner">
+
+        <!-- No team yet -->
+        <div id="team-prompt" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
+          <span class="team-label">My Team:</span>
+          <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off"/>
+          <button class="btn btn-primary" id="btn-create-team" style="padding:7px 16px;font-size:14px;">Create team</button>
+          <span class="team-label" style="margin-left:8px;">or enter code:</span>
+          <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:120px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+          <button class="btn btn-outline" id="btn-join-team" style="padding:7px 16px;font-size:14px;">Join</button>
+          <span class="team-error" id="team-error"></span>
+        </div>
+
+        <!-- In a team -->
+        <div id="team-info" style="display:none;flex-direction:column;gap:10px;width:100%;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="team-label">My Teams:</span>
+            <div id="team-chips" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;"></div>
+            <button class="change-link" id="btn-add-team" style="margin-left:auto;">+ Add team</button>
+          </div>
+          <div id="team-add-form" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
+            <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:180px;"/>
+            <button class="btn btn-primary" id="btn-create-team2" style="padding:7px 14px;font-size:14px;">Create</button>
+            <span class="team-label" style="margin-left:8px;">or join:</span>
+            <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+            <button class="btn btn-outline" id="btn-join-team2" style="padding:7px 14px;font-size:14px;">Join</button>
+            <button class="change-link" id="btn-cancel-add" style="font-size:13px;">Cancel</button>
+            <span class="team-error" id="team-error2"></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <hr class="section-divider">
+
+    <!-- ── Hub links ────────────────────────────────────────── --> 
+  <section class="hero-section">
+    <h1>Explore the Labs </h1>
+    <br>
     <div class="hub-grid">
       <a href="canvas.html" class="hub-card">
         <h2>Drills Lab Canvas</h2>
@@ -283,6 +292,18 @@
         <h2>Values & Motivation</h2>
         <p>Who we are and why we built this. A note from the founders on our core values, our motivation, 
           and our hopes for the hockey community.
+        </p>
+      </a>
+      <a href="terms_conditions.html" class="hub-card" style="border-style: dashed;">
+        <h2>Terms & Conditions</h2>
+        <p>Please use Rink Draw responsibly. By using this tool, you agree to our terms and conditions, 
+          which include guidelines on uses and content creation. 
+        </p>
+      </a>
+      <a href="terms_conditions.html#contact-us" class="hub-card" style="border-style: dashed;">
+        <h2>Contact Us</h2>
+        <p>Have feedback, questions, or want to contribute? We’d love to hear from you! Reach out to us via email 
+          to share your thoughts and help out.</p>
         </p>
       </a>
     </div>
