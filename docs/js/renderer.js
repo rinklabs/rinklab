@@ -145,10 +145,42 @@ function drawLine(el) {
   ctx.setLineDash([]);
 }
 
+// Returns the arrowhead reach (and shaft cutoff distance) for a given element.
+function arrowHeadSize(el) {
+  const sw = el.strokeWidth ?? 2;
+  return (el.arrowHead === 'large' || el.arrowHead === 'chevron')
+    ? Math.max(24, sw * 8)
+    : Math.max(10, sw * 3.5);  // 'small' (default)
+}
+
+// Draws the arrowhead at (tipX, tipY) pointing in direction `ang`.
+// style: 'small' | 'large' — filled triangle; 'chevron' — open > shape.
+function drawArrowHead(tipX, tipY, ang, hs, style, color, strokeWidth) {
+  if (style === 'chevron') {
+    ctx.beginPath();
+    ctx.moveTo(tipX - hs * Math.cos(ang - 0.5), tipY - hs * Math.sin(ang - 0.5));
+    ctx.lineTo(tipX, tipY);
+    ctx.lineTo(tipX - hs * Math.cos(ang + 0.5), tipY - hs * Math.sin(ang + 0.5));
+    ctx.lineWidth   = strokeWidth ?? 2;
+    ctx.strokeStyle = color;
+    ctx.setLineDash([]);
+    ctx.stroke();
+  } else {
+    // Filled triangle — same geometry for 'small' and 'large', size differs via hs
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
+    ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+}
+
 function drawArrow(el) {
   const x1 = el.x, y1 = el.y;
   const x2 = el.x + el.w, y2 = el.y + el.h;
-  const hs  = Math.max(10, (el.strokeWidth ?? 2) * 3.5);
+  const hs  = arrowHeadSize(el);
 
   let tipX = x2, tipY = y2;
   let ang  = Math.atan2(y2 - y1, x2 - x1);
@@ -189,15 +221,8 @@ function drawArrow(el) {
 
   ctx.stroke();
   ctx.setLineDash([]);
-
-  // Arrowhead triangle — tip projects forward, base sits flush with line end.
-  ctx.beginPath();
-  ctx.moveTo(tipX, tipY);
-  ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
-  ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
-  ctx.closePath();
-  ctx.fillStyle = el.strokeColor ?? '#000000';
-  ctx.fill();
+  drawArrowHead(tipX, tipY, ang, hs, el.arrowHead ?? 'small',
+                el.strokeColor ?? '#000000', el.strokeWidth);
 }
 
 function drawPen(el) {
@@ -217,7 +242,7 @@ function drawPen(el) {
 function drawPenArrow(el) {
   if (el.points.length < 2) return;
   const pts = el.points;
-  const hs  = Math.max(10, (el.strokeWidth ?? 2) * 3.5);
+  const hs  = arrowHeadSize(el);
 
   // End tangent: average direction over the last few captured points
   // for a stable arrow angle that isn't jittered by the last tiny segment.
@@ -247,13 +272,8 @@ function drawPenArrow(el) {
   ctx.setLineDash([]);
 
   // Arrowhead at the tip of the stroke
-  ctx.beginPath();
-  ctx.moveTo(tipX, tipY);
-  ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
-  ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
-  ctx.closePath();
-  ctx.fillStyle = el.strokeColor ?? '#000000';
-  ctx.fill();
+  drawArrowHead(tipX, tipY, ang, hs, el.arrowHead ?? 'small',
+                el.strokeColor ?? '#000000', el.strokeWidth);
 }
 
 function drawText(el) {
@@ -530,7 +550,9 @@ function renderDragPreview(a, b) {
       ctx.setLineDash([]);
       break;
     case 'arrow': {
-      const hs  = Math.max(10, State.defSW * 3.5);
+      const hs  = (State.defArrowHead === 'large' || State.defArrowHead === 'chevron')
+                  ? Math.max(24, State.defSW * 8)
+                  : Math.max(10, State.defSW * 3.5);
       let tipX = b.x, tipY = b.y;
       let ang  = Math.atan2(dy, dx);
 
@@ -559,14 +581,8 @@ function renderDragPreview(a, b) {
 
       ctx.stroke();
       ctx.setLineDash([]);
-
-      ctx.beginPath();
-      ctx.moveTo(tipX, tipY);
-      ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
-      ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
-      ctx.closePath();
-      ctx.fillStyle = State.defStroke;
-      ctx.fill();
+      drawArrowHead(tipX, tipY, ang, hs, State.defArrowHead ?? 'small',
+                    State.defStroke, State.defSW);
       break;
     }
   }
@@ -586,7 +602,9 @@ function renderPenPreview(pts) {
   ctx.lineJoin    = 'round';
 
   const isPenArrow = State.tool === 'penArrow';
-  const hs = Math.max(10, State.defSW * 3.5);
+  const hs = (State.defArrowHead === 'large' || State.defArrowHead === 'chevron')
+             ? Math.max(24, State.defSW * 8)
+             : Math.max(10, State.defSW * 3.5);
 
   // Determine cut point for penArrow so the shaft stops before the head
   let drawPts = pts;
@@ -616,13 +634,8 @@ function renderPenPreview(pts) {
     const ref  = pts[Math.max(0, pts.length - 5)];
     const tipX = last[0], tipY = last[1];
     const ang  = Math.atan2(last[1] - ref[1], last[0] - ref[0]);
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(tipX - hs * Math.cos(ang - 0.4), tipY - hs * Math.sin(ang - 0.4));
-    ctx.lineTo(tipX - hs * Math.cos(ang + 0.4), tipY - hs * Math.sin(ang + 0.4));
-    ctx.closePath();
-    ctx.fillStyle = State.defStroke;
-    ctx.fill();
+    drawArrowHead(tipX, tipY, ang, hs, State.defArrowHead ?? 'small',
+                  State.defStroke, State.defSW);
   }
 
   ctx.restore();

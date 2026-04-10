@@ -420,7 +420,8 @@ function onMouseUp(e) {
     if (State.penPoints?.length > 2) {
       const el = { id: uid(), type: State.tool, points: [...State.penPoints],
                    strokeColor: State.defStroke, strokeWidth: State.defSW,
-                   lineStyle: State.defLineStyle, opacity: 100 };
+                   lineStyle: State.defLineStyle, opacity: 100,
+                   ...(State.tool === 'penArrow' && { arrowHead: State.defArrowHead ?? 'small' }) };
       State.elements.push(el);
       State.selected = el.id;
       pushHistory();
@@ -444,6 +445,7 @@ function onMouseUp(e) {
     opacity:     100,
   };
   if (['line', 'arrow'].includes(State.tool)) el.lineStyle = State.defLineStyle;
+  if (State.tool === 'arrow') el.arrowHead = State.defArrowHead ?? 'small';
   State.elements.push(el);
   State.selected = el.id;
   pushHistory();
@@ -582,6 +584,17 @@ function initToolbarInputs() {
     }
   });
 
+  document.getElementById('arrow-head').addEventListener('change', e => {
+    State.defArrowHead = e.target.value;
+    if (State.selected) {
+      const el = State.elements.find(el => el.id === State.selected);
+      if (el && ['arrow', 'penArrow'].includes(el.type)) {
+        el.arrowHead = e.target.value;
+        render();
+      }
+    }
+  });
+
   document.getElementById('player-type').addEventListener('change', e => {
     State.defPlayerType = e.target.value;
     // If a player is selected, update its type live
@@ -602,7 +615,7 @@ function applyToSelected(key, value) {
 function initPropsPanel() {
   ['p-stroke', 'p-fill', 'p-sw', 'p-opacity', 'p-font',
    'p-fill-check', 'p-player-type', 'p-player-size', 'p-line-style',
-   'prop-subscript'].forEach(id => {
+   'p-arrow-head', 'prop-subscript'].forEach(id => {
     document.getElementById(id).addEventListener('input',  syncPropsToElement);
     document.getElementById(id).addEventListener('change', syncPropsToElement);
   });
@@ -648,6 +661,10 @@ function updatePropsPanel() {
   document.getElementById('row-player-type').style.display = isPlayer            ? 'flex' : 'none';
   document.getElementById('row-line-style').style.display  = isStrokable         ? 'flex' : 'none';
 
+  const isArrow = el.type === 'arrow' || el.type === 'penArrow';
+  document.getElementById('row-arrow-head').style.display  = isArrow             ? 'flex' : 'none';
+  if (isArrow) document.getElementById('p-arrow-head').value = el.arrowHead ?? 'small';
+
   if (isPlayer) {
     document.getElementById('p-player-type').value  = el.playerType  ?? 'F';
     document.getElementById('p-player-size').value  = el.fontSize    ?? 32;
@@ -683,6 +700,9 @@ function syncPropsToElement() {
     if (el.type === 'text') el.fontSize = +document.getElementById('p-font').value;
     if (['line', 'arrow', 'pen', 'penArrow'].includes(el.type)) {
       el.lineStyle = document.getElementById('p-line-style').value;
+    }
+    if (['arrow', 'penArrow'].includes(el.type)) {
+      el.arrowHead = document.getElementById('p-arrow-head').value;
     }
   }
   render();
