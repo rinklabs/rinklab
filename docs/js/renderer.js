@@ -137,6 +137,8 @@ function drawLine(el) {
   ctx.beginPath();
   if (el.lineStyle === 'wiggle') {
     wigglyLinePath(el.x, el.y, el.x + el.w, el.y + el.h);
+  } else if (el.lineStyle === 'cross') {
+    crossoverLinePath(el.x, el.y, el.x + el.w, el.y + el.h, el.strokeWidth ?? 2);
   } else {
     ctx.moveTo(el.x, el.y);
     ctx.lineTo(el.x + el.w, el.y + el.h);
@@ -212,11 +214,15 @@ function drawArrow(el) {
       i === 0 ? ctx.moveTo(pts[i][0], pts[i][1]) : ctx.lineTo(pts[i][0], pts[i][1]);
     }
   } else {
-    // For straight lines, stop exactly at the base of the triangle.
+    // For straight lines, stop exactly at the base of the arrowhead.
     const baseX = tipX - hs * Math.cos(ang);
     const baseY = tipY - hs * Math.sin(ang);
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(baseX, baseY);
+    if (el.lineStyle === 'cross') {
+      crossoverLinePath(x1, y1, baseX, baseY, el.strokeWidth ?? 2);
+    } else {
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(baseX, baseY);
+    }
   }
 
   ctx.stroke();
@@ -231,6 +237,8 @@ function drawPen(el) {
   ctx.beginPath();
   if (el.lineStyle === 'wiggle') {
     wigglyPenPath(el.points);
+  } else if (el.lineStyle === 'cross') {
+    crossoverPenPath(el.points, el.strokeWidth ?? 2);
   } else {
     ctx.moveTo(el.points[0][0], el.points[0][1]);
     el.points.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
@@ -264,6 +272,8 @@ function drawPenArrow(el) {
   ctx.beginPath();
   if (el.lineStyle === 'wiggle') {
     wigglyPenPath(pts.slice(0, cutIdx + 1));
+  } else if (el.lineStyle === 'cross') {
+    crossoverPenPath(pts.slice(0, cutIdx + 1), el.strokeWidth ?? 2);
   } else {
     ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i <= cutIdx; i++) ctx.lineTo(pts[i][0], pts[i][1]);
@@ -543,6 +553,8 @@ function renderDragPreview(a, b) {
       ctx.beginPath();
       if (State.defLineStyle === 'wiggle') {
         wigglyLinePath(a.x, a.y, b.x, b.y);
+      } else if (State.defLineStyle === 'cross') {
+        crossoverLinePath(a.x, a.y, b.x, b.y, State.defSW);
       } else {
         ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
       }
@@ -576,7 +588,11 @@ function renderDragPreview(a, b) {
       } else {
         const baseX = tipX - hs * Math.cos(ang);
         const baseY = tipY - hs * Math.sin(ang);
-        ctx.moveTo(a.x, a.y); ctx.lineTo(baseX, baseY);
+        if (State.defLineStyle === 'cross') {
+          crossoverLinePath(a.x, a.y, baseX, baseY, State.defSW);
+        } else {
+          ctx.moveTo(a.x, a.y); ctx.lineTo(baseX, baseY);
+        }
       }
 
       ctx.stroke();
@@ -621,6 +637,8 @@ function renderPenPreview(pts) {
   ctx.beginPath();
   if (State.defLineStyle === 'wiggle') {
     wigglyPenPath(drawPts);
+  } else if (State.defLineStyle === 'cross') {
+    crossoverPenPath(drawPts, State.defSW);
   } else {
     ctx.moveTo(drawPts[0][0], drawPts[0][1]);
     drawPts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
@@ -779,6 +797,75 @@ function computeWigglyPoints(x1, y1, x2, y2) {
     pts.push([x1 + t * dx + wave * nx, y1 + t * dy + wave * ny]);
   }
   return pts;
+}
+
+/**
+ * Adds a solid shaft plus evenly-spaced perpendicular tick marks to the
+ * current path, for the 'cross' line style on straight segments.
+ * Does NOT call ctx.stroke() — caller does that.
+ */
+function crossoverLinePath(x1, y1, x2, y2, sw) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  const ux = dx / len, uy = dy / len;   // unit vector along line
+  const nx = -uy,  ny = ux;              // unit normal (perpendicular)
+  const halfTick = Math.max(8, sw * 3.5) / 2;
+  const spacing  = 14;
+
+  // Main shaft
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+
+  // Ticks centred along the shaft, margins equal at both ends
+  const count  = Math.floor(len / spacing);
+  const margin = (len - count * spacing) / 2;
+  for (let i = 0; i <= count; i++) {
+    const t  = margin + i * spacing;
+    const px = x1 + ux * t;
+    const py = y1 + uy * t;
+    ctx.moveTo(px - nx * halfTick, py - ny * halfTick);
+    ctx.lineTo(px + nx * halfTick, py + ny * halfTick);
+  }
+}
+
+/**
+ * Adds a shaft plus perpendicular tick marks for an arbitrary polyline,
+ * for the 'cross' line style on pen strokes.
+ * Ticks are spaced by arc length so density stays consistent on curves.
+ * Does NOT call ctx.stroke() — caller does that.
+ */
+function crossoverPenPath(pts, sw) {
+  if (pts.length < 2) return;
+  const halfTick = Math.max(8, sw * 3.5) / 2;
+  const spacing  = 14;
+
+  // Main shaft
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+
+  // Walk the polyline and place ticks at regular arc-length intervals
+  let acc      = 0;
+  let nextTick = spacing / 2;   // start half a spacing in so first tick isn't right at the origin
+
+  for (let i = 1; i < pts.length; i++) {
+    const [x1, y1] = pts[i - 1];
+    const [x2, y2] = pts[i];
+    const segLen = Math.hypot(x2 - x1, y2 - y1);
+    if (segLen < 0.5) continue;
+    const ux = (x2 - x1) / segLen, uy = (y2 - y1) / segLen;
+    const nx = -uy, ny = ux;
+
+    while (nextTick <= acc + segLen) {
+      const t  = nextTick - acc;
+      const px = x1 + ux * t;
+      const py = y1 + uy * t;
+      ctx.moveTo(px - nx * halfTick, py - ny * halfTick);
+      ctx.lineTo(px + nx * halfTick, py + ny * halfTick);
+      nextTick += spacing;
+    }
+    acc += segLen;
+  }
 }
 
 /**
