@@ -184,8 +184,8 @@ function drawArrow(el) {
   const x2 = el.x + el.w, y2 = el.y + el.h;
   const hs  = arrowHeadSize(el);
 
-  let tipX = x2, tipY = y2;
-  let ang  = Math.atan2(y2 - y1, x2 - x1);
+  const tipX = x2, tipY = y2;
+  const ang  = Math.atan2(y2 - y1, x2 - x1);
 
   applyLineStyle(el.lineStyle);
   ctx.beginPath();
@@ -206,8 +206,8 @@ function drawArrow(el) {
     // for a stable, natural-looking head direction.
     const last = pts[pts.length - 1];
     const ref  = pts[Math.max(0, pts.length - 5)];
-    tipX = last[0]; tipY = last[1];
-    ang  = Math.atan2(last[1] - ref[1], last[0] - ref[0]);
+    // tipX = last[0]; tipY = last[1];
+    // ang  = Math.atan2(last[1] - ref[1], last[0] - ref[0]);
 
     // Draw only up to the cut point
     for (let i = 0; i <= cutIdx; i++) {
