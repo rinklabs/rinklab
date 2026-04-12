@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rink Lab — Stats</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      height: auto !important;
+      overflow-y: auto !important;
+      display: block !important;
+    }
+
+    .stats-page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    /* ── Hero banner (matches index.html) ── */
+    #hero-banner {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      overflow: hidden;
+      background-image: url('assets/NHLRink.svg');
+      background-size: cover;
+      background-position: center 40%;
+      background-color: #0a1a2e;
+    }
+
+    #hero-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0.25) 0%,
+        rgba(0,0,0,0.55) 55%,
+        #0f0f0f 100%
+      );
+    }
+
+    #hero-banner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 40px;
+      text-align: center;
+    }
+
+    #hero-banner-title {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: #ffffff;
+      line-height: 1;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+    }
+
+    #hero-banner-title span { color: var(--accent); }
+
+    #hero-banner-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    #hero-banner-cta {
+      display: inline-block;
+      margin-top: 22px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    #hero-banner-cta:hover { background: #ff8559; }
+
+    /* ── Stat cards grid ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 32px 32px;
+      overflow: hidden;
+      transition: border-color .25s, transform .2s;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    /* Glow blob behind the number */
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      background: var(--card-glow, var(--accent));
+      border-radius: 50%;
+      opacity: .07;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    .stat-card:hover::before { opacity: .13; }
+
+    .stat-icon {
+      font-size: 28px;
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-number {
+      font-size: clamp(48px, 8vw, 72px);
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      transition: color .3s;
+    }
+
+    .stat-card:hover .stat-number {
+      color: var(--accent);
+    }
+
+    .stat-sub {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Loading shimmer */
+    .stat-number.loading {
+      background: linear-gradient(90deg, var(--border) 25%, var(--hover) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Error state */
+    .stat-number.error {
+      font-size: 24px;
+      color: #e05a5a;
+      font-weight: 400;
+      padding-top: 16px;
+    }
+
+    /* ── Count-up animation ── */
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .stat-number.done {
+      animation: countUp .4s ease both;
+    }
+
+    /* ── Last updated ── */
+    .last-updated {
+      text-align: center;
+      margin-top: 36px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Hero banner ── -->
+  <div id="hero-banner">
+    <div id="hero-banner-overlay"></div>
+    <div id="hero-banner-content">
+      <div id="hero-banner-title">RINK <span>LABS</span></div>
+      <div id="hero-banner-sub">By the Numbers</div>
+      <a id="hero-banner-cta" href="index.html">Back To Labs →</a>
+    </div>
+  </div>
+
+  <div class="stats-page">
+
+    <div class="stat-grid">
+
+      <!-- Coaches card -->
+      <div class="stat-card" style="--card-glow: #5567b0;">
+        <span class="stat-icon">🧑‍💼</span>
+        <div class="stat-label">Coaches Signed Up</div>
+        <div class="stat-number loading" id="stat-coaches">—</div>
+        <div class="stat-sub">Volunteer coaches across all teams</div>
+      </div>
+
+      <!-- Drills card -->
+      <div class="stat-card" style="--card-glow: var(--accent);">
+        <span class="stat-icon">🎯</span>
+        <div class="stat-label">Drills Created</div>
+        <div class="stat-number loading" id="stat-drills">—</div>
+        <div class="stat-sub">Saved drills in the lab</div>
+      </div>
+
+    </div>
+
+    <div class="last-updated" id="last-updated"></div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script>
+    // ── Animate a number counting up ──────────────────────────────
+    function animateCount(el, target, duration = 900) {
+      el.classList.remove('loading');
+      if (target === 0) {
+        el.textContent = '0';
+        el.classList.add('done');
+        return;
+      }
+      const start     = performance.now();
+      const startVal  = 0;
+      function tick(now) {
+        const elapsed  = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease-out cubic
+        const eased    = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(startVal + (target - startVal) * eased).toLocaleString();
+        if (progress < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          el.textContent = target.toLocaleString();
+          el.classList.add('done');
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function showError(el, msg = 'Error') {
+      el.classList.remove('loading');
+      el.classList.add('error');
+      el.textContent = msg;
+    }
+
+    // ── Fetch stats ───────────────────────────────────────────────
+    async function loadStats() {
+      const coachEl = document.getElementById('stat-coaches');
+      const drillEl = document.getElementById('stat-drills');
+
+      // ── Drill count ──────────────────────────────────────────────
+      try {
+        const { count, error } = await _supabase
+          .from('drill')
+          .select('*', { count: 'exact', head: true });
+
+        if (error) throw error;
+        animateCount(drillEl, count ?? 0);
+      } catch (e) {
+        console.error('Drill count error:', e);
+        showError(drillEl, 'Unavailable');
+      }
+
+      // ── Coach count ──────────────────────────────────────────────
+      try {
+        const { data, error } = await _supabase.rpc('get_coach_count');
+        if (error) throw error;
+        animateCount(coachEl, data ?? 0);
+      } catch (e) {
+        console.error('Coach count error:', e);
+        showError(coachEl, 'Unavailable');
+      }
+
+      // ── Timestamp ────────────────────────────────────────────────
+      document.getElementById('last-updated').textContent =
+        'Last refreshed ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    loadStats();
+  </script>
+
+</body>
+</html>
