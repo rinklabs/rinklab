@@ -234,14 +234,6 @@
 
     .final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
     /* ── Team panel ──────────────────────────────────────────── */
-    #team-panel {
-      max-width: 900px; margin: 16px auto 0; padding: 0 20px; display: none;
-    }
-    #team-banner {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 8px; padding: 16px 24px;
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    }
     .team-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
     .team-input {
       flex: 1; min-width: 140px; background: var(--bg); color: var(--text);
@@ -304,48 +296,16 @@
         <!-- Signed in: welcome back -->
         <div id="coach-greeting" style="display:none;">
           <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
-          <button class="change-link" id="coach-change">Sign out</button>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- ── Team panel ────────────────────────────────────────── -->
-    <div id="team-panel">
-      <div id="team-banner">
-
-        <!-- No team yet -->
-        <div id="team-prompt" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
-          <span class="team-label">My Team:</span>
-          <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off"/>
-          <button class="btn btn-primary" id="btn-create-team" style="padding:7px 16px;font-size:14px;">Create team</button>
-          <span class="team-label" style="margin-left:8px;">or enter code:</span>
-          <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:120px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
-          <button class="btn btn-outline" id="btn-join-team" style="padding:7px 16px;font-size:14px;">Join</button>
-          <span class="team-error" id="team-error"></span>
-        </div>
-
-        <!-- In a team -->
-        <div id="team-info" style="display:none;flex-direction:column;gap:10px;width:100%;">
-          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-            <span class="team-label">My Teams:</span>
-            <div id="team-chips" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;"></div>
-            <button class="change-link" id="btn-add-team" style="margin-left:auto;">+ Add team</button>
-          </div>
-          <div id="team-add-form" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
-            <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:180px;"/>
-            <button class="btn btn-primary" id="btn-create-team2" style="padding:7px 14px;font-size:14px;">Create</button>
-            <span class="team-label" style="margin-left:8px;">or join:</span>
-            <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
-            <button class="btn btn-outline" id="btn-join-team2" style="padding:7px 14px;font-size:14px;">Join</button>
-            <button class="change-link" id="btn-cancel-add" style="font-size:13px;">Cancel</button>
-            <span class="team-error" id="team-error2"></span>
+          <div style="display:flex;gap:16px;align-items:center;">
+            <button class="change-link" id="account-btn">Manage Account</button>
+            <button class="change-link" id="coach-change">Sign out</button>
           </div>
         </div>
 
       </div>
     </div>
+
+
   </section>
   <hr class="section-divider" id="coach-anchor">
 
@@ -413,6 +373,72 @@
       We hope this makes your coaching journey more rewarding for every players and coaches. See you at the rink!
     </p>
   <hr class="section-divider">
+  <!-- ── Account Modal ────────────────────────────────────────── -->
+  <div id="account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px 32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;">
+      <button id="account-modal-close" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <h2 style="margin:0 0 20px;font-size:18px;color:var(--text);">Account Settings</h2>
+
+      <!-- Teams section -->
+      <p class="section-label" style="text-align:left;margin-bottom:12px;">My Teams</p>
+
+      <!-- No team yet -->
+      <div id="team-prompt" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off" style="flex:1;min-width:130px;"/>
+        <button class="btn btn-primary" id="btn-create-team" style="padding:7px 14px;font-size:14px;">Create team</button>
+        <span class="team-label">or join with code:</span>
+        <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+        <button class="btn btn-outline" id="btn-join-team" style="padding:7px 14px;font-size:14px;">Join</button>
+        <span class="team-error" id="team-error"></span>
+      </div>
+
+      <!-- In a team -->
+      <div id="team-info" style="display:none;flex-direction:column;gap:10px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div id="team-chips" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;"></div>
+          <button class="change-link" id="btn-add-team" style="white-space:nowrap;">+ Add team</button>
+        </div>
+        <div id="team-add-form" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
+          <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:170px;"/>
+          <button class="btn btn-primary" id="btn-create-team2" style="padding:7px 12px;font-size:14px;">Create</button>
+          <span class="team-label">or join:</span>
+          <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:100px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+          <button class="btn btn-outline" id="btn-join-team2" style="padding:7px 12px;font-size:14px;">Join</button>
+          <button class="change-link" id="btn-cancel-add" style="font-size:13px;">Cancel</button>
+          <span class="team-error" id="team-error2"></span>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid var(--border);">
+        <p class="section-label" style="text-align:left;margin-bottom:6px;color:#f38ba8;">Danger Zone</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+          Deleting your account is <strong style="color:var(--text);">permanent</strong> — all your drills, practice plans, and team memberships will be erased and cannot be recovered.
+        </p>
+        <button id="delete-account-btn" style="font-size:13px;color:#f38ba8;background:none;border:1px solid #f38ba8;border-radius:5px;padding:6px 14px;cursor:pointer;">Delete my account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Delete Confirm Modal ──────────────────────────────────── -->
+  <div id="delete-account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1100;align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid #f38ba8;border-radius:10px;padding:28px 32px;width:100%;max-width:420px;">
+      <h2 style="margin:0 0 12px;font-size:17px;color:#f38ba8;">Delete Account</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">
+        This will permanently delete your account, all saved drills, practice plans, and remove you from any teams. <strong style="color:var(--text);">This cannot be undone.</strong>
+      </p>
+      <p style="font-size:13px;color:var(--text);margin-bottom:8px;">Type <strong>DELETE</strong> to confirm:</p>
+      <input type="text" id="delete-confirm-input" placeholder="DELETE" autocomplete="off"
+        style="width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;margin-bottom:14px;"/>
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button id="cancel-delete-btn" class="btn btn-outline">Cancel</button>
+        <button id="confirm-delete-btn" class="btn btn-primary" disabled
+          style="background:#f38ba8;border-color:#f38ba8;color:#000;">Delete My Account</button>
+      </div>
+      <p id="delete-error" style="display:none;font-size:13px;color:#f38ba8;margin-top:10px;"></p>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -551,14 +577,66 @@
       await _supabase.auth.signOut();
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem('drillLab:teamId');
-      hideTeamPanel();
+      accountModal.style.display = 'none';
       showPrompt();
+    });
+
+    // ── Account modal ─────────────────────────────────────────
+    const accountBtn        = document.getElementById('account-btn');
+    const accountModal      = document.getElementById('account-modal');
+    const accountModalClose = document.getElementById('account-modal-close');
+    const deleteAccountBtn  = document.getElementById('delete-account-btn');
+    const deleteModal       = document.getElementById('delete-account-modal');
+    const cancelDeleteBtn   = document.getElementById('cancel-delete-btn');
+    const confirmDeleteBtn  = document.getElementById('confirm-delete-btn');
+    const deleteInput       = document.getElementById('delete-confirm-input');
+    const deleteError       = document.getElementById('delete-error');
+
+    accountBtn.addEventListener('click', () => {
+      accountModal.style.display = 'flex';
+    });
+    accountModalClose.addEventListener('click', () => {
+      accountModal.style.display = 'none';
+    });
+    accountModal.addEventListener('click', e => {
+      if (e.target === accountModal) accountModal.style.display = 'none';
+    });
+
+    deleteAccountBtn.addEventListener('click', () => {
+      deleteModal.style.display   = 'flex';
+      deleteInput.value           = '';
+      confirmDeleteBtn.disabled   = true;
+      deleteError.style.display   = 'none';
+    });
+    cancelDeleteBtn.addEventListener('click', () => {
+      deleteModal.style.display = 'none';
+    });
+    deleteInput.addEventListener('input', () => {
+      confirmDeleteBtn.disabled = deleteInput.value.trim() !== 'DELETE';
+    });
+    confirmDeleteBtn.addEventListener('click', async () => {
+      confirmDeleteBtn.disabled    = true;
+      confirmDeleteBtn.textContent = 'Deleting…';
+      const { data: { user } } = await _supabase.auth.getUser();
+      await _supabase.from('team_member').delete().eq('user_id', user.id);
+      const { error } = await _supabase.rpc('delete_user');
+      if (error) {
+        deleteError.textContent   = 'Something went wrong — please try again.';
+        deleteError.style.display = 'block';
+        confirmDeleteBtn.disabled    = false;
+        confirmDeleteBtn.textContent = 'Delete My Account';
+      } else {
+        await _supabase.auth.signOut();
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('drillLab:teamId');
+        window.location.reload();
+      }
     });
 
     // ── Team management ───────────────────────────────────────
 
-    function hideTeamPanel() { document.getElementById('team-panel').style.display = 'none'; }
-    function showTeamPanel(session) { document.getElementById('team-panel').style.display = 'block'; loadTeamState(session); }
+    function hideTeamPanel() { /* team panel is now inside account modal — nothing to hide */ }
+    function showTeamPanel(session) { loadTeamState(session); }
 
     async function loadTeamState(session) {
       const { data: memberships } = await _supabase
