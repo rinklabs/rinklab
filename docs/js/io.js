@@ -623,6 +623,19 @@ async function openLibrary() {
       btns.appendChild(delBtn);
     }
 
+    // Report (other coaches' drills only)
+    if (!d.is_mine) {
+      const reportBtn = document.createElement('button');
+      reportBtn.textContent   = '⚑';
+      reportBtn.style.cssText = btnStyle('#f38ba8', '#1e1e2e');
+      reportBtn.title = 'Report this drill as inappropriate';
+      reportBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        openReportModal(d.id, d.title);
+      });
+      btns.appendChild(reportBtn);
+    }
+
     card.append(info, btns);
 
     // Thumbnail hover preview
