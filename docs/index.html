@@ -59,6 +59,102 @@
       justify-content: center;
     }
     #delete-account-modal { background: rgba(0,0,0,0.8); z-index: 1100; }
+
+    /* ── Hub card designs (also used for drill/practice cards) ── */
+    .grid-a {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .card-a {
+    position: relative;
+    height: 180px;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    background: #161616;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    transition: border-color .2s;
+  }
+
+  .card-a:hover { border-color: #ff6b35; }
+
+  .card-a-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform .3s ease;
+  }
+
+  .card-a:hover .card-a-icon { transform: translateY(-12px); }
+
+  .card-a-icon svg {
+    width: 38px; height: 38px;
+    opacity: 0.7;
+    transition: opacity .2s;
+  }
+
+  .card-a:hover .card-a-icon svg { opacity: 1; }
+
+  .card-a-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: #e8e8e8;
+    text-align: center;
+    padding: 0 12px;
+  }
+
+  .card-a-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(22,22,22,0.97) 40%);
+    padding: 28px 14px 14px;
+    transform: translateY(100%);
+    transition: transform .28s ease;
+  }
+
+  .card-a:hover .card-a-overlay { transform: translateY(0); }
+
+  .card-a-desc {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .card-a-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #ff6b35;
+    border: 1px solid rgba(255,107,53,.35);
+    border-radius: 2px;
+    padding: 2px 7px;
+    margin-bottom: 6px;
+  }
+
+  /* Labels */
+  .opt-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: #ff6b35;
+    color: #000;
+    border-radius: 3px;
+    padding: 2px 8px;
+    margin-right: 8px;
+  }
   </style>
 </head>
 <body class="scroll-layout">
@@ -111,16 +207,60 @@
   <section class="hero-section">
     <p class="section-label">Explore the Labs</p>
     <br>
-    <div class="hub-grid">
-      <a href="canvas.html" class="hub-card">
-        <h2>Drills Canvas Lab</h2>
-        <p>Sketch, save, share. Design custom drills using high-fidelity rink templates. Place players, draw complex patterns, and export clear diagrams for your team.</p>
-      </a>
-      <a href="practice.html" class="hub-card">
-        <h2>Practice Lab</h2>
-        <p>Structure your practice. Build a comprehensive 60-minute practice plan tailored to your team's development goals using the practices you and your fellow coaches designed.</p>
-      </a>
-    </div>
+    <div class="grid-a">
+
+    <a class="card-a" href="canvas.html">
+      <div class="card-a-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Pencil body -->
+          <path d="M4 20 L8 20 L20 8 L16 4 L4 16 Z"/>
+          
+          <!-- Pencil tip -->
+          <path d="M16 4 L20 8"/>
+          
+          <!-- Lead tip detail -->
+          <line x1="4" y1="20" x2="6" y2="18"/>
+        </svg>
+        <div class="card-a-title">Draw Drills</div>
+      </div>
+      <div class="card-a-overlay">
+        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge">Draw</span></div>
+        <div class="card-a-desc">Sketch drills on a full or half rink. Place players, draw patterns, save &amp; share.</div>
+      </div>
+    </a>
+
+    <a class="card-a" href="practice.html">
+      <div class="card-a-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5567b0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="13" y2="17"/>
+        </svg>
+        <div class="card-a-title">Create Practice Plans</div>
+      </div>
+      <div class="card-a-overlay">
+        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#5567b0;border-color:rgba(85,103,176,.4);">Plan</span></div>
+        <div class="card-a-desc">Build 60-min practice plans. Drag drills from the library, set timings, print or share.</div>
+      </div>
+    </a>
+
+    <a class="card-a" href="drills.html">
+      <div class="card-a-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+          <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+        </svg>
+        <div class="card-a-title">Drill Library</div>
+      </div>
+      <div class="card-a-overlay">
+        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#a6e3a1;border-color:rgba(166,227,161,.35);">Browse</span></div>
+        <div class="card-a-desc">Browse all saved drills across your teams. Filter by tag, search, and preview diagrams.</div>
+      </div>
+    </a>
+
+  </div>
 
     <hr class="section-divider">
     <h1>Coaching &amp; Practices, Simplified.</h1>
