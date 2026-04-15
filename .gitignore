@@ -2,5 +2,6 @@
 **.venv**
 *.zip
 **drills**
+!drills.html
 src/coaches.json
 *.bak

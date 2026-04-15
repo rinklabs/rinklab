@@ -115,6 +115,12 @@ function initIO() {
     showToast('Canvas cleared');
   });
 
+  // Auto-load drill from URL param  ?id=123
+  const urlId = new URLSearchParams(location.search).get('id');
+  if (urlId) {
+    loadFromServer(urlId, '');
+  }
+
   pushHistory();
 }
 

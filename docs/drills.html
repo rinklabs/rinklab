@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drill Browser | Rink Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      height: auto !important;
+      overflow-y: auto !important;
+      display: block !important;
+    }
+
+    /* ── Hero (matches other pages) ── */
+    #hero-banner {
+      position: relative; width: 100%; height: 220px; overflow: hidden;
+      background-image: url('assets/NHLRink.svg');
+      background-size: cover; background-position: center 40%;
+      background-color: #0a1a2e;
+    }
+    #hero-banner-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, #0f0f0f 100%);
+    }
+    #hero-banner-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding-bottom: 36px; text-align: center;
+    }
+    #hero-banner-title {
+      font-size: 52px; font-weight: 800; letter-spacing: .03em;
+      color: #fff; line-height: 1; margin-bottom: 10px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+    }
+    #hero-banner-title span { color: var(--accent); }
+    #hero-banner-sub {
+      font-size: 13px; color: rgba(255,255,255,0.6);
+      letter-spacing: .1em; text-transform: uppercase;
+    }
+    #hero-banner-cta {
+      display: inline-block; margin-top: 18px;
+      background: var(--accent); color: #000;
+      font-weight: 800; font-size: 13px;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: 9px 26px; border-radius: 4px; text-decoration: none;
+    }
+    #hero-banner-cta:hover { background: #ff8559; }
+
+    /* ── Page body ── */
+    .page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    /* ── Controls bar ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .search-box::placeholder { color: var(--muted); }
+
+    .filter-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag-chip {
+      font-size: 11px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .tag-chip:hover  { border-color: var(--accent); color: var(--accent); }
+    .tag-chip.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+
+    .sort-select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      padding: 8px 10px;
+      outline: none;
+      cursor: pointer;
+      height: 38px;
+    }
+    .sort-select:focus { border-color: var(--accent); }
+
+    /* ── Results meta ── */
+    .results-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .results-meta b { color: var(--text); }
+
+    /* ── Drill grid ── */
+    .drill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── Drill card ── */
+    .drill-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .18s, border-color .18s, box-shadow .18s;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+    }
+    .drill-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 8px 28px rgba(0,0,0,.5);
+    }
+
+    .drill-thumb {
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      background: var(--hover);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .drill-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+
+    .drill-body {
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .drill-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drill-coach {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .drill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .drill-tag {
+      font-size: 9px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--hover);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .drill-open-hint {
+      margin-top: auto;
+      padding-top: 10px;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ── States ── */
+    .state-box {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .state-box .state-icon { font-size: 36px; display: block; margin-bottom: 12px; opacity: .4; }
+    .state-box p { max-width: 280px; margin: 0 auto; line-height: 1.7; }
+
+    /* Loading shimmer on cards */
+    .drill-card.skeleton {
+      pointer-events: none;
+      border-color: var(--border);
+    }
+    .drill-card.skeleton .drill-thumb {
+      background: linear-gradient(90deg, var(--border) 25%, var(--hover) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .drill-card.skeleton .drill-title,
+    .drill-card.skeleton .drill-coach {
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--border) 25%, var(--hover) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      color: transparent;
+    }
+    .drill-card.skeleton .drill-title { width: 75%; }
+    .drill-card.skeleton .drill-coach { width: 45%; }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .section-divider {
+      border: 0; height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 32px auto; max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Hero ── -->
+  <div id="hero-banner">
+    <div id="hero-banner-overlay"></div>
+    <div id="hero-banner-content">
+      <div id="hero-banner-title">DRILL <span>BROWSER</span></div>
+      <div id="hero-banner-sub">All drills — searchable &amp; filterable</div>
+      <a id="hero-banner-cta" href="index.html">← Back to Lab</a>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- Controls -->
+    <div class="controls">
+      <input
+        class="search-box"
+        id="search-input"
+        type="text"
+        placeholder="Search drills, tags, or coaches…"
+        oninput="applyFilters()"
+        autocomplete="off"
+      />
+      <select class="sort-select" id="sort-select" onchange="applyFilters()">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="alpha">A → Z</option>
+      </select>
+    </div>
+
+    <!-- Tag filter chips (populated from data) -->
+    <div class="filter-group" id="tag-filters" style="margin-bottom: 20px;"></div>
+
+    <!-- Results count -->
+    <div class="results-meta" id="results-meta"></div>
+
+    <!-- Grid -->
+    <div class="drill-grid" id="drill-grid">
+      <!-- Skeleton cards while loading -->
+      <div class="drill-card skeleton"><div class="drill-thumb"></div><div class="drill-body"><div class="drill-title">Loading…</div><div class="drill-coach">Coach name</div></div></div>
+      <div class="drill-card skeleton"><div class="drill-thumb"></div><div class="drill-body"><div class="drill-title">Loading…</div><div class="drill-coach">Coach name</div></div></div>
+      <div class="drill-card skeleton"><div class="drill-thumb"></div><div class="drill-body"><div class="drill-title">Loading…</div><div class="drill-coach">Coach name</div></div></div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script>
+    // ── State ─────────────────────────────────────────────────────
+    let allDrills      = [];
+    let activeTag      = null;   // currently selected tag chip
+
+    // ── Boot ──────────────────────────────────────────────────────
+    async function init() {
+      try {
+        const { data, error } = await _supabase
+          .from('drill')
+          .select('id, title, coach, tags, thumbnail, saved_at')
+          .order('saved_at', { ascending: false });
+
+        if (error) throw error;
+
+        allDrills = (data || []).map(d => ({
+          id:        d.id,
+          title:     d.title || 'Untitled',
+          coach:     d.coach || '',
+          tags:      safeParseTags(d.tags),
+          thumbnail: d.thumbnail || null,
+          savedAt:   d.saved_at,
+        }));
+
+        buildTagChips();
+        applyFilters();
+      } catch (err) {
+        document.getElementById('drill-grid').innerHTML =
+          `<div class="state-box"><span class="state-icon">⚠️</span><p>Could not load drills.<br>${esc(err.message)}</p></div>`;
+      }
+    }
+
+    function safeParseTags(raw) {
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch { return []; }
+    }
+
+    // ── Tag chips ─────────────────────────────────────────────────
+    function buildTagChips() {
+      // Collect all unique tags across drills
+      const tagCounts = {};
+      allDrills.forEach(d => d.tags.forEach(t => {
+        tagCounts[t] = (tagCounts[t] || 0) + 1;
+      }));
+
+      // Sort by frequency, take top 12
+      const sorted = Object.entries(tagCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12)
+        .map(([tag]) => tag);
+
+      const container = document.getElementById('tag-filters');
+      container.innerHTML = sorted.map(tag =>
+        `<button class="tag-chip" data-tag="${esc(tag)}" onclick="toggleTag('${esc(tag)}')">${esc(tag)}</button>`
+      ).join('');
+    }
+
+    function toggleTag(tag) {
+      activeTag = activeTag === tag ? null : tag;
+      document.querySelectorAll('.tag-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.tag === activeTag);
+      });
+      applyFilters();
+    }
+
+    // ── Filter + Sort + Render ─────────────────────────────────────
+    function applyFilters() {
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      const sort  = document.getElementById('sort-select').value;
+
+      let results = allDrills.filter(d => {
+        const matchesSearch =
+          !query ||
+          d.title.toLowerCase().includes(query) ||
+          d.coach.toLowerCase().includes(query) ||
+          d.tags.some(t => t.toLowerCase().includes(query));
+
+        const matchesTag = !activeTag || d.tags.includes(activeTag);
+
+        return matchesSearch && matchesTag;
+      });
+
+      // Sort
+      if (sort === 'oldest') {
+        results.sort((a, b) => new Date(a.savedAt) - new Date(b.savedAt));
+      } else if (sort === 'alpha') {
+        results.sort((a, b) => a.title.localeCompare(b.title));
+      }
+      // 'newest' is already the default order from Supabase
+
+      renderGrid(results);
+
+      const meta = document.getElementById('results-meta');
+      meta.innerHTML = results.length === allDrills.length
+        ? `<b>${allDrills.length}</b> drills`
+        : `<b>${results.length}</b> of ${allDrills.length} drills`;
+    }
+
+    // ── Render ────────────────────────────────────────────────────
+    function renderGrid(drills) {
+      const grid = document.getElementById('drill-grid');
+
+      if (!drills.length) {
+        grid.innerHTML = `
+          <div class="state-box">
+            <span class="state-icon">🔍</span>
+            <p>No drills match your search.<br>Try different keywords or clear the tag filter.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = drills.map(d => {
+        const thumb = d.thumbnail
+          ? `<img src="${esc(d.thumbnail)}" alt="${esc(d.title)}" loading="lazy" />`
+          : `🏒`;
+        const tags = d.tags.map(t => `<span class="drill-tag">${esc(t)}</span>`).join('');
+        const coach = d.coach ? `by ${esc(d.coach)}` : '';
+
+        return `
+          <a class="drill-card" href="canvas.html?id=${d.id}" title="Open in canvas">
+            <div class="drill-thumb">${thumb}</div>
+            <div class="drill-body">
+              <div class="drill-title">${esc(d.title)}</div>
+              ${coach ? `<div class="drill-coach">${coach}</div>` : ''}
+              ${tags ? `<div class="drill-tags">${tags}</div>` : ''}
+              <div class="drill-open-hint">Open in Canvas →</div>
+            </div>
+          </a>`;
+      }).join('');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────
+    function esc(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
