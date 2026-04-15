@@ -6,17 +6,7 @@
   <title>Practice Lab | Rink Lab</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── Page-specific styles (style.css variables used throughout) ── */
-    .btn-lab { 
-      background: #d00000; /* Racing Red */
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 800;
-      border: 1px solid #ff4d4d;
-    }
-    .btn-lab:hover {
-      background: #9d0000;
-    }
+    /* ── Practice name input ── */
     #practice-name {
       flex: 1;
       min-width: 100px;
@@ -36,14 +26,9 @@
     #practice-name:focus        { border-bottom-color: var(--accent); }
 
     /* ── App shell ── */
-    .pg-shell {
-      flex: 1;
-      display: flex;
-      min-height: 0;
-      overflow: hidden;
-    }
+    .pg-shell { flex: 1; display: flex; min-height: 0; overflow: hidden; }
 
-    /* ── Sidebar (left) ── */
+    /* ── Sidebar ── */
     #pg-sidebar {
       width: 300px;
       flex-shrink: 0;
@@ -55,221 +40,117 @@
       position: relative;
     }
 
-    .sb-section {
-      padding: 10px 10px 12px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
+    .sb-section { padding: 10px 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .sb-section .tb-label { display: block; margin-bottom: 7px; }
 
     .search-wrap { position: relative; }
-    .search-wrap svg {
-      position: absolute; left: 8px; top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted); pointer-events: none;
-    }
+    .search-wrap svg { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
     .search-wrap input {
-      width: 100%;
-      padding: 5px 8px 5px 28px;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 11px;
-      outline: none;
+      width: 100%; padding: 5px 8px 5px 28px;
+      background: var(--hover); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: inherit; font-size: 11px; outline: none;
     }
-    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap input:focus       { border-color: var(--accent); }
     .search-wrap input::placeholder { color: var(--muted); }
 
     .sb-input {
-      width: 100%;
-      margin-bottom: 5px;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 15px;
-      padding: 5px 8px;
-      outline: none;
+      width: 100%; margin-bottom: 5px;
+      background: var(--hover); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-family: inherit; font-size: 15px;
+      padding: 5px 8px; outline: none;
     }
-    .sb-input:focus { border-color: var(--accent); }
+    .sb-input:focus       { border-color: var(--accent); }
     .sb-input::placeholder { color: var(--muted); }
 
-    #drill-library {
-      flex: 1;
-      overflow-y: auto;
-      padding: 4px;
-    }
-    #drill-library::-webkit-scrollbar { width: 3px; }
+    #drill-library { flex: 1; overflow-y: auto; padding: 4px; }
+    #drill-library::-webkit-scrollbar       { width: 3px; }
     #drill-library::-webkit-scrollbar-thumb { background: var(--border); }
 
     .lib-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 8px;
-      border-radius: 4px;
-      cursor: grab;
-      border: 1px solid transparent;
-      transition: background .1s;
-      margin-bottom: 1px;
+      position: relative;
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 8px; border-radius: 4px; cursor: grab;
+      border: 1px solid transparent; transition: background .1s; margin-bottom: 1px;
     }
     .lib-item:hover  { background: var(--hover); border-color: var(--border); }
     .lib-item:active { cursor: grabbing; opacity: .6; }
 
     .lib-icon {
-      width: 26px; height: 26px;
-      border-radius: 3px;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 3px;
+      background: var(--hover); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
     }
 
     .lib-info { flex: 1; min-width: 0; }
-    .lib-name {
-      font-size: 11px; font-weight: 700; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .lib-desc {
-      font-size: 10px; color: var(--muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .lib-tags {
-      display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px;
-    }
-    .lib-tag {
+    .lib-name { font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lib-desc { font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lib-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+    .lib-tag  {
       font-size: 9px; letter-spacing: .05em; text-transform: uppercase;
       padding: 1px 5px; border-radius: 2px;
-      background: var(--hover); border: 1px solid var(--border);
-      color: var(--muted); white-space: nowrap;
+      background: var(--hover); border: 1px solid var(--border); color: var(--muted); white-space: nowrap;
     }
 
-    /* Thumbnail hover preview */
-    .lib-item { position: relative; }
     .lib-thumb-tip {
-      display: none;
-      position: fixed;
-      z-index: 500;
-      pointer-events: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-      box-shadow: 0 6px 24px rgba(0,0,0,.7);
-      width: 220px;
+      display: none; position: fixed; z-index: 500; pointer-events: none;
+      border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,.7); width: 220px;
     }
-    .lib-thumb-tip img { width: 100%; display: block; }
+    .lib-thumb-tip img     { width: 100%; display: block; }
     .lib-thumb-tip.visible { display: block; }
 
     .lib-add {
-      width: 20px; height: 20px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--muted);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      opacity: 0;
-      transition: all .1s;
-      font-size: 14px; line-height: 1;
+      width: 20px; height: 20px; background: transparent;
+      border: 1px solid var(--border); border-radius: 3px; color: var(--muted);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; opacity: 0; transition: all .1s; font-size: 14px; line-height: 1;
     }
     .lib-item:hover .lib-add { opacity: 1; }
     .lib-add:hover { background: var(--accent); border-color: var(--accent); color: #000; }
 
-    /* ── Main ── */
-    #pg-main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      overflow: hidden;
-    }
+    /* ── Main area ── */
+    #pg-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 
     #pg-meta {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 0 12px;
-      height: 36px;
-      flex-shrink: 0;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      overflow-x: auto;
+      display: flex; align-items: center; gap: 14px; padding: 0 12px;
+      height: 36px; flex-shrink: 0;
+      background: var(--panel); border-bottom: 1px solid var(--border); overflow-x: auto;
     }
     #pg-meta::-webkit-scrollbar { display: none; }
 
-    .meta-field {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-shrink: 0;
-    }
+    .meta-field { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
     .meta-field .tb-label { margin: 0; }
     .meta-field input {
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 11px;
-      padding: 3px 6px;
-      outline: none;
-      height: 22px;
+      background: var(--hover); border: 1px solid var(--border); border-radius: 3px;
+      color: var(--text); font-family: inherit; font-size: 11px;
+      padding: 3px 6px; outline: none; height: 22px;
     }
     .meta-field input:focus { border-color: var(--accent); }
 
     .meta-divider { color: var(--border); flex-shrink: 0; }
-
-    .meta-stat {
-      display: flex;
-      align-items: baseline;
-      gap: 3px;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-    .meta-stat-val {
-      font-size: 14px; font-weight: 700; color: var(--accent);
-    }
+    .meta-stat    { display: flex; align-items: baseline; gap: 3px; margin-left: auto; flex-shrink: 0; }
+    .meta-stat-val { font-size: 14px; font-weight: 700; color: var(--accent); }
     .meta-stat-val.warn { color: #e07a35; }
     .meta-stat-lbl { font-size: 10px; color: var(--muted); }
 
     /* Practice list */
-    #pg-list-wrap {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 10px;
-    }
-    #pg-list-wrap::-webkit-scrollbar { width: 3px; }
+    #pg-list-wrap { flex: 1; overflow-y: auto; padding: 8px 10px; }
+    #pg-list-wrap::-webkit-scrollbar       { width: 3px; }
     #pg-list-wrap::-webkit-scrollbar-thumb { background: var(--border); }
 
     #practice-list { display: flex; flex-direction: column; gap: 3px; }
 
     #practice-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 10px;
-      color: var(--muted);
-      text-align: center;
-      padding: 40px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; gap: 10px; color: var(--muted); text-align: center; padding: 40px;
     }
     #practice-empty p { font-size: 11px; max-width: 220px; line-height: 1.7; }
 
     .practice-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 40px; 
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      transition: border-color .1s;
-      animation: fadeUp .15s ease;
+      display: flex; align-items: center; gap: 12px;
+      padding: 20px 40px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+      transition: border-color .1s; animation: fadeUp .15s ease;
     }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(-3px); }
@@ -278,246 +159,95 @@
     .practice-item.drag-over { border-color: var(--accent); background: var(--hover); }
     .practice-item.dragging  { opacity: .3; }
 
-    .item-num {
-      font-size: 18px; color: var(--muted);
-      width: 14px; text-align: right; flex-shrink: 0;
-    }
-
-    .drag-handle {
-      color: var(--muted); cursor: grab; flex-shrink: 0;
-      font-size: 18px; letter-spacing: -1px; line-height: 1;
-    }
+    .item-num  { font-size: 18px; color: var(--muted); width: 14px; text-align: right; flex-shrink: 0; }
+    .drag-handle { color: var(--muted); cursor: grab; flex-shrink: 0; font-size: 18px; letter-spacing: -1px; line-height: 1; }
     .drag-handle:active { cursor: grabbing; }
 
-    .item-icon {
-      width: 26px; height: 26px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
+    .item-icon { width: 26px; height: 26px; border-radius: 3px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
     .item-icon.type-diagram { border-color: #ff6b3540; background: #ff6b3510; }
     .item-icon.type-quick   { border-color: var(--border); background: var(--hover); }
 
-    .item-info { flex: 1; min-width: 0; }
-    .item-name {
-      font-size: 20px; font-weight: 700; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .item-desc {
-      font-size: 16px; color: var(--muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .item-tag {
-      display: inline-block;
-      font-size: 8px; letter-spacing: .08em; text-transform: uppercase;
-      padding: 1px 5px; border-radius: 2px; margin-top: 2px;
-      border: 1px solid;
-    }
+    .item-info  { flex: 1; min-width: 0; }
+    .item-name  { font-size: 20px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-desc  { font-size: 16px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-tag   { display: inline-block; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; padding: 1px 5px; border-radius: 2px; margin-top: 2px; border: 1px solid; }
     .tag-diagram { color: var(--accent); border-color: #ff6b3540; }
     .tag-quick   { color: var(--muted);  border-color: var(--border); }
 
-    .item-time {
-      display: flex; align-items: center; gap: 3px; flex-shrink: 0;
-    }
+    .item-time { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
     .item-time input {
-      width: 54px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--accent);
-      font-family: inherit;
-      font-size: 16px; font-weight: 700;
-      padding: 4px 4px; text-align: center; outline: none;
+      width: 54px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+      color: var(--accent); font-family: inherit; font-size: 16px; font-weight: 700;
+      padding: 4px; text-align: center; outline: none;
     }
     .item-time input:focus { border-color: var(--accent); }
     .item-time-lbl { font-size: 16px; color: var(--muted); }
 
     .item-remove {
-      width: 22px; height: 22px;
-      background: transparent; border: none; border-radius: 3px;
-      color: var(--muted); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; background: transparent; border: none; border-radius: 3px;
+      color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; transition: all .1s; font-size: 12px;
     }
     .item-remove:hover { background: #e05a5a22; color: #e05a5a; }
 
-    /* Timeline bar */
+    /* Timeline */
     #pg-timeline {
-      height: 34px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 12px;
-      background: var(--panel);
-      border-top: 1px solid var(--border);
+      height: 34px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+      padding: 0 12px; background: var(--panel); border-top: 1px solid var(--border);
     }
-
-    #timeline-track {
-      flex: 1;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    #timeline-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: var(--accent);
-      transition: width .3s ease;
-    }
+    #timeline-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    #timeline-fill  { height: 100%; border-radius: 2px; background: var(--accent); transition: width .3s ease; }
     #timeline-fill.over { background: #e07a35; }
-
-    .tl-stat { font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+    .tl-stat   { font-size: 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     .tl-stat b { color: var(--text); }
 
-    /* Share modal */
+    /* Modals */
     .modal-backdrop {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.7);
-      z-index: 200;
-      display: flex; align-items: center; justify-content: center;
+      position: fixed; inset: 0; background: rgba(0,0,0,.7);
+      z-index: 200; display: flex; align-items: center; justify-content: center;
     }
-    .modal {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 24px;
-      width: 400px;
-      max-width: 92vw;
-    }
-    .modal h3 {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: .1em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 6px;
-    }
-    .modal p { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+    .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 24px; width: 400px; max-width: 92vw; }
+    .modal h3 { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .modal p  { font-size: 11px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
     .share-row { display: flex; gap: 6px; margin-bottom: 14px; }
-    .share-row input {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--muted);
-      font-family: inherit; font-size: 10px;
-      padding: 5px 8px; outline: none;
-    }
+    .share-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--muted); font-family: inherit; font-size: 10px; padding: 5px 8px; outline: none; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 6px; }
 
-    .load-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 10px; border-radius: 4px; cursor: pointer;
-      border: 1px solid transparent; margin-bottom: 2px;
-      transition: background .1s;
-    }
+    .load-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; margin-bottom: 2px; transition: background .1s; }
     .load-item:hover { background: var(--hover); border-color: var(--border); }
-    .load-item-info { flex: 1; min-width: 0; }
-    .load-item-name { font-size: 11px; font-weight: 700; color: var(--text); }
-    .load-item-meta { font-size: 10px; color: var(--muted); margin-top: 1px; }
-    .load-item-del {
-      width: 22px; height: 22px; flex-shrink: 0;
-      background: transparent; border: none; border-radius: 3px;
-      color: var(--muted); cursor: pointer; font-size: 12px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .1s; opacity: 0;
-    }
+    .load-item-info  { flex: 1; min-width: 0; }
+    .load-item-name  { font-size: 11px; font-weight: 700; color: var(--text); }
+    .load-item-meta  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .load-item-del   { width: 22px; height: 22px; flex-shrink: 0; background: transparent; border: none; border-radius: 3px; color: var(--muted); cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: all .1s; opacity: 0; }
     .load-item:hover .load-item-del { opacity: 1; }
     .load-item-del:hover { background: #e05a5a22; color: #e05a5a; }
 
-    /* Mobile sidebar toggle */
-    #sidebar-toggle {
-      display: none;
-      width: 28px; height: 28px;
-      align-items: center; justify-content: center;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--muted);
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all .1s;
-    }
+    /* Mobile sidebar */
+    #sidebar-toggle { display: none; width: 28px; height: 28px; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border); border-radius: 3px; color: var(--muted); cursor: pointer; flex-shrink: 0; transition: all .1s; }
     #sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
-
-    #sidebar-backdrop {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.65);
-      z-index: 50;
-    }
+    #sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 50; }
     #sidebar-backdrop.active { display: block; }
-
-    .sb-close {
-      display: none;
-      position: absolute; top: 8px; right: 8px;
-      width: 22px; height: 22px;
-      align-items: center; justify-content: center;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      color: var(--muted); cursor: pointer;
-      font-size: 12px; line-height: 1;
-    }
+    .sb-close { display: none; position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; align-items: center; justify-content: center; background: var(--hover); border: 1px solid var(--border); border-radius: 3px; color: var(--muted); cursor: pointer; font-size: 12px; }
     .sb-close:hover { color: var(--text); }
 
     /* Print */
-    .print-only { display: none; }
+    .print-only  { display: none; }
     #print-container { display: none; }
 
     @page { size: letter portrait; margin: 13mm 14mm; }
 
     @media print {
       body > * { display: none !important; }
-
-      #print-container {
-        display: block !important;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 9.5pt;
-        color: #111;
-        background: white;
-      }
-
-      /* ── Page header ── */
-      .pc-page-header {
-        border-bottom: 2.5pt solid #1e3a5f;
-        padding-bottom: 6pt;
-        margin-bottom: 8pt;
-      }
-      .pc-page-header h1 {
-        font-size: 20pt;
-        font-weight: 700;
-        color: #1e3a5f;
-        margin: 0 0 3pt;
-        letter-spacing: -.01em;
-      }
-      .pc-meta-row {
-        font-size: 8.5pt;
-        color: #444;
-        display: table;
-        width: 100%;
-      }
+      #print-container { display: block !important; font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; color: #111; background: white; }
+      .pc-page-header { border-bottom: 2.5pt solid #1e3a5f; padding-bottom: 6pt; margin-bottom: 8pt; }
+      .pc-page-header h1 { font-size: 20pt; font-weight: 700; color: #1e3a5f; margin: 0 0 3pt; letter-spacing: -.01em; }
+      .pc-meta-row { font-size: 8.5pt; color: #444; display: table; width: 100%; }
       .pc-meta-row span { display: table-cell; }
       .pc-meta-row span + span { padding-left: 18pt; }
       .pc-meta-lbl { font-weight: 700; color: #1e3a5f; }
-
-      /* ── Summary table ── */
-      .pc-summary {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 10pt;
-        font-size: 8.5pt;
-      }
-      .pc-summary thead tr {
-        background: #1e3a5f;
-        color: white;
-      }
-      .pc-summary thead th {
-        padding: 4pt 7pt;
-        text-align: left;
-        font-weight: 700;
-        letter-spacing: .03em;
-      }
+      .pc-summary { width: 100%; border-collapse: collapse; margin-bottom: 10pt; font-size: 8.5pt; }
+      .pc-summary thead tr { background: #1e3a5f; color: white; }
+      .pc-summary thead th { padding: 4pt 7pt; text-align: left; font-weight: 700; letter-spacing: .03em; }
       .pc-summary thead th:last-child { text-align: right; }
       .pc-summary tbody tr { border-bottom: 1pt solid #e8e8e8; }
       .pc-summary tbody tr:nth-child(even) { background: #f6f8fb; }
@@ -525,133 +255,42 @@
       .pc-summary tbody td:last-child { text-align: right; font-weight: 700; white-space: nowrap; }
       .pc-summary-num  { color: #999; width: 16pt; }
       .pc-summary-name { font-weight: 700; }
-      .pc-summary-tag  {
-        display: inline-block;
-        font-size: 7pt; text-transform: uppercase; letter-spacing: .04em;
-        padding: 0pt 4pt; border: 1pt solid #b0bec5; border-radius: 2pt;
-        color: #546e7a; margin-right: 2pt;
-      }
-      .pc-summary-quick { color: #888; font-style: italic; }
-
-      /* ── Section label above drill cards ── */
-      .pc-section-label {
-        font-size: 7.5pt;
-        font-weight: 700;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        color: #888;
-        border-bottom: 1pt solid #ddd;
-        padding-bottom: 2pt;
-        margin-bottom: 6pt;
-      }
-
-      /* ── Drill card ── */
-      .pc-drill {
-        border: 1pt solid #d0d8e0;
-        border-radius: 3pt;
-        margin-bottom: 7pt;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        /* overflow: hidden; */
-      }
-
-      /* Bar: dark blue, white text */
-      .pc-drill-bar {
-        background: #1e3a5f;
-        color: white;
-        padding: 5pt 8pt;
-        display: table;
-        width: 100%;
-        box-sizing: border-box;
-        border-radius: 2pt 2pt 0 0;
-      }
+      .pc-section-label { font-size: 7.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #888; border-bottom: 1pt solid #ddd; padding-bottom: 2pt; margin-bottom: 6pt; }
+      .pc-drill { border: 1pt solid #d0d8e0; border-radius: 3pt; margin-bottom: 7pt; break-inside: avoid; page-break-inside: avoid; }
+      .pc-drill-bar { background: #1e3a5f; color: white; padding: 5pt 8pt; display: table; width: 100%; box-sizing: border-box; border-radius: 2pt 2pt 0 0; }
       .pc-drill-bar-left  { display: table-cell; vertical-align: middle; }
       .pc-drill-bar-right { display: table-cell; vertical-align: middle; text-align: right; white-space: nowrap; }
-      .pc-drill-num  { font-size: 8pt; opacity: .6; margin-right: 5pt; }
+      .pc-drill-num   { font-size: 8pt; opacity: .6; margin-right: 5pt; }
       .pc-drill-title { font-size: 11pt; font-weight: 700; }
-      .pc-drill-tag {
-        display: inline-block;
-        font-size: 7pt; text-transform: uppercase; letter-spacing: .04em;
-        padding: 0pt 4pt; border: 1pt solid rgba(255,255,255,.4);
-        border-radius: 2pt; color: rgba(255,255,255,.85);
-        margin-left: 4pt; vertical-align: middle;
-      }
-      .pc-drill-time { font-size: 10pt; font-weight: 700; }
+      .pc-drill-tag   { display: inline-block; font-size: 7pt; text-transform: uppercase; letter-spacing: .04em; padding: 0pt 4pt; border: 1pt solid rgba(255,255,255,.4); border-radius: 2pt; color: rgba(255,255,255,.85); margin-left: 4pt; vertical-align: middle; }
+      .pc-drill-time  { font-size: 10pt; font-weight: 700; }
       .pc-drill-time-lbl { font-size: 7.5pt; opacity: .7; margin-left: 2pt; }
-
-            /* Body — float layout is the most reliable for print pagination.
-         display:table blocks page breaks; flexbox has quirks in print. */
       .pc-drill-body { display: block; overflow: visible; }
       .pc-drill-body::after { content: ''; display: table; clear: both; }
-
-      .pc-drill-img-cell {
-        float: left;
-        width: 115mm;
-        padding: 0;
-        background: #fff;
-        border-right: 1pt solid #d0d8e0;
-      }
-      /* Full rink ~2.15:1 — wider column */
+      .pc-drill-img-cell { float: left; width: 115mm; padding: 0; background: #fff; border-right: 1pt solid #d0d8e0; }
       .pc-drill-img-cell.rink-full { width: 120mm; }
-      /* Half rink ~1.09:1 — narrower, roughly square */
       .pc-drill-img-cell.rink-half { width: 68mm; }
-
-      .pc-drill-img-cell img {
-        width: 100%;
-        height: auto;
-        display: block;
-        border: 0;
-      }
-
-      .pc-no-img {
-        font-size: 8pt; color: #bbb;
-        padding: 20pt 0;
-        font-style: italic;
-        text-align: center;
-      }
-
-      .pc-drill-desc-cell {
-        display: block;
-        overflow: visible;
-        /* vertical-align: top; */
-        padding: 7pt 9pt;
-        font-size: 9pt;
-        line-height: 1.65;
-        color: #222;
-      }
+      .pc-drill-img-cell img { width: 100%; height: auto; display: block; border: 0; }
+      .pc-no-img { font-size: 8pt; color: #bbb; padding: 20pt 0; font-style: italic; text-align: center; }
+      .pc-drill-desc-cell { display: block; overflow: visible; padding: 7pt 9pt; font-size: 9pt; line-height: 1.65; color: #222; }
       .pc-drill-desc-cell p { margin: 0 0 5pt; }
-
-      /* Quick drills — no image column */
       .pc-drill.quick .pc-drill-img-cell { display: none; }
       .pc-drill.quick .pc-drill-desc-cell { width: 100%; }
     }
 
-    /* Responsive / mobile */
     @media (max-width: 680px) {
       html, body { overflow: hidden; }
       #top-bar { padding: 0 8px; gap: 6px; }
       #logo { font-size: 11px; }
       #practice-name { font-size: 13px; }
       .btn { padding: 4px 8px; font-size: 10px; }
-
       #sidebar-toggle { display: flex; }
-
-      #pg-sidebar {
-        position: fixed;
-        top: 0; left: 0; bottom: 0;
-        z-index: 100;
-        transform: translateX(-100%);
-        transition: transform .25s cubic-bezier(.4,0,.2,1);
-        width: 300px;
-        box-shadow: 4px 0 20px rgba(0,0,0,.6);
-      }
+      #pg-sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transform: translateX(-100%); transition: transform .25s cubic-bezier(.4,0,.2,1); width: 300px; box-shadow: 4px 0 20px rgba(0,0,0,.6); }
       #pg-sidebar.open { transform: translateX(0); }
       .sb-close { display: flex; }
-
       #pg-meta { height: auto; flex-wrap: wrap; padding: 7px 10px; gap: 8px; }
       .meta-divider { display: none; }
       .meta-stat { margin-left: 0; }
-
       .practice-item { padding: 7px 8px; gap: 6px; }
       .item-num { display: none; }
     }
@@ -665,9 +304,8 @@
         <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
     </button>
-
     <a href="index.html" class="btn btn-lab">← LAB</a>
-    <a href="canvas.html" class="btn btn-lab" style="display: inline-flex; align-items: center; gap: 8px;">
+    <a href="canvas.html" class="btn btn-lab" style="display:inline-flex;align-items:center;gap:8px;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -676,9 +314,7 @@
       CANVAS
     </a>
     <div id="logo">⬡ PRACTICE LAB</div>
-
     <input id="practice-name" type="text" placeholder="Untitled Practice…" maxlength="80" />
-
     <div id="top-actions">
       <button class="btn btn-primary" onclick="savePractice()">💾 Save</button>
       <button class="btn btn-primary" onclick="openLoadModal()">📂 Library</button>
@@ -692,7 +328,6 @@
   </div>
 
   <div class="pg-shell">
-
     <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
 
     <aside id="pg-sidebar">
@@ -719,12 +354,6 @@
     </aside>
 
     <div id="pg-main">
-
-      <div class="print-only" style="display:none">
-        <h2 id="print-title">Practice Plan</h2>
-        <p id="print-meta"></p>
-      </div>
-
       <div id="pg-meta">
         <div class="meta-field">
           <span class="tb-label">Date</span>
@@ -738,8 +367,7 @@
         <span class="meta-divider">|</span>
         <div class="meta-field">
           <span class="tb-label">Target</span>
-          <input type="number" id="target-duration" value="60" min="15" max="180" step="5"
-                 style="width:50px;" oninput="updateTimeline()" />
+          <input type="number" id="target-duration" value="60" min="15" max="180" step="5" style="width:50px;" oninput="updateTimeline()" />
           <span class="tb-label">min</span>
         </div>
         <div class="meta-stat">
@@ -770,10 +398,10 @@
         <span class="tl-stat"><b id="used-min">0</b> min used</span>
         <span class="tl-stat"><b id="remaining-min">60</b> remaining</span>
       </div>
-
     </div>
   </div>
 
+  <!-- Share modal -->
   <div class="modal-backdrop" id="share-modal" style="display:none">
     <div class="modal">
       <h3>Share Practice</h3>
@@ -788,7 +416,8 @@
     </div>
   </div>
 
-    <div class="modal-backdrop" id="load-modal" style="display:none">
+  <!-- Load modal -->
+  <div class="modal-backdrop" id="load-modal" style="display:none">
     <div class="modal" style="width:500px;">
       <h3>Load Practice</h3>
       <p>Select a saved practice to load. Your current plan will be replaced.</p>
@@ -800,783 +429,11 @@
   </div>
 
   <div id="print-container"></div>
-
-
   <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/config.js"></script>
-<script src="js/toast.js"></script>
-<script>
-window.addEventListener('keydown', function(e) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-    e.preventDefault();
-    
-    // Assuming your save button has an ID or you call your save function directly
-    if (typeof savePractice === "function") {
-      savePractice(); 
-      // Or: document.getElementById('your-save-button-id').click();
-    }
-  }
-});
-
-// ─────────────────────────────────────────────
-//  Sidebar toggle
-// ─────────────────────────────────────────────
-function toggleSidebar() {
-  document.getElementById('pg-sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
-}
-function openSidebar() {
-  document.getElementById('pg-sidebar').classList.add('open');
-  document.getElementById('sidebar-backdrop').classList.add('active');
-}
-function closeSidebar() {
-  document.getElementById('pg-sidebar').classList.remove('open');
-  document.getElementById('sidebar-backdrop').classList.remove('active');
-}
-
-// ─────────────────────────────────────────────
-//  State
-// ─────────────────────────────────────────────
-let practiceItems = [];
-let drillLibrary  = [];
-let dragSrcIdx    = null;
-let libDragId     = null;
-
-// ─────────────────────────────────────────────
-//  Coach (read from localStorage — same key as canvas editor)
-// ─────────────────────────────────────────────
-function getCoach() {
-  return (localStorage.getItem('drillLab:coach') || '').trim();
-}
-const coach = getCoach();
-
-// ─────────────────────────────────────────────
-//  Team selector
-// ─────────────────────────────────────────────
-async function initTeamSelector() {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) return;
-
-  const { data: memberships } = await _supabase
-    .from('team_member')
-    .select('team_id, team(id, name)')
-    .eq('user_id', session.user.id);
-
-  const teams = (memberships || []).map(m => m.team).filter(Boolean);
-
-  const wrap   = document.getElementById('team-selector-wrap');
-  const select = document.getElementById('save-team-selector');
-  select.innerHTML = '';
-
-  const noneOpt = document.createElement('option');
-  noneOpt.value = '';
-  noneOpt.textContent = 'None (private)';
-  select.appendChild(noneOpt);
-
-  if (teams.length > 0) {
-    wrap.style.display = 'flex';
-    teams.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = t.name;
-      select.appendChild(opt);
-    });
-    const stored = localStorage.getItem('drillLab:teamId');
-    if (stored && teams.find(t => t.id === stored)) {
-      select.value = stored;
-    }
-    select.addEventListener('change', () => {
-      if (select.value) localStorage.setItem('drillLab:teamId', select.value);
-      else localStorage.removeItem('drillLab:teamId');
-    });
-  }
-}
-
-// ─────────────────────────────────────────────
-//  Init
-// ─────────────────────────────────────────────
-async function init() {
-  document.getElementById('practice-date').value = new Date().toISOString().slice(0, 10);
-  loadFromURL();
-  updateEmpty();
-  updateTimeline();
-  await fetchDrills();
-  await initTeamSelector();
-}
-
-// ─────────────────────────────────────────────
-//  Fetch drills from backend
-// ─────────────────────────────────────────────
-async function fetchDrills() {
-  const el = document.getElementById('drill-library');
-  el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">Loading\u2026</div>`;
-
-  try {
-    const [
-      { data: { session } },
-      { data, error },
-      { data: practices },
-    ] = await Promise.all([
-      _supabase.auth.getSession(),
-      _supabase.from('drill').select('id, title, coach, tags, thumbnail, user_id').order('saved_at', { ascending: false }),
-      _supabase.from('practice').select('items'),
-    ]);
-
-    if (error) throw new Error(error.message);
-
-    const userId = session?.user?.id || null;
-
-    // Count how many times each drill ID appears across all saved practices
-    const usageCount = {};
-    (practices || []).forEach(p => {
-      try {
-        JSON.parse(p.items || '[]').forEach(item => {
-          if (item.id) usageCount[item.id] = (usageCount[item.id] || 0) + 1;
-        });
-      } catch {}
-    });
-
-    drillLibrary = (data || []).map(d => ({
-      id:        d.id,
-      name:      d.title,
-      desc:      '',
-      tags:      JSON.parse(d.tags || '[]'),
-      coach:     d.coach,
-      thumbnail: d.thumbnail || null,
-      isMine:    d.user_id === userId,
-      useCount:  usageCount[d.id] || 0,
-    }));
-
-    // 1. Your drills  2. Used-in-practice (by count desc)  3. Rest (by count desc)
-    drillLibrary.sort((a, b) => {
-      if (a.isMine !== b.isMine) return a.isMine ? -1 : 1;
-      return b.useCount - a.useCount;
-    });
-
-    renderLibrary();
-  } catch (err) {
-    el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:#e05a5a">
-      Could not load drills.<br><span style="color:var(--muted)">${err.message}</span>
-    </div>`;
-  }
-}
-
-// ─────────────────────────────────────────────
-//  Library
-// ─────────────────────────────────────────────
-function renderLibrary(filter = '') {
-  const el = document.getElementById('drill-library');
-  const f  = filter.toLowerCase();
-  const items = drillLibrary.filter(d =>
-    !f ||
-    d.name.toLowerCase().includes(f) ||
-    (d.tags || []).some(t => t.toLowerCase().includes(f)) ||
-    (d.coach || '').toLowerCase().includes(f)
-  );
-
-  if (!items.length) {
-    el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">No drills found</div>`;
-    return;
-  }
-
-  el.innerHTML = items.map(d => {
-    const iconHtml = d.thumbnail
-      ? `<img src="${d.thumbnail}" style="width:36px;height:36px;object-fit:cover;border-radius:3px;display:block;" />`
-      : `🏒`;
-    const iconStyle = d.thumbnail ? 'width:38px;height:38px;padding:0;overflow:hidden;' : '';
-    const tagPills  = (d.tags || []).map(t =>
-      `<span class="lib-tag">${esc(t)}</span>`
-    ).join('');
-    const coachTxt  = d.coach ? `<span style="font-size:9px;color:var(--muted)">${esc(d.coach)}</span>` : '';
-    const hasTip    = d.thumbnail ? 'data-thumb="true"' : '';
-    return `
-      <div class="lib-item" draggable="true" ${hasTip}
-           ondragstart="libDragStart(event,${d.id})"
-           onclick="addFromLibrary(${d.id})"
-           onmouseenter="showThumbTip(event,${d.id})"
-           onmousemove="moveThumbTip(event)"
-           onmouseleave="hideThumbTip()">
-        <div class="lib-icon" style="${iconStyle}">${iconHtml}</div>
-        <div class="lib-info">
-          <div class="lib-name">${esc(d.name)} ${coachTxt}</div>
-          <div class="lib-tags">${tagPills}</div>
-        </div>
-        <button class="lib-add" onclick="event.stopPropagation();addFromLibrary(${d.id})" title="Add">+</button>
-      </div>`;
-  }).join('');
-}
-
-function filterLibrary(val) { renderLibrary(val); }
-
-async function addFromLibrary(id) {
-  const d = drillLibrary.find(x => x.id == id);
-  if (!d) return;
-
-  let desc = '';
-  let rinkView = 'half'; // overwritten by fetched scene below
-
-  try {
-    const { data, error } = await _supabase.from('drill').select('scene').eq('id', d.id).single();
-    if (!error && data) {
-      const scene = JSON.parse(data.scene);
-      desc     = scene?.metadata?.description || '';
-      rinkView = scene?.appState?.rinkView || 'half';
-    }
-  } catch (_) { /* fall through */ }
-
-  practiceItems.push({
-    id: uid(), sourceId: d.id, name: d.name,
-    desc, tags: d.tags || [], thumbnail: d.thumbnail || null,
-    rinkView, type: 'diagram', duration: 10,
-  });
-  renderList();
-  showToast('Added: ' + d.name);
-  if (window.innerWidth <= 680) closeSidebar();
-}
-
-// ─────────────────────────────────────────────
-//  Quick Drill
-// ─────────────────────────────────────────────
-function addQuickDrill() {
-  const name = document.getElementById('qd-name').value.trim();
-  const desc = document.getElementById('qd-desc').value.trim();
-  if (!name) { showToast('Enter a drill name', true); return; }
-  practiceItems.push({ id: uid(), name, desc, type: 'quick', duration: 5 });
-  renderList();
-  document.getElementById('qd-name').value = '';
-  document.getElementById('qd-desc').value = '';
-  showToast('Quick drill added');
-  if (window.innerWidth <= 680) closeSidebar();
-}
-
-// ─────────────────────────────────────────────
-//  Practice List
-// ─────────────────────────────────────────────
-function renderList() {
-  updateEmpty();
-  document.getElementById('practice-list').innerHTML = practiceItems.map((item, i) => `
-    <div class="practice-item" id="pi-${item.id}"
-         data-idx="${i}"
-         draggable="true"
-         ondragstart="itemDragStart(event,${i})"
-         ondragover="itemDragOver(event,${i})"
-         ondragleave="itemDragLeave(event,${i})"
-         ondrop="itemDrop(event,${i})"
-         ondragend="itemDragEnd()">
-      <div class="item-num">${i+1}</div>
-      <div class="drag-handle" title="Drag to reorder">⠿</div>
-      <div class="item-icon ${item.type === 'diagram' ? 'type-diagram' : 'type-quick'}">
-        ${item.type === 'diagram' ? '🏒' : '📝'}
-      </div>
-      <div class="item-info">
-        <div class="item-name">${esc(item.name)}</div>
-        ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
-        <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
-          ${item.type === 'diagram' ? 'Diagram' : 'Quick'}
-        </span>
-      </div>
-      <div class="item-time">
-        <input type="number" min="1" max="120" value="${item.duration}"
-               onchange="setDuration('${item.id}',this.value)"
-               oninput="setDuration('${item.id}',this.value)"
-               title="Duration in minutes" />
-        <span class="item-time-lbl">min</span>
-      </div>
-      <button class="item-remove" onclick="removeItem('${item.id}')" title="Remove">✕</button>
-    </div>
-  `).join('');
-
-  updateTimeline();
-}
-
-function updateEmpty() {
-  document.getElementById('practice-empty').style.display = practiceItems.length ? 'none' : 'flex';
-}
-
-function removeItem(id) {
-  practiceItems = practiceItems.filter(x => x.id !== id);
-  renderList();
-}
-
-function setDuration(id, val) {
-  const item = practiceItems.find(x => x.id === id);
-  if (item) item.duration = Math.max(1, parseInt(val) || 1);
-  updateTimeline();
-}
-
-// ─────────────────────────────────────────────
-//  Timeline
-// ─────────────────────────────────────────────
-function updateTimeline() {
-  const total  = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
-  const target = parseInt(document.getElementById('target-duration').value) || 60;
-  const pct    = Math.min((total / target) * 100, 100);
-  const remain = Math.max(target - total, 0);
-  const over   = total > target;
-
-  const mm = String(Math.floor(total / 60)).padStart(2, '0');
-  const ss = String(total % 60).padStart(2, '0');
-
-  document.getElementById('total-time').textContent    = `${mm}:${ss}`;
-  document.getElementById('total-time').className      = 'meta-stat-val' + (over ? ' warn' : '');
-  document.getElementById('drill-count').textContent   = practiceItems.length;
-  document.getElementById('used-min').textContent      = total;
-  document.getElementById('remaining-min').textContent = remain;
-
-  const fill = document.getElementById('timeline-fill');
-  fill.style.width = pct + '%';
-  fill.className   = 'timeline-fill' + (over ? ' over' : '');
-}
-
-// ─────────────────────────────────────────────
-//  Drag & Drop
-// ─────────────────────────────────────────────
-function libDragStart(e, id) {
-  libDragId = +id;  // ensure numeric, matching API response
-  e.dataTransfer.effectAllowed = 'copy';
-}
-
-function itemDragStart(e, idx) {
-  dragSrcIdx = idx;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => {
-    const el = document.getElementById('pi-' + practiceItems[idx].id);
-    if (el) el.classList.add('dragging');
-  }, 0);
-}
-
-function itemDragOver(e, idx) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = libDragId ? 'copy' : 'move';
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('drag-over'));
-  const el = document.getElementById('pi-' + practiceItems[idx].id);
-  if (el) el.classList.add('drag-over');
-}
-
-function itemDragLeave(e, idx) {
-  const el = document.getElementById('pi-' + practiceItems[idx].id);
-  if (el) el.classList.remove('drag-over');
-}
-
-function itemDrop(e, idx) {
-  e.preventDefault();
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('drag-over', 'dragging'));
-
-  if (libDragId !== null) {
-    const d = drillLibrary.find(x => x.id == libDragId);
-    if (d) {
-      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
-      renderList();
-      showToast('Added: ' + d.name);
-    }
-    libDragId = null;
-    return;
-  }
-
-  if (dragSrcIdx === null || dragSrcIdx === idx) return;
-  const [moved] = practiceItems.splice(dragSrcIdx, 1);
-  practiceItems.splice(idx, 0, moved);
-  dragSrcIdx = null;
-  renderList();
-}
-
-function itemDragEnd() {
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('dragging', 'drag-over'));
-  libDragId = null;
-  dragSrcIdx = null;
-}
-
-// ─────────────────────────────────────────────
-//  Touch drag-and-drop for practice list reorder
-//  (HTML5 drag events don't fire on iOS Safari)
-// ─────────────────────────────────────────────
-(function initTouchDrag() {
-  let touchSrcIdx = null;
-  let ghost       = null;
-  let lastOver    = null;
-
-  function clearHighlights() {
-    document.querySelectorAll('.practice-item.drag-over').forEach(e => e.classList.remove('drag-over'));
-  }
-
-  function createGhost(sourceEl, touchX, touchY) {
-    const r = sourceEl.getBoundingClientRect();
-    const g = sourceEl.cloneNode(true);
-    g.style.cssText = `
-      position:fixed; left:${r.left}px; top:${r.top}px;
-      width:${r.width}px; opacity:0.75; pointer-events:none;
-      z-index:9999; box-shadow:0 6px 24px rgba(0,0,0,.4);
-      border-radius:8px; margin:0;
-    `;
-    g._offX = touchX - r.left;
-    g._offY = touchY - r.top;
-    document.body.appendChild(g);
-    return g;
-  }
-
-  document.addEventListener('touchstart', e => {
-    const handle = e.target.closest('.drag-handle');
-    if (!handle) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const item = handle.closest('.practice-item');
-    if (!item) return;
-    touchSrcIdx = +item.dataset.idx;
-    item.classList.add('dragging');
-    ghost = createGhost(item, t.clientX, t.clientY);
-  }, { passive: false });
-
-  document.addEventListener('touchmove', e => {
-    if (touchSrcIdx === null || !ghost) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    ghost.style.left = (t.clientX - ghost._offX) + 'px';
-    ghost.style.top  = (t.clientY - ghost._offY) + 'px';
-    ghost.style.display = 'none';
-    const below = document.elementFromPoint(t.clientX, t.clientY);
-    ghost.style.display = '';
-    clearHighlights();
-    const targetItem = below && below.closest('.practice-item');
-    if (targetItem) {
-      const targetIdx = +targetItem.dataset.idx;
-      if (!isNaN(targetIdx) && targetIdx !== touchSrcIdx) {
-        targetItem.classList.add('drag-over');
-        lastOver = targetIdx;
-      } else { lastOver = null; }
-    } else { lastOver = null; }
-  }, { passive: false });
-
-  document.addEventListener('touchend', e => {
-    if (touchSrcIdx === null) return;
-    document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('dragging', 'drag-over'));
-    if (ghost) { ghost.remove(); ghost = null; }
-    if (lastOver !== null && lastOver !== touchSrcIdx) {
-      const [moved] = practiceItems.splice(touchSrcIdx, 1);
-      practiceItems.splice(lastOver, 0, moved);
-      renderList();
-    }
-    touchSrcIdx = null;
-    lastOver    = null;
-  }, { passive: false });
-})();
-
-// ─────────────────────────────────────────────
-//  Save / Share / PDF
-// ─────────────────────────────────────────────
-function getPracticeData() {
-  return {
-    name:   document.getElementById('practice-name').value || 'Untitled Practice',
-    date:   document.getElementById('practice-date').value,
-    team:   document.getElementById('practice-team').value,
-    target: parseInt(document.getElementById('target-duration').value) || 60,
-    items:  practiceItems,
-  };
-}
-
-async function savePractice() {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) { showToast('Not logged in — sign in from the home page', true); return; }
-  
-  const coach  = getCoach();
-  const data   = getPracticeData();
-  const slug   = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'untitled';
-  const teamId = document.getElementById('save-team-selector').value || null;
-
-  const { error } = await _supabase.from('practice').upsert({
-    user_id:  session.user.id,
-    coach,
-    slug,
-    name:     data.name,
-    date:     data.date,
-    team:     data.team,
-    target:   data.target,
-    items:    JSON.stringify(data.items),
-    team_id:  teamId ? parseInt(teamId) : null,
-    saved_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,slug' });
-
-  if (error) showToast('Save failed: ' + error.message, true);
-  else       showToast(teamId ? '✓ Practice saved & shared with team' : '✓ Practice saved (private)');
-}
-
-// ─────────────────────────────────────────────
-//  Load Practice modal
-// ─────────────────────────────────────────────
-async function openLoadModal() {
-  document.getElementById('load-modal').style.display = 'flex';
-  const el = document.getElementById('load-list');
-  el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">Loading…</div>`;
-  try {
-    const { data: { session } } = await _supabase.auth.getSession();
-    const userId = session?.user?.id || null;
-    const sel = document.getElementById('save-team-selector');
-    const selectedTeamId = sel?.value || null;
-    const teamLabel = selectedTeamId
-      ? (sel.options[sel.selectedIndex]?.text || 'team')
-      : 'private';
-
-    // Scope to selected team, or to user\'s own private practices
-    let query = _supabase
-      .from('practice')
-      .select('id, name, coach, date, team, target, items, saved_at, user_id, team_id')
-      .order('saved_at', { ascending: false });
-
-    if (selectedTeamId) {
-      query = query.eq('team_id', selectedTeamId);
-    } else {
-      query = query.eq('user_id', userId).is('team_id', null);
-    }
-
-    const { data: list, error } = await query;
-    if (error) throw new Error(error.message);
-
-    if (!list || !list.length) {
-      el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">No saved practices found for <strong>${esc(teamLabel)}</strong>.</div>`;
-      return;
-    }
-    el.innerHTML = list.map(p => {
-      const count  = JSON.parse(p.items || '[]').length;
-      const isMine = p.user_id === userId;
-      const meta = [
-        p.date || null,
-        p.team || null,
-        `${count} drill${count !== 1 ? 's' : ''}`,
-        `${p.target} min target`,
-      ].filter(Boolean).join(' · ');
-      const delBtn = isMine
-        ? `<button class="load-item-del" onclick="event.stopPropagation();deletePractice(${p.id},this)" title="Delete">✕</button>`
-        : '';
-      return `
-        <div class="load-item" onclick="loadPractice(${p.id})">
-          <div class="load-item-info">
-            <div class="load-item-name">${esc(p.name)}</div>
-            <div class="load-item-meta">${meta}</div>
-          </div>
-          ${delBtn}
-        </div>`;
-    }).join('');
-  } catch (err) {
-    el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:#e05a5a">Could not load: ${err.message}</div>`;
-  }
-}
-
-function closeLoadModal() { document.getElementById('load-modal').style.display = 'none'; }
-
-async function loadPractice(id) {
-  try {
-    const { data, error } = await _supabase.from('practice').select('*').eq('id', id).single();
-    if (error) throw new Error(error.message);
-    document.getElementById('practice-name').value   = data.name   || '';
-    document.getElementById('practice-date').value   = data.date   || '';
-    document.getElementById('practice-team').value   = data.team   || '';
-    document.getElementById('target-duration').value = data.target || 60;
-    practiceItems = JSON.parse(data.items || '[]');
-    renderList();
-    closeLoadModal();
-    showToast('Loaded: ' + (data.name || 'Practice'));
-  } catch (err) {
-    showToast('Load failed: ' + err.message, true);
-  }
-}
-
-async function deletePractice(id, btn) {
-  const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) return;
-  if (!confirm('Delete this practice?')) return;
-  try {
-    const { error } = await _supabase.from('practice').delete()
-      .eq('id', id).eq('user_id', session.user.id);
-    if (error) throw new Error(error.message);
-    btn.closest('.load-item').remove();
-    showToast('Practice deleted');
-    if (!document.querySelector('#load-list .load-item')) {
-      document.getElementById('load-list').innerHTML =
-        `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">No saved practices found.</div>`;
-    }
-  } catch (err) {
-    showToast('Delete failed: ' + err.message, true);
-  }
-}
-
-function openShareModal() {
-  const enc = btoa(encodeURIComponent(JSON.stringify(getPracticeData())));
-  document.getElementById('share-url').value = `${location.origin}${location.pathname}?plan=${enc}`;
-  document.getElementById('share-modal').style.display = 'flex';
-}
-function closeShareModal() { document.getElementById('share-modal').style.display = 'none'; }
-function copyShareURL() {
-  navigator.clipboard.writeText(document.getElementById('share-url').value)
-    .then(() => { showToast('Link copied!'); closeShareModal(); });
-}
-
-function loadFromURL() {
-  const plan = new URLSearchParams(location.search).get('plan');
-  if (!plan) return;
-  try {
-    const data = JSON.parse(decodeURIComponent(atob(plan)));
-    document.getElementById('practice-name').value   = data.name   || '';
-    document.getElementById('practice-date').value   = data.date   || '';
-    document.getElementById('practice-team').value   = data.team   || '';
-    document.getElementById('target-duration').value = data.target || 60;
-    practiceItems = data.items || [];
-    renderList();
-    showToast('Practice loaded from link');
-  } catch (e) { showToast('Could not load from link', true); }
-}
-
-function exportPDF() {
-  const data = getPracticeData();
-  const total = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
-
-  // 1. GENERATE THE MISSING PAGE HEADER
-  const pageHeader = `
-    <div class="pc-page-header">
-      <h1>${esc(data.name)}</h1>
-      <div class="pc-meta-row">
-        <span><span class="pc-meta-lbl">Date:</span> ${esc(data.date)}</span>
-        <span><span class="pc-meta-lbl">Team:</span> ${esc(data.team)}</span>
-        <span><span class="pc-meta-lbl">Duration:</span> ${total} / ${data.target} min</span>
-      </div>
-    </div>`;
-
-  // 2. GENERATE THE MISSING SUMMARY TABLE
-  const summaryRows = practiceItems.map((item, i) => `
-    <tr>
-      <td class="pc-summary-num">${i + 1}</td>
-      <td class="pc-summary-name">${esc(item.name)}</td>
-      <td>${item.type === 'quick' ? 'Quick Drill' : (item.tags || []).join(', ')}</td>
-      <td>${item.duration} min</td>
-    </tr>`).join('');
-
-  const summaryTable = `
-    <table class="pc-summary">
-      <thead><tr><th>#</th><th>Drill</th><th>Tags</th><th>Time</th></tr></thead>
-      <tbody>${summaryRows}</tbody>
-    </table>`;
-
-  // 3. GENERATE DRILL CARDS
-  const drillCards = practiceItems.map((item, i) => {
-    const tagPills = (item.tags || []).map(t =>
-      `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
-
-    const rinkClass = (item.rinkView === 'full') ? 'rink-full' : 'rink-half';
-    const imgCell = item.type === 'diagram' ? `
-      <td class="pc-drill-img-cell ${rinkClass}">
-        ${item.thumbnail
-          ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
-          : `<div class="pc-no-img">No diagram available.</div>`}
-      </td>` : '';
-
-    const descHtml = item.desc
-      ? item.desc.split(/\n|<br>/i).map(l => `<p>${esc(l)}</p>`).join('')
-      : `<p style="color:#aaa;font-style:italic">No description provided.</p>`;
-
-    return `
-      <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
-        <div class="pc-drill-bar">
-          <div class="pc-drill-bar-left">
-            <span class="pc-drill-num">${i + 1}.</span>
-            <span class="pc-drill-title">${esc(item.name)}</span>
-            ${tagPills}
-          </div>
-          <div class="pc-drill-bar-right">${item.duration} min</div>
-        </div>
-        <table class="pc-drill-body">
-          <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
-        </table>
-      </div>`;
-  }).join('');
-
-  // 4. INJECT AND PRINT
-  const container = document.getElementById('print-container');
-  container.innerHTML = pageHeader + summaryTable + `<div class="pc-section-label">Drill Details</div>` + drillCards;
-
-  const images = container.getElementsByTagName('img');
-  const promises = Array.from(images).map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
-  });
-
-  Promise.all(promises).then(() => {
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => { container.innerHTML = ''; }, 500);
-    }, 250);
-  });
-}
-
-// ─────────────────────────────────────────────
-//  Thumbnail hover preview
-// ─────────────────────────────────────────────
-let thumbTip = null;
-
-function getThumbTip() {
-  if (!thumbTip) {
-    thumbTip = document.createElement('div');
-    thumbTip.className = 'lib-thumb-tip';
-    thumbTip.innerHTML = '<img />';
-    document.body.appendChild(thumbTip);
-  }
-  return thumbTip;
-}
-
-function showThumbTip(e, id) {
-  const d = drillLibrary.find(x => x.id == id);
-  if (!d || !d.thumbnail) return;
-  const tip = getThumbTip();
-  tip.querySelector('img').src = d.thumbnail;
-  tip.classList.add('visible');
-  moveThumbTip(e);
-}
-
-function moveThumbTip(e) {
-  if (!thumbTip || !thumbTip.classList.contains('visible')) return;
-  const gap = 12;
-  const tw  = 220;
-  const x   = e.clientX + gap + tw > window.innerWidth
-              ? e.clientX - tw - gap : e.clientX + gap;
-  const y   = Math.min(e.clientY - 20, window.innerHeight - thumbTip.offsetHeight - 8);
-  thumbTip.style.left = x + 'px';
-  thumbTip.style.top  = y + 'px';
-}
-
-function hideThumbTip() {
-  if (thumbTip) thumbTip.classList.remove('visible');
-}
-
-// ─────────────────────────────────────────────
-//  Toast  (uses #toast from style.css)
-// ─────────────────────────────────────────────
-let toastTimer;
-function showToast(msg, isErr = false) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show' + (isErr ? ' err' : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ''; }, 2800);
-}
-
-// ─────────────────────────────────────────────
-//  Helpers
-// ─────────────────────────────────────────────
-function uid() { return Math.random().toString(36).slice(2, 10); }
-function esc(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-document.getElementById('share-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeShareModal();
-});
-document.getElementById('load-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeLoadModal();
-});
-document.getElementById('qd-desc').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addQuickDrill();
-});
-
-
-init();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/practice.js"></script>
 </body>
 </html>

@@ -1,29 +1,40 @@
 /* ─────────────────────────────────────────────────────────────
-   style.css
-   Layout:  top-bar / main-row (canvas + right toolbar) /
-            tags-row / desc-row
+   style.css  —  Rink Labs global stylesheet
+   Sections:
+     1. Reset & variables
+     2. Base layout (top-bar, main-row, canvas, toolbar)
+     3. Form controls & buttons
+     4. Tags / description rows
+     5. Toast
+     6. ── Shared page components ──
+        Hero banner · Section divider · Hero section
+        Mission statement · Hub grid/cards
+        Motivation box · Page layout helpers
+        Auth / welcome · Section label
+     7. Scroll-layout pages
 ───────────────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-/* ── Reset & variables ──────────────────────────────────────── */
+
+/* ── 1. Reset & variables ───────────────────────────────────── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg:       #0f0f0f;
-  --panel:    #161616;
-  --border:   #2a2a2a;
-  --accent:   #ff6b35;
-  --text:     #e8e8e8;
-  --muted:    #999;
-  --hover:    #222;
-  --tb-w:     152px;   /* right toolbar width */
-  --top-h:    44px;    /* top bar height */
-  --tags-h:   32px;    /* tags strip height */
-  --desc-h:   90px;    /* description box height */
+  --bg:     #0f0f0f;
+  --panel:  #161616;
+  --border: #2a2a2a;
+  --accent: #ff6b35;
+  --text:   #e8e8e8;
+  --muted:  #999;
+  --hover:  #222;
+  --tb-w:   152px;   /* right toolbar width */
+  --top-h:  44px;    /* top bar height */
+  --tags-h: 32px;    /* tags strip height */
+  --desc-h: 90px;    /* description box height */
 }
 
 html, body {
-  height:     100%;
-  overflow:   hidden;
+  height:   100%;
+  overflow: hidden;
 }
 
 body {
@@ -35,7 +46,9 @@ body {
   user-select:    none;
 }
 
-/* ── Top bar ─────────────────────────────────────────────────── */
+/* ── 2. Base layout ─────────────────────────────────────────── */
+
+/* Top bar */
 #top-bar {
   height:        var(--top-h);
   flex-shrink:   0;
@@ -47,19 +60,19 @@ body {
   border-bottom: 1px solid var(--border);
   overflow-x:    auto;
   overflow-y:    hidden;
-  scrollbar-width: none;        /* Firefox: hide scrollbar but keep scroll */
+  scrollbar-width: none;
 }
-#top-bar::-webkit-scrollbar { display: none; }  /* Chrome/Safari: same */
+#top-bar::-webkit-scrollbar { display: none; }
 
 #logo {
-  font-size:   14px;
-  font-weight: 700;
-  font-family: 'Courier New', monospace;
-  color:       var(--accent);
-  flex-shrink: 0;
-  line-height: 1;
+  font-size:      14px;
+  font-weight:    700;
+  font-family:    'Courier New', monospace;
+  color:          var(--accent);
+  flex-shrink:    0;
+  line-height:    1;
   letter-spacing: .03em;
-  white-space: nowrap;
+  white-space:    nowrap;
 }
 
 #drill-title {
@@ -87,15 +100,15 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Main row ────────────────────────────────────────────────── */
+/* Main row */
 #main-row {
   flex:       1;
   display:    flex;
-  min-height: 0;   /* critical: allow shrinking in flex column */
+  min-height: 0;
   overflow:   hidden;
 }
 
-/* ── Canvas area ─────────────────────────────────────────────── */
+/* Canvas area */
 #canvas-wrap {
   flex:     1;
   position: relative;
@@ -103,7 +116,6 @@ body {
   min-width: 0;
 }
 
-/* The rink SVG fills the wrap absolutely */
 #rink-layer {
   position:       absolute;
   inset:          0;
@@ -111,7 +123,6 @@ body {
 }
 #rink-layer svg { width: 100%; height: 100%; }
 
-/* The drawing canvas also fills the wrap absolutely */
 canvas {
   position: absolute;
   inset:    0;
@@ -122,43 +133,7 @@ canvas.cursor-select { cursor: default; }
 canvas.cursor-move   { cursor: move; }
 canvas.cursor-text   { cursor: text; }
 
-/* ── Properties panel (docked inside right toolbar) ─────────── */
-#props {
-  display:        none;
-  flex-direction: column;
-  gap:            7px;
-}
-#props.visible { display: flex; }
-
-#props h3 {
-  font-size:      11px;
-  color:          var(--accent);
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.prop-row {
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  gap:             6px;
-}
-.prop-row label             { font-size: 13px; color: var(--muted); white-space: nowrap; }
-.prop-row input[type=color] { width: 26px; height: 26px; flex-shrink: 0; }
-.prop-row input[type=range] { flex: 1; min-width: 0; }
-.prop-row select            { flex: 1; height: 24px; padding: 1px 4px; font-size: 11px; }
-.prop-row input[type=number] {
-  width:         52px;
-  background:    var(--hover);
-  border:        1px solid var(--border);
-  color:         var(--text);
-  border-radius: 4px;
-  padding:       2px 5px;
-  font-family:   inherit;
-  font-size:     11px;
-}
-
-/* ── Right toolbar ───────────────────────────────────────────── */
+/* Right toolbar */
 #toolbar {
   width:          var(--tb-w);
   flex-shrink:    0;
@@ -172,7 +147,6 @@ canvas.cursor-text   { cursor: text; }
   overflow-x:     hidden;
 }
 
-/* 2-col tool grid fills toolbar width */
 #tools {
   display:               grid;
   grid-template-columns: 1fr 1fr;
@@ -196,20 +170,18 @@ canvas.cursor-text   { cursor: text; }
 .tool-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
 .tb-sep {
-  height:     1px;
-  background: var(--border);
-  margin:     0 -8px;
+  height:      1px;
+  background:  var(--border);
+  margin:      0 -8px;
   flex-shrink: 0;
 }
 
-/* Labelled group: small label above control */
 .tb-group {
   display:        flex;
   flex-direction: column;
   gap:            3px;
 }
 
-/* Side-by-side pair (e.g. fill swatch + checkbox) */
 .tb-inline {
   display:     flex;
   align-items: center;
@@ -225,34 +197,68 @@ canvas.cursor-text   { cursor: text; }
 }
 
 .tool-flyout {
-  position: fixed;   /* Ensures it sits on top of everything */
-  display: none;     /* Hidden by default */
+  position:   fixed;
+  display:    none;
   flex-direction: column;
   background: var(--panel);
-  border: 1px solid var(--border);
+  border:     1px solid var(--border);
   border-radius: 4px;
-  padding: 4px;
-  gap: 4px;
-  z-index: 1000;     /* Higher than the canvas and toolbar */
+  padding:    4px;
+  gap:        4px;
+  z-index:    1000;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
-
-.tool-flyout.open {
-  display: flex;     /* Shown when the 'open' class is added via JS */
-}
+.tool-flyout.open { display: flex; }
 
 .flyout-item {
-  width: 120px;      /* Give them a set width so they don't look squashed */
-  justify-content: flex-start;
-  padding: 0 10px;
-  font-size: 13px;
+  width:            120px;
+  justify-content:  flex-start;
+  padding:          0 10px;
+  font-size:        13px;
 }
 
 .tb-range { width: 100%; accent-color: var(--accent); }
-
 .btn-full { width: 100%; }
 
-/* ── Shared form controls ────────────────────────────────────── */
+/* Properties panel */
+#props {
+  display:        none;
+  flex-direction: column;
+  gap:            7px;
+}
+#props.visible { display: flex; }
+
+#props h3 {
+  font-size:      11px;
+  color:          var(--accent);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.prop-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             6px;
+}
+.prop-row label              { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.prop-row input[type=color]  { width: 26px; height: 26px; flex-shrink: 0; }
+.prop-row input[type=range]  { flex: 1; min-width: 0; }
+.prop-row select             { flex: 1; height: 24px; padding: 1px 4px; font-size: 11px; }
+.prop-row input[type=number] {
+  width:         52px;
+  background:    var(--hover);
+  border:        1px solid var(--border);
+  color:         var(--text);
+  border-radius: 4px;
+  padding:       2px 5px;
+  font-family:   inherit;
+  font-size:     11px;
+}
+
+#group-props { display: none; }
+
+/* ── 3. Form controls & buttons ─────────────────────────────── */
 input[type=color] {
   width:         32px;
   height:        28px;
@@ -278,46 +284,39 @@ select {
 }
 select:focus { outline: none; border-color: var(--accent); }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
 .btn {
-  padding:          6px 12px;
-  border:           none;
-  border-radius:    4px;
-  font-family:      inherit;
-  font-size:        13px;
-  font-weight:      700;
-  letter-spacing:   .04em;
-  cursor:           pointer;
-  text-transform:   uppercase;
-  transition:       background .15s, color .15s;
-  white-space:      nowrap;
-  text-decoration:  none;          /* for <a> tags */
-  display:          inline-flex;   /* for <a> tags */
-  align-items:      center;
+  padding:         6px 12px;
+  border:          none;
+  border-radius:   4px;
+  font-family:     inherit;
+  font-size:       13px;
+  font-weight:     700;
+  letter-spacing:  .04em;
+  cursor:          pointer;
+  text-transform:  uppercase;
+  transition:      background .15s, color .15s;
+  white-space:     nowrap;
+  text-decoration: none;
+  display:         inline-flex;
+  align-items:     center;
 }
-/* .btn-hub             { background: transparent; color: #999; border: 1px solid var(--border); } */
 .btn-primary         { background: var(--accent); color: #000; }
 .btn-primary:hover   { background: #ff8559; }
 .btn-secondary       { background: transparent; color: #999; border: 1px solid var(--border); }
 .btn-secondary:hover { border-color: #666; color: var(--text); }
+.btn-outline         { background: transparent; color: #999; border: 1px solid var(--border); }
+.btn-outline:hover   { border-color: #666; color: var(--text); }
 .btn:disabled        { opacity: .35; cursor: not-allowed; pointer-events: none; }
 .btn-danger          { background: transparent; color: #e05a5a; border: 1px solid #e05a5a44; }
 .btn-danger:hover    { background: #e05a5a22; }
-
 .btn-toggle          { min-width: 90px; background: #5567b0; border: 1px solid #5567b0; color: #fff; }
 .btn-toggle:hover    { background: #6678c1; }
 .btn-toggle.full     { background: transparent; color: #999; border: 1px solid var(--border); }
 .btn-toggle.full:hover { border-color: #666; color: var(--text); }
-.btn-lab { 
-      background: #d00000;
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 800;
-      border: 1px solid #ff4d4d;
-    }
-.btn-lab:hover { background: #9d0000; }
+.btn-lab             { background: #d00000; color: #fff; font-size: 14px; font-weight: 800; border: 1px solid #ff4d4d; }
+.btn-lab:hover       { background: #9d0000; }
 
-/* ── Tags row ────────────────────────────────────────────────── */
+/* ── 4. Tags / description rows ─────────────────────────────── */
 #tags-row {
   height:        var(--tags-h);
   flex-shrink:   0;
@@ -346,7 +345,6 @@ select:focus { outline: none; border-color: var(--accent); }
 
 .meta-hint { font-size: 9px; color: var(--muted); white-space: nowrap; }
 
-/* ── Description box ─────────────────────────────────────────── */
 #desc-row {
   height:        var(--desc-h);
   flex-shrink:   0;
@@ -371,48 +369,7 @@ select:focus { outline: none; border-color: var(--accent); }
 }
 #drill-desc:focus { border-color: var(--accent); }
 
-/* Specific for Landing/Home pages only */
-.scroll-layout {
-  height: auto !important;
-  overflow-y: auto !important;
-  display: block !important;
-  background: var(--bg);
-}
-
-.motivation-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  padding: 30px;
-  border-radius: 8px;
-  margin: 40px 0;
-  text-align: left;
-}
-
-.motivation-box h3 {
-  color: var(--accent);
-  margin-top: 0;
-}
-
-.values-list {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0;
-}
-
-.values-list li {
-  padding: 10px 0 10px 30px;
-  position: relative;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.values-list li::before {
-  content: "🏒";
-  position: absolute;
-  left: 0;
-}
-
-/* ── Toast ───────────────────────────────────────────────────── */
+/* ── 5. Toast ───────────────────────────────────────────────── */
 #toast {
   position:       fixed;
   bottom:         20px;
@@ -430,5 +387,234 @@ select:focus { outline: none; border-color: var(--accent); }
   z-index:        999;
   pointer-events: none;
 }
-#toast.show     { opacity: 1; transform: translateX(-50%) translateY(0); }
-#toast.show.err { border-color: #e05a5a; color: #e05a5a; }
+#toast.show      { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.show.err  { border-color: #e05a5a; color: #e05a5a; }
+
+/* ── 6. Shared page components ──────────────────────────────── */
+
+/* Hero banner — used on index, stats, terms */
+#hero-banner {
+  position:          relative;
+  width:             100%;
+  height:            250px;
+  overflow:          hidden;
+  background-image:  url('assets/NHLRink.svg');
+  background-size:   cover;
+  background-position: center 40%;
+  background-color:  #0a1a2e;
+}
+
+#hero-banner-overlay {
+  position:   absolute;
+  inset:      0;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.25) 0%,
+    rgba(0,0,0,0.55) 55%,
+    #0f0f0f 100%
+  );
+}
+
+#hero-banner-content {
+  position:        absolute;
+  inset:           0;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding-bottom:  40px;
+  text-align:      center;
+}
+
+#hero-banner-badge {
+  font-size:      10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color:          var(--accent);
+  border:         1px solid rgba(255,107,53,0.4);
+  padding:        4px 14px;
+  border-radius:  2px;
+  margin-bottom:  18px;
+}
+
+#hero-banner-title {
+  font-size:   58px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  color:       #ffffff;
+  line-height: 1;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+}
+#hero-banner-title span { color: var(--accent); }
+
+#hero-banner-sub {
+  font-size:      13px;
+  color:          rgba(255,255,255,0.6);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+#hero-banner-cta {
+  display:         inline-block;
+  margin-top:      22px;
+  background:      var(--accent);
+  color:           #000;
+  font-weight:     800;
+  font-size:       13px;
+  letter-spacing:  .08em;
+  text-transform:  uppercase;
+  padding:         10px 28px;
+  border-radius:   4px;
+  text-decoration: none;
+}
+#hero-banner-cta:hover { background: #ff8559; }
+
+/* Section divider */
+.section-divider {
+  border:     0;
+  height:     1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin:     40px auto;
+  max-width:  600px;
+}
+
+/* Hero section container */
+.hero-section {
+  max-width: 900px;
+  margin:    40px auto;
+  padding:   0 20px;
+  text-align: center;
+}
+
+/* Mission statement */
+.mission-statement {
+  font-size:     18px;
+  color:         var(--muted);
+  line-height:   1.6;
+  margin-bottom: 50px;
+  border-left:   3px solid var(--accent);
+  padding-left:  20px;
+  text-align:    left;
+}
+
+/* Hub grid & cards */
+.hub-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap:                   25px;
+}
+
+.hub-card {
+  background:      var(--panel);
+  border:          1px solid var(--border);
+  padding:         30px;
+  border-radius:   8px;
+  text-decoration: none;
+  transition:      transform 0.2s, border-color 0.2s;
+}
+.hub-card:hover    { transform: translateY(-5px); border-color: var(--accent); }
+.hub-card h2       { color: var(--accent); margin-bottom: 15px; font-size: 22px; }
+.hub-card p        { font-size: 14px; color: var(--text); opacity: 0.8; }
+
+/* Motivation box */
+.motivation-box {
+  background:    var(--panel);
+  border:        1px solid var(--border);
+  border-left:   4px solid var(--accent);
+  padding:       30px;
+  border-radius: 8px;
+  max-width:     900px;
+  margin:        40px auto;
+  text-align:    center;
+}
+
+.motivation-section            { margin-top: 40px !important; text-align: left !important; }
+.motivation-section h2         { text-align: center; color: var(--accent); }
+
+/* Values */
+.values-box {
+  background:    rgba(255,255,255,.03);
+  padding:       25px;
+  border-radius: 8px;
+  border:        1px solid var(--border);
+  margin:        25px 0;
+}
+
+.values-list              { margin-top: 15px; list-style: none; padding-left: 0; }
+.values-list li           { margin-bottom: 12px; padding-left: 25px; position: relative; }
+.values-list li::before   { content: "🏒"; position: absolute; left: 0; font-size: 14px; }
+
+/* Final note */
+.final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
+
+/* Section label */
+.section-label {
+  font-size:      13px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color:          var(--muted);
+  text-align:     center;
+  margin-bottom:  16px;
+}
+
+/* Auth / welcome */
+.welcome-text          { font-size: 15px; color: var(--muted); }
+.welcome-text strong   { color: var(--text); font-size: 17px; }
+
+.change-link {
+  font-size:      13px;
+  color:          var(--accent);
+  cursor:         pointer;
+  background:     none;
+  border:         none;
+  padding:        0;
+  text-decoration: underline;
+}
+
+/* Team chips */
+.team-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.team-input {
+  flex: 1; min-width: 140px;
+  background:    var(--bg);
+  color:         var(--text);
+  border:        1px solid var(--border);
+  border-radius: 5px;
+  padding:       7px 11px;
+  font-size:     14px;
+}
+.team-code-display {
+  font-family:   monospace;
+  font-size:     16px;
+  font-weight:   bold;
+  letter-spacing: 2px;
+  color:         var(--accent);
+  background:    var(--bg);
+  border:        1px solid var(--border);
+  border-radius: 5px;
+  padding:       6px 14px;
+  cursor:        pointer;
+}
+.team-error {
+  font-size:    13px;
+  color:        #f38ba8;
+  display:      none;
+  width:        100%;
+  margin-top:   4px;
+}
+
+/* ── 7. Scroll-layout pages ─────────────────────────────────── */
+/* Applied to <body> on index, stats, terms pages.
+   Must also reset <html> — it has height:100% + overflow:hidden
+   from the base rules above, which clips scroll-layout pages. */
+html:has(body.scroll-layout) {
+  height:   auto !important;
+  overflow: visible !important;
+}
+
+.scroll-layout {
+  height:     auto !important;
+  overflow-y: auto !important;
+  display:    block !important;
+  background: var(--bg);
+}

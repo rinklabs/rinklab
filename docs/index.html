@@ -6,18 +6,12 @@
   <title>Rink Labs</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    html, body {
-      height: auto !important;
-      overflow: visible !important;
-      display: block !important;
-    }
-
+    /* ── Coach identity panel ── */
     #coach-selector {
       max-width: 900px;
       margin: 32px auto 0;
       padding: 0 20px;
     }
-
     #coach-banner {
       display: flex;
       align-items: center;
@@ -28,7 +22,6 @@
       border-radius: 8px;
       padding: 16px 24px;
     }
-
     #coach-prompt {
       display: flex;
       align-items: center;
@@ -36,16 +29,16 @@
       flex-wrap: wrap;
       width: 100%;
     }
+    #coach-prompt label  { font-size: 15px; color: var(--muted); white-space: nowrap; }
+    #coach-confirm       { padding: 8px 18px; font-size: 14px; white-space: nowrap; }
+    #coach-error         { font-size: 13px; color: #f38ba8; display: none; width: 100%; margin-top: 4px; }
+    #auth-toggle         { font-size: 13px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline; white-space: nowrap; }
+    #coach-greeting      { justify-content: space-between; align-items: center; width: 100%; }
 
-    #coach-prompt label {
-      font-size: 15px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    #coach-text {
+    /* ── Auth inputs (inline to keep them tightly scoped) ── */
+    .auth-input {
       flex: 1;
-      min-width: 180px;
+      min-width: 140px;
       background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
@@ -54,245 +47,53 @@
       font-size: 14px;
     }
 
-    #coach-confirm { padding: 8px 18px; font-size: 14px; white-space: nowrap; }
-
-    #coach-error {
-      font-size: 13px;
-      color: #f38ba8;
+    /* ── Account modal ── */
+    #account-modal,
+    #delete-account-modal {
       display: none;
-      width: 100%;
-      margin-top: 4px;
-    }
-
-    #auth-toggle {
-      font-size: 13px;
-      color: var(--accent);
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      text-decoration: underline;
-      white-space: nowrap;
-    }
-
-    #coach-greeting {
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-
-    .welcome-text { font-size: 15px; color: var(--muted); }
-    .welcome-text strong { color: var(--text); font-size: 17px; }
-
-    .change-link {
-      font-size: 13px;
-      color: var(--accent);
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      text-decoration: underline;
-    }
-
-    .hero-section {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 0 20px;
-      text-align: center;
-    }
-
-    #hero-banner {
-      position: relative;
-      width: 100%;
-      height: 250px;
-      overflow: hidden;
-      background-image: url('assets/NHLRink.svg');
-      background-size: cover;
-      background-position: center 40%;
-      background-color: #0a1a2e;
-    }
-
-    #hero-banner-overlay {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      background: linear-gradient(
-        180deg,
-        rgba(0,0,0,0.25) 0%,
-        rgba(0,0,0,0.55) 55%,
-        #0f0f0f 100%
-      );
-    }
-
-    #hero-banner-content {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
       align-items: center;
       justify-content: center;
-      padding-bottom: 40px;
-      text-align: center;
     }
-
-    #hero-banner-badge {
-      font-size: 10px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      border: 1px solid rgba(255,107,53,0.4);
-      padding: 4px 14px;
-      border-radius: 2px;
-      margin-bottom: 18px;
-    }
-
-    #hero-banner-title {
-      font-size: 58px;
-      font-weight: 800;
-      letter-spacing: .03em;
-      color: #ffffff;
-      line-height: 1;
-      margin-bottom: 12px;
-      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
-    }
-
-    #hero-banner-title span { color: var(--accent); }
-
-    #hero-banner-sub {
-      font-size: 13px;
-      color: rgba(255,255,255,1.2);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-
-    #hero-banner-cta {
-      display: inline-block;
-      margin-top: 22px;
-      background: var(--accent);
-      color: #000;
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 10px 28px;
-      border-radius: 4px;
-      text-decoration: none;
-    }
-
-    #hero-banner-cta:hover { background: #ff8559; }
-
-    .mission-statement {
-      font-size: 18px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 50px;
-      border-left: 3px solid var(--accent);
-      padding-left: 20px;
-      text-align: left;
-    }
-
-    .hub-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
-    }
-
-    .hub-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      padding: 30px;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .hub-card:hover { transform: translateY(-5px); border-color: var(--accent); }
-    .hub-card h2 { color: var(--accent); margin-bottom: 15px; font-size: 22px; }
-    .hub-card p  { font-size: 14px; color: var(--text); opacity: 0.8; }
-
-    .section-divider {
-      border: 0;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--border), transparent);
-      margin: 40px auto;
-      max-width: 600px;
-    }
-
-    .motivation-section { margin-top: 40px !important; text-align: left !important; }
-    .motivation-section h2 { text-align: center; color: var(--accent); }
-
-    .values-box {
-      background: rgba(255,255,255,.03);
-      padding: 25px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      margin: 25px 0;
-    }
-
-    .values-list { margin-top: 15px; list-style: none; padding-left: 0; }
-    .values-list li { margin-bottom: 12px; padding-left: 25px; position: relative; }
-    .values-list li::before { content: "🏒"; position: absolute; left: 0; font-size: 14px; }
-
-    .final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
-    /* ── Team panel ──────────────────────────────────────────── */
-    .team-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-    .team-input {
-      flex: 1; min-width: 140px; background: var(--bg); color: var(--text);
-      border: 1px solid var(--border); border-radius: 5px; padding: 7px 11px; font-size: 14px;
-    }
-    .team-code-display {
-      font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px;
-      color: var(--accent); background: var(--bg); border: 1px solid var(--border);
-      border-radius: 5px; padding: 6px 14px; cursor: pointer;
-    }
-    .team-error { font-size: 13px; color: #f38ba8; display: none; width: 100%; margin-top: 4px; }
-
-    .extra-space { margin-bottom: 1em; }
-
-    .section-label {
-      font-size: 13px;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 16px;
-    }
+    #delete-account-modal { background: rgba(0,0,0,0.8); z-index: 1100; }
   </style>
 </head>
 <body class="scroll-layout">
 
-
-  <!-- ── Hero banner ───────────────────────────────────────── -->
+  <!-- ── Hero banner ── -->
   <div id="hero-banner">
     <div id="hero-banner-overlay"></div>
     <div id="hero-banner-content">
       <div id="hero-banner-title">RINK <span>LABS</span></div>
-      <div id="hero-banner-sub">Empowering volunteer youth hockey mentors with free drills</div>
-      <a id="hero-banner-cta" href="tutorial.html">Tutorial</a>
+      <div id="hero-banner-sub">Coaching &amp; Practices, Simplified.</div>
+      <a id="hero-banner-cta" href="#coach-anchor">Get Started</a>
     </div>
   </div>
 
-  
   <hr class="section-divider">
-  <section class="hero-section">
 
-    <!-- ── Coach identity ─────────────────────────────────────── -->
+  <!-- ── Coach identity ── -->
   <section class="hero-section">
+    <p class="section-label">Coach Identity &amp; Team</p>
     <div id="coach-selector">
       <div id="coach-banner">
 
         <!-- Auth form -->
         <div id="coach-prompt">
           <label for="coach-text" id="auth-label">Sign in</label>
-          <input type="text"     id="coach-display" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;flex:1;min-width:140px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
-          <input type="email"    id="coach-text"    placeholder="Email"        autocomplete="email"    style="flex:1;min-width:160px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
-          <input type="password" id="coach-pin"     placeholder="Password"     autocomplete="current-password" style="flex:1;min-width:120px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;"/>
+          <input type="text"     id="coach-display" class="auth-input" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;" />
+          <input type="email"    id="coach-text"    class="auth-input" placeholder="Email"    autocomplete="email"            style="min-width:160px;" />
+          <input type="password" id="coach-pin"     class="auth-input" placeholder="Password" autocomplete="current-password" style="min-width:120px;" />
           <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
           <button id="auth-toggle">Create account</button>
           <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
-          <span id="coach-error">Incorrect email or password — please try again.</span>
+          <span id="coach-error"></span>
         </div>
 
-        <!-- Signed in: welcome back -->
+        <!-- Signed-in greeting -->
         <div id="coach-greeting" style="display:none;">
           <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
           <div style="display:flex;gap:16px;align-items:center;">
@@ -303,58 +104,50 @@
 
       </div>
     </div>
-
-
   </section>
+
   <hr class="section-divider" id="coach-anchor">
 
-    <!-- ── Hub links ────────────────────────────────────────── --> 
+  <!-- ── Hub links ── -->
   <section class="hero-section">
     <p class="section-label">Explore the Labs</p>
     <br>
     <div class="hub-grid">
       <a href="canvas.html" class="hub-card">
         <h2>Drills Canvas Lab</h2>
-        <p>Sketch, save, share. Design custom drills using high-fidelity rink templates. Place 
-          players, draw complex patterns, and export clear diagrams for your team.</p>
+        <p>Sketch, save, share. Design custom drills using high-fidelity rink templates. Place players, draw complex patterns, and export clear diagrams for your team.</p>
       </a>
       <a href="practice.html" class="hub-card">
         <h2>Practice Lab</h2>
-        <p>Structure your practice. Build a comprehensive 60-minute practice plan tailored to your 
-          team's development goals using the practices you and your fellow coaches designed.</p>
+        <p>Structure your practice. Build a comprehensive 60-minute practice plan tailored to your team's development goals using the practices you and your fellow coaches designed.</p>
+      </a>
+      <a href="tutorial.html" class="hub-card" style="border-style:dashed;">
+        <h2>How To Use</h2>
+        <p>New to the Lab? Start here. Learn the shortcuts and features to build professional drills and practice plans in minutes.</p>
       </a>
     </div>
+
     <hr class="section-divider">
-      <h1>Coaching & Practices, Simplified.</h1>
-      <div class="mission-statement">
-        <p>
-          We believe every volunteer coach deserves professional tools. Our mission is to 
-          empower youth hockey mentors with intuitive, free-to-use technology to design drills, 
-          collaborate with ease, and lead their teams with confidence
-          High impact, lightweight, and open-source.
-        </p>
-      </div>
+    <h1>Coaching &amp; Practices, Simplified.</h1>
+    <div class="mission-statement">
+      <p>We believe every volunteer coach deserves professional tools. Our mission is to empower youth hockey mentors with intuitive, free-to-use technology to design drills, collaborate with ease, and lead their teams with confidence. High impact, lightweight, and open-source.</p>
+    </div>
     <hr class="section-divider">
+
     <div class="hub-grid">
-      <a href="values.html" class="hub-card" style="border-style: dashed;">
-        <h2>Values & Motivation</h2>
-        <p>Who we are and why we built this. A note from the founders on our core values, our motivation, 
-          and our hopes for the hockey community.
-        </p>
+      <a href="values.html" class="hub-card" style="border-style:dashed;">
+        <h2>Values &amp; Motivation</h2>
+        <p>Who we are and why we built this. A note from the founders on our core values, our motivation, and our hopes for the hockey community.</p>
       </a>
-      <a href="terms_conditions.html" class="hub-card" style="border-style: dashed;">
-        <h2>Terms & Conditions</h2>
-        <p>Please use Rink Draw responsibly. By using this tool, you agree to our terms and conditions, 
-          which include guidelines on uses and content creation. 
-        </p>
+      <a href="terms_conditions.html" class="hub-card" style="border-style:dashed;">
+        <h2>Terms &amp; Conditions</h2>
+        <p>Please use Rink Draw responsibly. By using this tool, you agree to our terms and conditions, which include guidelines on uses and content creation.</p>
       </a>
-      <a href="terms_conditions.html#contact-us" class="hub-card" style="border-style: dashed;">
+      <a href="terms_conditions.html#contact-us" class="hub-card" style="border-style:dashed;">
         <h2>Contact Us</h2>
-        <p>Have feedback, questions, or want to contribute? We’d love to hear from you! Reach out to us via email 
-          to share your thoughts and help out.</p>
-        </p>
+        <p>Have feedback, questions, or want to contribute? We'd love to hear from you! Reach out to us via email to share your thoughts and help out.</p>
       </a>
-      <a href="stats.html" class="hub-card" style="border-style: dashed;">
+      <a href="stats.html" class="hub-card" style="border-style:dashed;">
         <h2>Stats</h2>
         <p>See how the Rink Lab is growing and making an impact in the hockey community.</p>
       </a>
@@ -362,40 +155,38 @@
   </section>
 
   <hr class="section-divider">
-    <p class="final-note">
-      We hope this makes your coaching journey more rewarding for every players and coaches. See you at the rink!
-    </p>
+  <p class="final-note">We hope this makes your coaching journey more rewarding for every player and coach. See you at the rink!</p>
   <hr class="section-divider">
-  <!-- ── Account Modal ────────────────────────────────────────── -->
-  <div id="account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;">
+
+  <!-- ── Account Modal ── -->
+  <div id="account-modal">
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px 32px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;">
-      <button id="account-modal-close" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+      <button id="account-modal-close" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
       <h2 style="margin:0 0 20px;font-size:18px;color:var(--text);">Account Settings</h2>
 
-      <!-- Teams section -->
       <p class="section-label" style="text-align:left;margin-bottom:12px;">My Teams</p>
 
-      <!-- No team yet -->
+      <!-- Initial team form -->
       <div id="team-prompt" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-        <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off" style="flex:1;min-width:130px;"/>
+        <input class="team-input" id="team-name-input" placeholder="Team name" autocomplete="off" style="flex:1;min-width:130px;" />
         <button class="btn btn-primary" id="btn-create-team" style="padding:7px 14px;font-size:14px;">Create team</button>
         <span class="team-label">or join with code:</span>
-        <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+        <input class="team-input" id="team-code-input" placeholder="ABC123" autocomplete="off" style="max-width:110px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;" />
         <button class="btn btn-outline" id="btn-join-team" style="padding:7px 14px;font-size:14px;">Join</button>
         <span class="team-error" id="team-error"></span>
       </div>
 
-      <!-- In a team -->
+      <!-- Team chips view -->
       <div id="team-info" style="display:none;flex-direction:column;gap:10px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div id="team-chips" style="display:flex;gap:8px;flex-wrap:wrap;flex:1;"></div>
           <button class="change-link" id="btn-add-team" style="white-space:nowrap;">+ Add team</button>
         </div>
         <div id="team-add-form" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);">
-          <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:170px;"/>
+          <input class="team-input" id="team-name-input2" placeholder="New team name" autocomplete="off" style="max-width:170px;" />
           <button class="btn btn-primary" id="btn-create-team2" style="padding:7px 12px;font-size:14px;">Create</button>
           <span class="team-label">or join:</span>
-          <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:100px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;"/>
+          <input class="team-input" id="team-code-input2" placeholder="ABC123" autocomplete="off" style="max-width:100px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;" />
           <button class="btn btn-outline" id="btn-join-team2" style="padding:7px 12px;font-size:14px;">Join</button>
           <button class="change-link" id="btn-cancel-add" style="font-size:13px;">Cancel</button>
           <span class="team-error" id="team-error2"></span>
@@ -413,8 +204,8 @@
     </div>
   </div>
 
-  <!-- ── Delete Confirm Modal ──────────────────────────────────── -->
-  <div id="delete-account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1100;align-items:center;justify-content:center;">
+  <!-- ── Delete Confirm Modal ── -->
+  <div id="delete-account-modal">
     <div style="background:var(--panel);border:1px solid #f38ba8;border-radius:10px;padding:28px 32px;width:100%;max-width:420px;">
       <h2 style="margin:0 0 12px;font-size:17px;color:#f38ba8;">Delete Account</h2>
       <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">
@@ -422,11 +213,10 @@
       </p>
       <p style="font-size:13px;color:var(--text);margin-bottom:8px;">Type <strong>DELETE</strong> to confirm:</p>
       <input type="text" id="delete-confirm-input" placeholder="DELETE" autocomplete="off"
-        style="width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;margin-bottom:14px;"/>
+        style="width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-size:14px;margin-bottom:14px;" />
       <div style="display:flex;gap:12px;justify-content:flex-end;">
         <button id="cancel-delete-btn" class="btn btn-outline">Cancel</button>
-        <button id="confirm-delete-btn" class="btn btn-primary" disabled
-          style="background:#f38ba8;border-color:#f38ba8;color:#000;">Delete My Account</button>
+        <button id="confirm-delete-btn" class="btn btn-primary" disabled style="background:#f38ba8;border-color:#f38ba8;color:#000;">Delete My Account</button>
       </div>
       <p id="delete-error" style="display:none;font-size:13px;color:#f38ba8;margin-top:10px;"></p>
     </div>
@@ -436,344 +226,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script>
-    const STORAGE_KEY = 'drillLab:coach';
-
-    const promptEl   = document.getElementById('coach-prompt');
-    const greetingEl = document.getElementById('coach-greeting');
-    const greetName  = document.getElementById('coach-greeting-name');
-    const emailInput = document.getElementById('coach-text');
-    const passInput  = document.getElementById('coach-pin');
-    const displayInput = document.getElementById('coach-display');
-    const confirmBtn = document.getElementById('coach-confirm');
-    const changeBtn  = document.getElementById('coach-change');
-    const errorEl    = document.getElementById('coach-error');
-    const toggleBtn  = document.getElementById('auth-toggle');
-    const authLabel  = document.getElementById('auth-label');
-
-    let isSignUp = false;
-
-    toggleBtn.addEventListener('click', () => {
-      isSignUp = !isSignUp;
-      if (isSignUp) {
-        authLabel.textContent     = 'Create account';
-        confirmBtn.textContent    = 'Sign up →';
-        toggleBtn.textContent     = 'Already have an account?';
-        displayInput.style.display = 'block';
-        passInput.placeholder     = 'Password (min 6 chars)';
-      } else {
-        authLabel.textContent     = 'Sign in';
-        confirmBtn.textContent    = 'Sign in →';
-        toggleBtn.textContent     = 'Create account';
-        displayInput.style.display = 'none';
-        passInput.placeholder     = 'Password';
-      }
-      errorEl.style.display = 'none';
-      document.getElementById('auth-forgot').style.display = isSignUp ? 'none' : 'inline';
-    });
-
-    document.getElementById('auth-forgot').addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      if (!email) {
-        errorEl.style.color   = '#f38ba8';
-        errorEl.textContent   = 'Enter your email above first.';
-        errorEl.style.display = 'inline';
-        return;
-      }
-      const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/index.html'
-      });
-      errorEl.style.color   = error ? '#f38ba8' : '#a6e3a1';
-      errorEl.textContent   = error ? error.message : '✓ Password reset email sent — check your inbox.';
-      errorEl.style.display = 'inline';
-    });
-
-    function showGreeting(name) {
-      greetName.textContent    = name;
-      promptEl.style.display   = 'none';
-      greetingEl.style.display = 'flex';
-    }
-
-    function showPrompt() {
-      promptEl.style.display   = 'flex';
-      greetingEl.style.display = 'none';
-      errorEl.style.display    = 'none';
-      emailInput.value         = '';
-      passInput.value          = '';
-      displayInput.value       = '';
-      emailInput.focus();
-    }
-
-    async function handleAuth() {
-      const email   = emailInput.value.trim();
-      const pass    = passInput.value;
-      const display = displayInput.value.trim();
-
-      if (!email || !pass) return;
-      if (isSignUp && !display) {
-        errorEl.textContent   = 'Please enter a display name.';
-        errorEl.style.display = 'inline';
-        return;
-      }
-
-      errorEl.style.display  = 'none';
-      confirmBtn.disabled    = true;
-      confirmBtn.textContent = isSignUp ? 'Signing up…' : 'Signing in…';
-
-      try {
-        let result;
-        if (isSignUp) {
-          result = await _supabase.auth.signUp({
-            email, password: pass,
-            options: { data: { display_name: display } },
-          });
-        } else {
-          result = await _supabase.auth.signInWithPassword({ email, password: pass });
-        }
-
-        if (result.error) throw result.error;
-
-        const user    = result.data.user || result.data.session?.user;
-        const name    = user?.user_metadata?.display_name || email;
-        localStorage.setItem(STORAGE_KEY, name);
-
-        if (isSignUp && !result.data.session) {
-          // Email confirmation required
-          errorEl.style.color   = '#a6e3a1';
-          errorEl.textContent   = '✓ Check your email to confirm your account, then sign in.';
-          errorEl.style.display = 'inline';
-          confirmBtn.disabled   = false;
-          confirmBtn.textContent = 'Sign up →';
-          return;
-        }
-
-        showGreeting(name);
-        if (result.data.session) showTeamPanel(result.data.session);
-      } catch (err) {
-        errorEl.style.color   = '#f38ba8';
-        errorEl.textContent   = err.message || 'Something went wrong.';
-        errorEl.style.display = 'inline';
-      } finally {
-        if (confirmBtn.disabled) {
-          confirmBtn.disabled    = false;
-          confirmBtn.textContent = isSignUp ? 'Sign up →' : 'Sign in →';
-        }
-      }
-    }
-
-    confirmBtn.addEventListener('click', handleAuth);
-    [emailInput, passInput, displayInput].forEach(el =>
-      el.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); })
-    );
-
-    changeBtn.addEventListener('click', async () => {
-      await _supabase.auth.signOut();
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem('drillLab:teamId');
-      accountModal.style.display = 'none';
-      showPrompt();
-    });
-
-    // ── Account modal ─────────────────────────────────────────
-    const accountBtn        = document.getElementById('account-btn');
-    const accountModal      = document.getElementById('account-modal');
-    const accountModalClose = document.getElementById('account-modal-close');
-    const deleteAccountBtn  = document.getElementById('delete-account-btn');
-    const deleteModal       = document.getElementById('delete-account-modal');
-    const cancelDeleteBtn   = document.getElementById('cancel-delete-btn');
-    const confirmDeleteBtn  = document.getElementById('confirm-delete-btn');
-    const deleteInput       = document.getElementById('delete-confirm-input');
-    const deleteError       = document.getElementById('delete-error');
-
-    accountBtn.addEventListener('click', () => {
-      accountModal.style.display = 'flex';
-    });
-    accountModalClose.addEventListener('click', () => {
-      accountModal.style.display = 'none';
-    });
-    accountModal.addEventListener('click', e => {
-      if (e.target === accountModal) accountModal.style.display = 'none';
-    });
-
-    deleteAccountBtn.addEventListener('click', () => {
-      deleteModal.style.display   = 'flex';
-      deleteInput.value           = '';
-      confirmDeleteBtn.disabled   = true;
-      deleteError.style.display   = 'none';
-    });
-    cancelDeleteBtn.addEventListener('click', () => {
-      deleteModal.style.display = 'none';
-    });
-    deleteInput.addEventListener('input', () => {
-      confirmDeleteBtn.disabled = deleteInput.value.trim() !== 'DELETE';
-    });
-    confirmDeleteBtn.addEventListener('click', async () => {
-      confirmDeleteBtn.disabled    = true;
-      confirmDeleteBtn.textContent = 'Deleting…';
-      const { data: { user } } = await _supabase.auth.getUser();
-      await _supabase.from('team_member').delete().eq('user_id', user.id);
-      const { error } = await _supabase.rpc('delete_user');
-      if (error) {
-        deleteError.textContent   = 'Something went wrong — please try again.';
-        deleteError.style.display = 'block';
-        confirmDeleteBtn.disabled    = false;
-        confirmDeleteBtn.textContent = 'Delete My Account';
-      } else {
-        await _supabase.auth.signOut();
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem('drillLab:teamId');
-        window.location.reload();
-      }
-    });
-
-    // ── Team management ───────────────────────────────────────
-
-    function hideTeamPanel() { /* team panel is now inside account modal — nothing to hide */ }
-    function showTeamPanel(session) { loadTeamState(session); }
-
-    async function loadTeamState(session) {
-      const { data: memberships } = await _supabase
-        .from('team_member')
-        .select('team_id, team(id, name, code, owner_id)')
-        .eq('user_id', session.user.id);
-      const teams = (memberships || []).map(m => m.team).filter(Boolean);
-      teams.length === 0 ? showTeamPrompt() : showTeamInfo(teams, session.user.id);
-    }
-
-    function showTeamInfo(teams, userId) {
-      document.getElementById('team-prompt').style.display   = 'none';
-      document.getElementById('team-add-form').style.display = 'none';
-      const info = document.getElementById('team-info');
-      info.style.display = 'flex';
-
-      const chipsEl = document.getElementById('team-chips');
-      chipsEl.innerHTML = teams.map(t => {
-        const isOwner = t.owner_id === userId;
-        const actionBtn = isOwner
-          ? `<button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:#f38ba8;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Disband</button>`
-          : `<button onclick="leaveTeam('${t.id}')" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Leave</button>`;
-        return `
-          <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:10px;">
-            <strong style="font-size:13px;">${esc(t.name)}</strong>
-            <span class="team-code-display" style="font-size:12px;" title="Click to copy" onclick="copyTeamCode('${t.code}')">${t.code}</span>
-            ${actionBtn}
-          </div>`;
-      }).join('');
-    }
-
-    function copyTeamCode(code) {
-      navigator.clipboard.writeText(code);
-      const toast = document.getElementById('toast');
-      if (toast) { toast.textContent = 'Code copied!'; toast.className = 'show'; setTimeout(() => toast.className = '', 2000); }
-    }
-
-    async function leaveTeam(teamId) {
-      if (!confirm('Leave this team? You will no longer see shared practices.')) return;
-      const { data: { session } } = await _supabase.auth.getSession();
-      await _supabase.from('team_member').delete().eq('user_id', session.user.id).eq('team_id', teamId);
-      if (localStorage.getItem('drillLab:teamId') === teamId) localStorage.removeItem('drillLab:teamId');
-      await refreshTeams();
-    }
-
-    async function disbandTeam(teamId, name) {
-      if (!confirm(`Disband "${name}"? This removes all members and unshares all practices. This cannot be undone.`)) return;
-      await _supabase.from('practice').update({ team_id: null }).eq('team_id', teamId);
-      const { error } = await _supabase.from('team').delete().eq('id', teamId);
-      if (error) { alert('Could not disband team: ' + error.message); return; }
-      if (localStorage.getItem('drillLab:teamId') === teamId) localStorage.removeItem('drillLab:teamId');
-      await refreshTeams();
-    }
-
-    function showTeamPrompt() {
-      localStorage.removeItem('drillLab:teamId');
-      document.getElementById('team-info').style.display   = 'none';
-      document.getElementById('team-prompt').style.display = 'flex';
-    }
-
-    function teamError(msg)  { const el = document.getElementById('team-error');  el.textContent = msg; el.style.display = msg ? 'inline' : 'none'; }
-    function teamError2(msg) { const el = document.getElementById('team-error2'); el.textContent = msg; el.style.display = msg ? 'inline' : 'none'; }
-    function randomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
-    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    async function refreshTeams() {
-      const { data: { session } } = await _supabase.auth.getSession();
-      if (session) await loadTeamState(session);
-    }
-
-    document.getElementById('btn-create-team').addEventListener('click', async () => {
-      const name = document.getElementById('team-name-input').value.trim();
-      if (!name) { teamError('Enter a team name.'); return; }
-      teamError('');
-      const { data: { session } } = await _supabase.auth.getSession();
-      const code = randomCode();
-      const { data: team, error } = await _supabase.from('team').insert({ name, code, owner_id: session.user.id }).select().single();
-      if (error) { teamError(error.message); return; }
-      await _supabase.from('team_member').insert({ team_id: team.id, user_id: session.user.id });
-      document.getElementById('team-name-input').value = '';
-      await refreshTeams();
-    });
-
-    document.getElementById('btn-join-team').addEventListener('click', async () => {
-      const code = document.getElementById('team-code-input').value.trim().toUpperCase();
-      if (!code) { teamError('Enter an invite code.'); return; }
-      teamError('');
-      const { data: team, error } = await _supabase.from('team').select('id, name, code, owner_id').eq('code', code).maybeSingle();
-      if (error || !team) { teamError('Team not found — check the code and try again.'); return; }
-      const { data: { session } } = await _supabase.auth.getSession();
-      const { error: joinError } = await _supabase.from('team_member').insert({ team_id: team.id, user_id: session.user.id });
-      if (joinError && !joinError.message.includes('duplicate')) { teamError(joinError.message); return; }
-      document.getElementById('team-code-input').value = '';
-      await refreshTeams();
-    });
-
-    document.getElementById('btn-add-team').addEventListener('click', () => {
-      const f = document.getElementById('team-add-form');
-      f.style.display = f.style.display === 'none' ? 'flex' : 'none';
-    });
-    document.getElementById('btn-cancel-add').addEventListener('click', () => {
-      document.getElementById('team-add-form').style.display = 'none';
-    });
-
-    document.getElementById('btn-create-team2').addEventListener('click', async () => {
-      const name = document.getElementById('team-name-input2').value.trim();
-      if (!name) { teamError2('Enter a team name.'); return; }
-      teamError2('');
-      const { data: { session } } = await _supabase.auth.getSession();
-      const code = randomCode();
-      const { data: team, error } = await _supabase.from('team').insert({ name, code, owner_id: session.user.id }).select().single();
-      if (error) { teamError2(error.message); return; }
-      await _supabase.from('team_member').insert({ team_id: team.id, user_id: session.user.id });
-      document.getElementById('team-name-input2').value = '';
-      await refreshTeams();
-    });
-
-    document.getElementById('btn-join-team2').addEventListener('click', async () => {
-      const code = document.getElementById('team-code-input2').value.trim().toUpperCase();
-      if (!code) { teamError2('Enter an invite code.'); return; }
-      teamError2('');
-      const { data: team, error } = await _supabase.from('team').select('id, name, code, owner_id').eq('code', code).maybeSingle();
-      if (error || !team) { teamError2('Team not found — check the code and try again.'); return; }
-      const { data: { session } } = await _supabase.auth.getSession();
-      const { error: joinError } = await _supabase.from('team_member').insert({ team_id: team.id, user_id: session.user.id });
-      if (joinError && !joinError.message.includes('duplicate')) { teamError2(joinError.message); return; }
-      document.getElementById('team-code-input2').value = '';
-      await refreshTeams();
-    });
-
-    // Boot — restore session if still active
-    _supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const name = session.user.user_metadata?.display_name || session.user.email;
-        localStorage.setItem(STORAGE_KEY, name);
-        showGreeting(name);
-        showTeamPanel(session);
-      } else {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) showGreeting(stored);
-        else showPrompt();
-      }
-    });
-  </script>
-
+  <script src="js/auth.js"></script>
 </body>
 </html>
