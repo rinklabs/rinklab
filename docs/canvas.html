@@ -42,16 +42,6 @@
 <!-- ── Top bar ───────────────────────────────────────────────── -->
 <div id="top-bar">
   <a href="index.html" class="btn btn-lab">← LAB</a>
-  <a href="practice.html" class="btn btn-lab" style="display: inline-flex; align-items: center; gap: 8px;">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-      <line x1="8" y1="11" x2="16" y2="11"></line>
-      <line x1="8" y1="16" x2="16" y2="16"></line>
-    </svg>
-    PRACTICE
-  </a>
-  <span id="logo">⬡ DRILL LAB CANVAS</span>
   <input type="text" id="drill-title"
          placeholder="Drill Title"
          autocomplete="off"/>
@@ -241,9 +231,8 @@
 </div><!-- /main-row -->
 
 <div id="tags-row">
-  <span class="tb-label">Tags</span>
+  <span class="tb-label">Tags <span class="meta-hint">(semicolon separated)</span></span>
   <input type="text" id="drill-tags" placeholder="breakout; forecheck; 2-on-1"/>
-  <span class="meta-hint">(semicolon separated)</span>
 </div>
 
 <div id="desc-row">
