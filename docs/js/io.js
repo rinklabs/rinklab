@@ -186,9 +186,12 @@ function serializeElement(el) {
     locked:          false,
   };
 
-  if (el.type === 'pen') {
+  if (el.type === 'pen' || el.type === 'penArrow') {
     base.points    = el.points.map(([x, y]) => [x / RINK_W, y / RINK_H]);
     base.lineStyle = el.lineStyle ?? 'solid';
+  }
+  if (el.type === 'penArrow') {
+    base.arrowHead = el.arrowHead ?? 'small';
   }
   if (el.type === 'text') {
     Object.assign(base, {
@@ -234,6 +237,7 @@ function deserializeElement(el) {
     type:        fromExcalidrawType(el.type),
     playerType:  el.playerType  ?? 'F',
     isCoach:     el.isCoach     ?? false,
+    arrowHead:   el.arrowHead   ?? 'small',   // ← add this line
     fontSize:    el.fontSize    ?? (el.type === 'player' ? 32 : 20),
     lineStyle:   el.lineStyle   ?? 'solid',
     angle:       el.angle       ?? 0,
@@ -316,7 +320,21 @@ async function saveToServer() {
 
   const coach           = getCoach();
   const { scene, slug } = buildScene();
-  const thumbnail       = await captureThumbnail();
+
+  // ── Temporarily deselect so selection handles don't appear in the thumbnail
+  const prevSelected      = State.selected;
+  const prevMulti         = new Set(State.multiSelected);
+  State.selected          = null;
+  State.multiSelected.clear();
+  render();
+
+  const thumbnail = await captureThumbnail();
+
+  // ── Restore selection
+  State.selected = prevSelected;
+  prevMulti.forEach(id => State.multiSelected.add(id));
+  render();
+  // ────────────────────────────────────────────────────────────
 
   const { error } = await _supabase.from('drill').upsert({
     user_id:   session.user.id,
