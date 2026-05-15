@@ -6,6 +6,100 @@
   <title>Rink Labs</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+      display: block !important;
+    }
+
+    /* ── Hero banner ── */
+    #hero-banner {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      overflow: hidden;
+      background-image: url('assets/NHLRink.svg');
+      background-size: cover;
+      background-position: center 40%;
+      background-color: #0a1a2e;
+    }
+    #hero-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, #0f0f0f 100%);
+    }
+    #hero-banner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 40px;
+      text-align: center;
+    }
+    #hero-banner-title {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: #ffffff;
+      line-height: 1;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+    }
+    #hero-banner-title span { color: var(--accent); }
+    #hero-banner-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero CTA row (Tutorial + QuickStart side by side) ── */
+    #hero-cta-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+    #hero-banner-cta {
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    #hero-banner-cta:hover { background: #ff8559; }
+
+    #qs-trigger {
+      display: inline-block;
+      background: transparent;
+      color: rgba(255,255,255,.85);
+      font-weight: 800;
+      font-size: 13px;
+      font-family: inherit;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 9px 24px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,.35);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    #qs-trigger:hover {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.65);
+      color: #fff;
+    }
+
     /* ── Coach identity panel ── */
     #coach-selector {
       max-width: 900px;
@@ -35,7 +129,7 @@
     #auth-toggle         { font-size: 13px; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; text-decoration: underline; white-space: nowrap; }
     #coach-greeting      { justify-content: space-between; align-items: center; width: 100%; }
 
-    /* ── Auth inputs (inline to keep them tightly scoped) ── */
+    /* ── Auth inputs ── */
     .auth-input {
       flex: 1;
       min-width: 140px;
@@ -47,7 +141,7 @@
       font-size: 14px;
     }
 
-    /* ── Account modal ── */
+    /* ── Account modals ── */
     #account-modal,
     #delete-account-modal {
       display: none;
@@ -60,101 +154,230 @@
     }
     #delete-account-modal { background: rgba(0,0,0,0.8); z-index: 1100; }
 
-    /* ── Hub card designs (also used for drill/practice cards) ── */
+    /* ── QuickStart modal ── */
+    #qs-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #qs-dialog {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+    }
+    #qs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    #qs-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #qs-badge {
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      background: rgba(255,107,53,.1);
+      color: var(--accent);
+      border: 1px solid rgba(255,107,53,.3);
+      padding: 2px 9px;
+      border-radius: 3px;
+    }
+    #qs-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    #qs-close {
+      width: 24px; height: 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #qs-close:hover { border-color: var(--text); color: var(--text); }
+
+    /* Step track */
+    #qs-track {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px 10px;
+    }
+    .qs-dot {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+      transition: background .2s, box-shadow .2s;
+    }
+    .qs-done    { background: var(--accent); color: #000; }
+    .qs-active  { background: var(--accent); color: #000; box-shadow: 0 0 0 3px rgba(255,107,53,.22); }
+    .qs-pending { background: var(--hover); color: var(--muted); border: 1px solid var(--border); }
+    .qs-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .qs-line.qs-done { background: var(--accent); }
+
+    /* Step body */
+    #qs-body {
+      padding: 6px 20px 22px;
+      min-height: 120px;
+    }
+    #qs-eyebrow {
+      display: block;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 7px;
+    }
+    #qs-heading {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    #qs-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    #qs-desc strong { color: var(--text); }
+
+    /* Footer */
+    #qs-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+    }
+    #qs-counter { font-size: 11px; color: var(--muted); }
+    #qs-btns    { display: flex; gap: 8px; }
+    #qs-back {
+      padding: 7px 15px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #qs-back:hover { border-color: var(--text); color: var(--text); }
+    #qs-next {
+      padding: 7px 16px;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      color: #000;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #qs-next:hover { background: #ff8559; border-color: #ff8559; }
+
+    /* ── Hub card designs ── */
     .grid-a {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-
-  .card-a {
-    position: relative;
-    height: 180px;
-    border-radius: 8px;
-    border: 1px solid #2a2a2a;
-    background: #161616;
-    overflow: hidden;
-    cursor: pointer;
-    text-decoration: none;
-    display: block;
-    transition: border-color .2s;
-  }
-
-  .card-a:hover { border-color: #ff6b35; }
-
-  .card-a-icon {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    transition: transform .3s ease;
-  }
-
-  .card-a:hover .card-a-icon { transform: translateY(-12px); }
-
-  .card-a-icon svg {
-    width: 38px; height: 38px;
-    opacity: 0.7;
-    transition: opacity .2s;
-  }
-
-  .card-a:hover .card-a-icon svg { opacity: 1; }
-
-  .card-a-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .04em;
-    color: #e8e8e8;
-    text-align: center;
-    padding: 0 12px;
-  }
-
-  .card-a-overlay {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(22,22,22,0.97) 40%);
-    padding: 28px 14px 14px;
-    transform: translateY(100%);
-    transition: transform .28s ease;
-  }
-
-  .card-a:hover .card-a-overlay { transform: translateY(0); }
-
-  .card-a-desc {
-    font-size: 11px;
-    color: #999;
-    line-height: 1.6;
-    text-align: center;
-  }
-
-  .card-a-badge {
-    display: inline-block;
-    font-size: 9px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: #ff6b35;
-    border: 1px solid rgba(255,107,53,.35);
-    border-radius: 2px;
-    padding: 2px 7px;
-    margin-bottom: 6px;
-  }
-
-  /* Labels */
-  .opt-tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    background: #ff6b35;
-    color: #000;
-    border-radius: 3px;
-    padding: 2px 8px;
-    margin-right: 8px;
-  }
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .card-a {
+      position: relative;
+      height: 180px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+      background: #161616;
+      overflow: hidden;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: border-color .2s;
+    }
+    .card-a:hover { border-color: #ff6b35; }
+    .card-a-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform .3s ease;
+    }
+    .card-a:hover .card-a-icon { transform: translateY(-12px); }
+    .card-a-icon svg { width: 38px; height: 38px; opacity: 0.7; transition: opacity .2s; }
+    .card-a:hover .card-a-icon svg { opacity: 1; }
+    .card-a-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #e8e8e8;
+      text-align: center;
+      padding: 0 12px;
+    }
+    .card-a-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(22,22,22,0.97) 40%);
+      padding: 28px 14px 14px;
+      transform: translateY(100%);
+      transition: transform .28s ease;
+    }
+    .card-a:hover .card-a-overlay { transform: translateY(0); }
+    .card-a-desc {
+      font-size: 11px;
+      color: #999;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .card-a-badge {
+      display: inline-block;
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #ff6b35;
+      border: 1px solid rgba(255,107,53,.35);
+      border-radius: 2px;
+      padding: 2px 7px;
+      margin-bottom: 6px;
+    }
+    .opt-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      background: #ff6b35;
+      color: #000;
+      border-radius: 3px;
+      padding: 2px 8px;
+      margin-right: 8px;
+    }
   </style>
 </head>
 <body class="scroll-layout">
@@ -165,7 +388,10 @@
     <div id="hero-banner-content">
       <div id="hero-banner-title">RINK<span>LABS</span></div>
       <div id="hero-banner-sub">Empowering volunteer youth hockey mentors with free drills</div>
-      <a id="hero-banner-cta" href="tutorial.html">Tutorial</a>
+      <div id="hero-cta-row">
+        <a id="hero-banner-cta" href="tutorial.html">Tutorial</a>
+        <a id="hero-banner-cta"  href="javascript:void(0)" onclick="openQuickstart()">Quick Start</a>
+      </div>
     </div>
   </div>
 
@@ -209,58 +435,53 @@
     <br>
     <div class="grid-a">
 
-    <a class="card-a" href="canvas.html">
-      <div class="card-a-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Pencil body -->
-          <path d="M4 20 L8 20 L20 8 L16 4 L4 16 Z"/>
-          
-          <!-- Pencil tip -->
-          <path d="M16 4 L20 8"/>
-          
-          <!-- Lead tip detail -->
-          <line x1="4" y1="20" x2="6" y2="18"/>
-        </svg>
-        <div class="card-a-title">Draw Drills</div>
-      </div>
-      <div class="card-a-overlay">
-        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge">Draw</span></div>
-        <div class="card-a-desc">Sketch drills on a full or half rink. Place players, draw patterns, save &amp; share.</div>
-      </div>
-    </a>
+      <a class="card-a" href="canvas.html">
+        <div class="card-a-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20 L8 20 L20 8 L16 4 L4 16 Z"/>
+            <path d="M16 4 L20 8"/>
+            <line x1="4" y1="20" x2="6" y2="18"/>
+          </svg>
+          <div class="card-a-title">Draw Drills</div>
+        </div>
+        <div class="card-a-overlay">
+          <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge">Draw</span></div>
+          <div class="card-a-desc">Sketch drills on a full or half rink. Place players, draw patterns, save &amp; share.</div>
+        </div>
+      </a>
 
-    <a class="card-a" href="practice.html">
-      <div class="card-a-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#5567b0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-          <rect x="8" y="2" width="8" height="4" rx="1"/>
-          <line x1="8" y1="13" x2="16" y2="13"/>
-          <line x1="8" y1="17" x2="13" y2="17"/>
-        </svg>
-        <div class="card-a-title">Create Practice Plans</div>
-      </div>
-      <div class="card-a-overlay">
-        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#5567b0;border-color:rgba(85,103,176,.4);">Plan</span></div>
-        <div class="card-a-desc">Build 60-min practice plans. Drag drills from the library, set timings, print or share.</div>
-      </div>
-    </a>
+      <a class="card-a" href="practice.html">
+        <div class="card-a-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5567b0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+            <line x1="8" y1="13" x2="16" y2="13"/>
+            <line x1="8" y1="17" x2="13" y2="17"/>
+          </svg>
+          <div class="card-a-title">Create Practice Plans</div>
+        </div>
+        <div class="card-a-overlay">
+          <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#5567b0;border-color:rgba(85,103,176,.4);">Plan</span></div>
+          <div class="card-a-desc">Build 60-min practice plans. Drag drills from the library, set timings, print or share.</div>
+        </div>
+      </a>
 
-    <a class="card-a" href="drills.html">
-      <div class="card-a-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <ellipse cx="12" cy="5" rx="9" ry="3"/>
-          <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
-          <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
-        </svg>
-        <div class="card-a-title">Drill Library</div>
-      </div>
-      <div class="card-a-overlay">
-        <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#a6e3a1;border-color:rgba(166,227,161,.35);">Browse</span></div>
-        <div class="card-a-desc">Browse all saved drills across your teams. Filter by tag, search, and preview diagrams.</div>
-      </div>
-    </a>
+      <a class="card-a" href="drills.html">
+        <div class="card-a-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a6e3a1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+          </svg>
+          <div class="card-a-title">Drill Library</div>
+        </div>
+        <div class="card-a-overlay">
+          <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#a6e3a1;border-color:rgba(166,227,161,.35);">Browse</span></div>
+          <div class="card-a-desc">Browse all saved drills across your teams. Filter by tag, search, and preview diagrams.</div>
+        </div>
+      </a>
 
-  </div>
+    </div>
 
     <hr class="section-divider">
     <h1>"The best coaches are the best thieves"</h1>
@@ -354,10 +575,50 @@
     </div>
   </div>
 
+  <!-- ── QuickStart Modal ── -->
+  <div id="qs-modal">
+    <div id="qs-dialog">
+
+      <div id="qs-header">
+        <div id="qs-header-left">
+          <span id="qs-badge">Quick Start</span>
+          <span id="qs-title">Get up and running</span>
+        </div>
+        <button id="qs-close" title="Close (Esc)">✕</button>
+      </div>
+
+      <div id="qs-track">
+        <div class="qs-dot qs-active" id="qs-dot-0">1</div>
+        <div class="qs-line"          id="qs-line-0"></div>
+        <div class="qs-dot qs-pending" id="qs-dot-1">2</div>
+        <div class="qs-line"          id="qs-line-1"></div>
+        <div class="qs-dot qs-pending" id="qs-dot-2">3</div>
+        <div class="qs-line"          id="qs-line-2"></div>
+        <div class="qs-dot qs-pending" id="qs-dot-3">4</div>
+      </div>
+
+      <div id="qs-body">
+        <span id="qs-eyebrow"></span>
+        <span id="qs-heading"></span>
+        <div  id="qs-desc"></div>
+      </div>
+
+      <div id="qs-footer">
+        <span id="qs-counter">Step 1 of 4</span>
+        <div id="qs-btns">
+          <button id="qs-back">← Back</button>
+          <button id="qs-next">Next →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/quickstart.js"></script>
 </body>
 </html>
