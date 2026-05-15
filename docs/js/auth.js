@@ -51,7 +51,7 @@ document.getElementById('auth-forgot').addEventListener('click', async () => {
     return;
   }
   const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/index.html',
+    redirectTo: window.location.href.split('?')[0],
   });
   errorEl.style.color   = error ? '#f38ba8' : '#a6e3a1';
   errorEl.textContent   = error ? error.message : '✓ Password reset email sent — check your inbox.';
