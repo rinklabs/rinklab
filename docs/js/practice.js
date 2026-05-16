@@ -556,10 +556,16 @@ function loadFromURL() {
 }
 
 // ── PDF export ───────────────────────────────────────────────
-function exportPDF() {
+// Renders the practice to a real downloadable PDF using html2canvas + jsPDF.
+// On iOS Safari the PDF opens in a new tab (share → Save to Files).
+// On Android Chrome it downloads directly.
+async function exportPDF() {
   const data  = getPracticeData();
   const total = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
+  const fname = (data.name || 'practice').toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.pdf';
 
+  // ── Build HTML ─────────────────────────────────────────────
   const pageHeader = `
     <div class="pc-page-header">
       <h1>${esc(data.name)}</h1>
@@ -588,43 +594,91 @@ function exportPDF() {
     const tagPills  = (item.tags || []).map(t => `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
     const rinkClass = item.rinkView === 'full' ? 'rink-full' : 'rink-half';
     const imgCell   = item.type === 'diagram' ? `
-      <td class="pc-drill-img-cell ${rinkClass}">
+      <div class="pc-drill-img-cell ${rinkClass}">
         ${item.thumbnail
           ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
           : `<div class="pc-no-img">No diagram available.</div>`}
-      </td>` : '';
+      </div>` : '';
     const descHtml  = item.desc
       ? item.desc.split(/\n|<br>/i).map(l => `<p>${esc(l)}</p>`).join('')
       : `<p style="color:#aaa;font-style:italic">No description provided.</p>`;
     return `
       <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
         <div class="pc-drill-bar">
-          <div class="pc-drill-bar-left">
-            <span class="pc-drill-num">${i + 1}.</span>
-            <span class="pc-drill-title">${esc(item.name)}</span>
-            ${tagPills}
-          </div>
-          <div class="pc-drill-bar-right">${item.duration} min</div>
+          <div><span class="pc-drill-num">${i + 1}.</span><span class="pc-drill-title">${esc(item.name)}</span>${tagPills}</div>
+          <div><span class="pc-drill-time">${item.duration} min</span></div>
         </div>
-        <table class="pc-drill-body">
-          <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
-        </table>
+        <div class="pc-drill-body">${imgCell}<div class="pc-drill-desc-cell">${descHtml}</div></div>
       </div>`;
   }).join('');
 
+  // ── Render off-screen so html2canvas can see it ────────────
   const container = document.getElementById('print-container');
-  container.innerHTML = pageHeader + summaryTable + `<div class="pc-section-label">Drill Details</div>` + drillCards;
+  container.className = 'pdf-exporting';
+  container.innerHTML = pageHeader + summaryTable
+    + `<div class="pc-section-label">Drill Details</div>` + drillCards;
 
-  const images   = container.getElementsByTagName('img');
-  const promises = Array.from(images).map(img =>
-    img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; img.onerror = res; })
-  );
-  Promise.all(promises).then(() => {
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => { container.innerHTML = ''; }, 500);
-    }, 250);
+  Object.assign(container.style, {
+    display:    'block',
+    position:   'fixed',
+    top:        '-99999px',
+    left:       '0',
+    width:      '780px',
+    padding:    '40px 48px',
+    background: 'white',
+    zIndex:     '-1',
+    boxSizing:  'border-box',
   });
+
+  // Wait for thumbnails (base64 data URLs, usually instant)
+  const images = Array.from(container.getElementsByTagName('img'));
+  await Promise.all(images.map(img =>
+    img.complete ? Promise.resolve()
+                 : new Promise(r => { img.onload = r; img.onerror = r; })
+  ));
+  await new Promise(r => setTimeout(r, 250)); // let layout settle
+
+  showToast('Generating PDF…');
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale:           2,
+      useCORS:         true,
+      backgroundColor: '#ffffff',
+      logging:         false,
+    });
+
+    const { jsPDF } = window.jspdf;
+    const pdf     = new jsPDF({ orientation: 'p', unit: 'pt', format: 'letter' });
+    const pW      = pdf.internal.pageSize.getWidth();   // 612 pt
+    const pH      = pdf.internal.pageSize.getHeight();  // 792 pt
+    const margin  = 0;
+    const imgW    = pW - margin * 2;
+    const scale   = imgW / canvas.width;
+    const slicePx = Math.floor((pH - margin * 2) / scale);
+
+    let srcY = 0;
+    while (srcY < canvas.height) {
+      const h     = Math.min(slicePx, canvas.height - srcY);
+      const slice = document.createElement('canvas');
+      slice.width  = canvas.width;
+      slice.height = h;
+      slice.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, h, 0, 0, canvas.width, h);
+      if (srcY > 0) pdf.addPage();
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, imgW, h * scale);
+      srcY += h;
+    }
+
+    pdf.save(fname);
+    showToast('✓ PDF saved — check your Downloads');
+  } catch (err) {
+    showToast('PDF failed: ' + err.message, true);
+    console.error(err);
+  } finally {
+    container.style.cssText = '';
+    container.className     = '';
+    container.innerHTML     = '';
+  }
 }
 
 // ── Thumbnail hover preview ──────────────────────────────────
