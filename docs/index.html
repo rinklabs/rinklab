@@ -81,24 +81,20 @@
 
     #qs-trigger {
       display: inline-block;
-      background: transparent;
-      color: rgba(255,255,255,.85);
+      background: var(--accent);
+      color: #000;
       font-weight: 800;
       font-size: 13px;
       font-family: inherit;
       letter-spacing: .08em;
       text-transform: uppercase;
-      padding: 9px 24px;
+      padding: 10px 28px;
       border-radius: 4px;
-      border: 1px solid rgba(255,255,255,.35);
+      border: none;
       cursor: pointer;
-      transition: background .15s, border-color .15s, color .15s;
+      transition: background .15s;
     }
-    #qs-trigger:hover {
-      background: rgba(255,255,255,.1);
-      border-color: rgba(255,255,255,.65);
-      color: #fff;
-    }
+    #qs-trigger:hover { background: #ff8559; }
 
     /* ── Coach identity panel ── */
     #coach-selector {
@@ -389,8 +385,7 @@
       <div id="hero-banner-title">RINK<span>LABS</span></div>
       <div id="hero-banner-sub">Empowering volunteer youth hockey mentors with free drills</div>
       <div id="hero-cta-row">
-        <a id="hero-banner-cta" href="tutorial.html">Tutorial</a>
-        <a id="hero-banner-cta"  href="javascript:void(0)" onclick="openQuickstart()">Quick Start</a>
+        <button id="qs-trigger" onclick="openQuickstart()">⚡ Quick Start</button>
       </div>
     </div>
   </div>
@@ -604,6 +599,7 @@
       </div>
 
       <div id="qs-footer">
+        <a href="tutorial.html" style="font-size:11px;color:var(--muted);text-decoration:underline;white-space:nowrap;">Full tutorial →</a>
         <span id="qs-counter">Step 1 of 4</span>
         <div id="qs-btns">
           <button id="qs-back">← Back</button>
