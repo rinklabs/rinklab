@@ -35,6 +35,87 @@
     #coach-indicator.unset strong {
       color: #f38ba8;  /* red-ish warning */
     }
+
+    /* ── Canvas Help modal ── */
+    #canvas-help-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    #canvas-help-modal .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    #canvas-help-close {
+      position: absolute;
+      top: 14px; right: 18px;
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #canvas-help-close:hover { color: var(--text); }
+    #canvas-help-modal h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      color: var(--accent);
+    }
+    #canvas-help-modal .sub-label {
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 16px 0 6px;
+    }
+    #canvas-help-modal table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    #canvas-help-modal table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    #canvas-help-modal kbd {
+      background: var(--hover);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 11px;
+      font-family: inherit;
+    }
+    #canvas-help-modal .help-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 24px;
+    }
+    #canvas-help-modal .help-footer {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    #canvas-help-modal .help-footer a {
+      color: var(--accent);
+      font-size: 13px;
+      text-decoration: underline;
+    }
+    @media (max-width: 680px) {
+      #canvas-help-modal .help-cols { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -50,6 +131,7 @@
     <button class="btn btn-outline"   id="btn-save">Save JSON</button> 
     <button class="btn btn-primary"   id="btn-save-local">💾 Save</button>
     <button class="btn btn-primary" id="btn-library">📂 Library</button>
+    <button class="btn btn-outline" id="btn-help" title="How to use the Canvas">❓ Help</button>
   </div>
   <div id="coach-indicator">
     Saving as: <strong id="coach-indicator-name">—</strong>
@@ -253,6 +335,62 @@
   <button class="tool-btn flyout-item" data-tool="puck"  title="Puck">⚫ <span>Puck</span></button>
 </div>
 
+<div id="canvas-help-modal">
+  <div class="modal-box">
+    <button id="canvas-help-close">✕</button>
+    <h2>Canvas Quick Guide</h2>
+
+    <div class="help-cols">
+      <div>
+        <p class="sub-label">Tool Selection</p>
+        <table>
+          <tr><td><kbd>V</kbd> Select / Move</td></tr>
+          <tr><td><kbd>R</kbd> Rectangle</td></tr>
+          <tr><td><kbd>E</kbd> Ellipse / Circle</td></tr>
+          <tr><td><kbd>L</kbd> Line</td></tr>
+          <tr><td><kbd>A</kbd> Arrow</td></tr>
+          <tr><td><kbd>T</kbd> Text</td></tr>
+          <tr><td><kbd>P</kbd> Pen (freehand)</td></tr>
+        </table>
+
+        <p class="sub-label">File &amp; Saving</p>
+        <table>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd> Save to cloud</td></tr>
+          <tr><td><kbd>Alt</kbd>+<kbd>S</kbd> Save JSON to disk</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <p class="sub-label">Editing</p>
+        <table>
+          <tr><td><kbd>Del</kbd> Delete selected</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> Redo</td></tr>
+          <tr><td><kbd>Escape</kbd> Cancel / deselect</td></tr>
+        </table>
+
+        <p class="sub-label">Transform</p>
+        <table>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>H</kbd> Flip horizontal</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd> Flip vertical</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd> Rotate 90°</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <p class="sub-label">Tip</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6;">
+      Hold <kbd>Shift</kbd> and click multiple elements to select them as a group — Flip and Rotate then apply to the whole selection.
+      Use the ▲ and ╱ toolbar buttons to open the Equipment and Lines/Pen flyouts.
+    </p>
+
+    <div class="help-footer">
+      <a href="tutorial.html#section-shortcuts">Open the full tutorial →</a>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <input type="file" id="file-input" accept=".json" style="display:none"/>
 
@@ -303,8 +441,25 @@
     }
   }
 
+  // ── Canvas Help modal ───────────────────────────────────────
+  function initCanvasHelp() {
+    const modal   = document.getElementById('canvas-help-modal');
+    const openBtn = document.getElementById('btn-help');
+    const closeBtn = document.getElementById('canvas-help-close');
+
+    openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
+    closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    modal.addEventListener('click', e => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none';
+    });
+  }
+
   window.addEventListener('DOMContentLoaded', async () => {
     initCoachIndicator();
+    initCanvasHelp();
 
     await initRink();
     await initAssets();

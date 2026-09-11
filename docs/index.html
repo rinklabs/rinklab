@@ -96,6 +96,22 @@
     }
     #qs-trigger:hover { background: #ff8559; }
 
+    #tutorial-trigger {
+      display: inline-block;
+      background: transparent;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    #tutorial-trigger:hover { border-color: var(--accent); color: var(--accent); }
+
     /* ── Coach identity panel ── */
     #coach-selector {
       max-width: 900px;
@@ -386,6 +402,7 @@
       <div id="hero-banner-sub">Empowering volunteer youth hockey mentors with free drills</div>
       <div id="hero-cta-row">
         <button id="qs-trigger" onclick="openQuickstart()">⚡ Quick Start</button>
+        <a id="tutorial-trigger" href="tutorial.html">📖 How To Use</a>
       </div>
     </div>
   </div>
