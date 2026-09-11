@@ -20,6 +20,31 @@ function _setCoachCache(name) {
 }
 
 // ─────────────────────────────────────────────────────────────
+//  Unsaved-changes tracking
+//  hasUnsavedChanges  — true once the canvas/title/tags/desc has
+//                       diverged from what's saved on the server.
+//  currentDrillId     — the server row this canvas currently
+//                       represents (null = not yet saved / a copy).
+// ─────────────────────────────────────────────────────────────
+
+let hasUnsavedChanges = false;
+let currentDrillId    = null;
+
+function markDirty() { hasUnsavedChanges = true; }
+function markClean() { hasUnsavedChanges = false; }
+
+// Every meaningful canvas edit runs through pushHistory() (for undo/redo),
+// so it doubles as our single hook for "something changed".
+if (typeof pushHistory === 'function') {
+  const _origPushHistory = pushHistory;
+  pushHistory = function (...args) {
+    const result = _origPushHistory.apply(this, args);
+    markDirty();
+    return result;
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
 //  Thumbnail
 // ─────────────────────────────────────────────────────────────
 
@@ -105,11 +130,37 @@ function initIO() {
     document.getElementById('drill-title').value = '';
     document.getElementById('drill-tags').value  = '';
     document.getElementById('drill-desc').value  = '';
+    currentDrillId = null;
     pushHistory();
     updatePropsPanel();
     render();
     showToast('Canvas cleared');
   });
+
+  // Typing in title/tags/desc counts as an edit too (these don't touch
+  // the undo stack, so pushHistory() alone wouldn't catch them).
+  ['drill-title', 'drill-tags', 'drill-desc'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', markDirty);
+  });
+
+  // ── Safeguard: warn before leaving the page with unsaved edits ──
+  // Covers the browser Back button, refresh, and closing the tab.
+  window.addEventListener('beforeunload', (e) => {
+    if (!hasUnsavedChanges) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
+  // Covers the in-app "← LAB" link with a friendlier, custom prompt.
+  const backLink = document.getElementById('btn-back-lab');
+  if (backLink) {
+    backLink.addEventListener('click', (e) => {
+      if (!hasUnsavedChanges) return;
+      const proceed = confirm('You have unsaved changes to this drill. Leave without saving?');
+      if (!proceed) { e.preventDefault(); return; }
+      markClean(); // already confirmed — don't also trigger the beforeunload prompt
+    });
+  }
 
   // Auto-load drill from URL param  ?id=123
   const urlId = new URLSearchParams(location.search).get('id');
@@ -118,6 +169,7 @@ function initIO() {
   }
 
   pushHistory();
+  markClean();
 }
 
 
@@ -264,6 +316,7 @@ function applySceneData(data) {
   pushHistory();
   updatePropsPanel();
   render();
+  markClean(); // freshly loaded scene matches what's on the server
 }
 
 
@@ -326,8 +379,37 @@ async function saveToServer() {
     return;
   }
 
+  // ── Safeguard: require a title and at least one tag before saving ──
+  const titleVal = document.getElementById('drill-title').value.trim();
+  const tagsVal  = document.getElementById('drill-tags').value.trim();
+
+  if (!titleVal) {
+    showToast('✗ Give this drill a title before saving', true);
+    return;
+  }
+  if (!tagsVal) {
+    showToast('✗ Add at least one tag before saving', true);
+    return;
+  }
+
   const coach           = getCoach();
   const { scene, slug } = buildScene();
+
+  // ── Safeguard: warn before silently overwriting a different saved drill
+  //    that happens to share this title/slug.
+  const { data: existing, error: lookupErr } = await _supabase
+    .from('drill')
+    .select('id, title')
+    .eq('user_id', session.user.id)
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (!lookupErr && existing && String(existing.id) !== String(currentDrillId)) {
+    const proceed = confirm(
+      `A drill named "${existing.title}" already exists. Saving will overwrite it. Continue?`
+    );
+    if (!proceed) return;
+  }
 
   // ── Temporarily deselect so selection handles don't appear in the thumbnail
   const prevSelected      = State.selected;
@@ -344,7 +426,7 @@ async function saveToServer() {
   render();
   // ────────────────────────────────────────────────────────────
 
-  const { error } = await _supabase.from('drill').upsert({
+  const { data: saved, error } = await _supabase.from('drill').upsert({
     user_id:   session.user.id,
     coach,
     slug,
@@ -353,10 +435,15 @@ async function saveToServer() {
     scene:     JSON.stringify(scene),
     thumbnail: thumbnail || null,
     saved_at:  new Date().toISOString(),
-  }, { onConflict: 'user_id,slug' });
+  }, { onConflict: 'user_id,slug' }).select('id').single();
 
-  if (error) showToast('✗ ' + error.message, true);
-  else       showToast('✓ Saved "' + scene.metadata.title + '"');
+  if (error) {
+    showToast('✗ ' + error.message, true);
+  } else {
+    currentDrillId = saved?.id ?? currentDrillId;
+    markClean();
+    showToast('✓ Saved "' + scene.metadata.title + '"');
+  }
 }
 
 
@@ -562,6 +649,8 @@ async function openLibrary() {
         .from('drill').select('scene').eq('id', d.id).single();
       if (loadErr) { showToast('✗ Could not load: ' + loadErr.message, true); return; }
       applySceneData(JSON.parse(data.scene));
+      currentDrillId = null;   // it's a new, unsaved drill — not the source one
+      hasUnsavedChanges = true;
       // Append "(copy)" so it saves under a new slug
       const titleInput = document.getElementById('drill-title');
       titleInput.value = (titleInput.value || d.title).replace(/ \(copy\d*\)$/, '') + ' (copy)';
@@ -705,5 +794,6 @@ async function loadFromServer(id, title) {
   const { data, error } = await _supabase.from('drill').select('scene').eq('id', id).single();
   if (error) { showToast('✗ Could not load: ' + error.message, true); return; }
   applySceneData(JSON.parse(data.scene));
+  currentDrillId = id;
   showToast('✓ Loaded: ' + title);
 }
