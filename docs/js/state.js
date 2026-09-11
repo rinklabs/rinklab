@@ -106,7 +106,7 @@ function _updateHistoryButtons() {
 
 /** Internal type → serialized type */
 function toExcalidrawType(t) {
-  return { rect: 'rectangle', pen: 'freedraw', arrow: 'arrow',
+  return { rect: 'rectangle', pen: 'freedraw', arrow: 'arrow', penArrow: 'freedraw',
            ellipse: 'ellipse', line: 'line', text: 'text',
            player: 'player' ,pylon: 'pylon', net: 'net', puck: 'puck'}[t] ?? 'rectangle';
 }

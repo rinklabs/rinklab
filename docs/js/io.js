@@ -234,7 +234,7 @@ function deserializeElement(el) {
 
   return {
     id:          el.id ?? uid(),
-    type:        fromExcalidrawType(el.type),
+    type:        (el.type === 'freedraw' && el.arrowHead) ? 'penArrow' : fromExcalidrawType(el.type),
     playerType:  el.playerType  ?? 'F',
     isCoach:     el.isCoach     ?? false,
     arrowHead:   el.arrowHead   ?? 'small',   // ← add this line
