@@ -116,6 +116,63 @@
     @media (max-width: 680px) {
       #canvas-help-modal .help-cols { grid-template-columns: 1fr; }
     }
+
+    /* ── Single-drill Print / PDF ── */
+    #print-container { display: none; }
+    @page { size: letter portrait; margin: 14mm; }
+    @media print {
+      body > * { display: none !important; }
+      #print-container {
+        display: block !important;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+        background: #fff;
+      }
+      .pc-header {
+        border-bottom: 2.5pt solid #1e3a5f;
+        padding-bottom: 6pt;
+        margin-bottom: 10pt;
+      }
+      .pc-header h1 {
+        font-size: 20pt;
+        font-weight: 700;
+        color: #1e3a5f;
+        margin: 0 0 4pt;
+      }
+      .pc-tag {
+        display: inline-block;
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        padding: 1pt 5pt;
+        border: 1pt solid #b0bec5;
+        border-radius: 2pt;
+        color: #546e7a;
+        margin-right: 4pt;
+      }
+      .pc-drill-img {
+        display: block;
+        width: 100%;
+        max-width: 180mm;
+        margin: 10pt auto 12pt;
+        border: 1pt solid #d0d8e0;
+      }
+      .pc-desc-label {
+        font-size: 8pt;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #888;
+        border-bottom: 1pt solid #ddd;
+        padding-bottom: 3pt;
+        margin-bottom: 6pt;
+      }
+      .pc-desc {
+        font-size: 10pt;
+        line-height: 1.65;
+        color: #222;
+      }
+    }
   </style>
 </head>
 <body>
@@ -127,13 +184,12 @@
          placeholder="Drill Title"
          autocomplete="off"/>
   <div id="top-actions">
-    <button class="btn btn-outline" id="btn-load">Load JSON</button>
-    <button class="btn btn-outline"   id="btn-save">Save JSON</button> 
-    <button class="btn btn-primary"   id="btn-save-local">💾 Save</button>
-    <button class="btn btn-primary" id="btn-library">📂 Library</button>
+    <button class="btn btn-outline" id="btn-print" title="Print this drill to PDF">🖨️ Print</button>
+    <button class="btn btn-primary" id="btn-save-local" title="Save this drill to cloud">💾 Save</button>
+    <button class="btn btn-primary" id="btn-library" title="Load drill from cloud">📂 Library</button>
     <button class="btn btn-outline" id="btn-help" title="How to use the Canvas">❓ Help</button>
   </div>
-  <div id="coach-indicator">
+  <div id="coach-indicator" title="Logged in as">
     Saving as: <strong id="coach-indicator-name">—</strong>
   </div>
 
@@ -148,8 +204,8 @@
   </div>
 
   <div id="toolbar">
-      <button class="btn btn-full btn-secondary" id="btn-toggle">◑ Half Rink</button>
-      <button class="btn btn-full btn-danger" id="btn-clear">✕ Clear Canvas</button>
+      <button class="btn btn-full btn-secondary" id="btn-toggle" title="Toggle rink size">◑ Half Rink</button>
+      <button class="btn btn-full btn-danger" id="btn-clear" title="Remove all drawings">✕ Clear Canvas</button>
     <div id="tools">
       <button class="tool-btn active" data-tool="select"  title="Select (V)">⌖</button>
       <button class="tool-btn"        data-tool="rect"    title="Rectangle (R)">▭</button>
@@ -391,8 +447,8 @@
   </div>
 </div>
 
+<div id="print-container"></div>
 <div id="toast"></div>
-<input type="file" id="file-input" accept=".json" style="display:none"/>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>

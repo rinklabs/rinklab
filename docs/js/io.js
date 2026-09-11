@@ -92,11 +92,7 @@ function initIO() {
     }
   });
 
-  document.getElementById('btn-save').addEventListener('click', saveJSON);
-  document.getElementById('btn-load').addEventListener('click', () => {
-    document.getElementById('file-input').click();
-  });
-  document.getElementById('file-input').addEventListener('change', loadJSON);
+  document.getElementById('btn-print').addEventListener('click', printDrill);
   document.getElementById('btn-save-local').addEventListener('click', saveToServer);
   document.getElementById('btn-library').addEventListener('click', openLibrary);
 
@@ -272,38 +268,50 @@ function applySceneData(data) {
 
 
 // ─────────────────────────────────────────────────────────────
-//  Save JSON — browser download
+//  Print single drill to PDF (browser print)
 // ─────────────────────────────────────────────────────────────
 
-function saveJSON() {
-  const { scene, slug } = buildScene();
-  const blob = new Blob([JSON.stringify(scene, null, 2)], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${slug}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast('✓ Scene exported as JSON');
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+async function printDrill() {
+  const title = document.getElementById('drill-title').value.trim() || 'Untitled Drill';
+  const tags  = document.getElementById('drill-tags').value
+                  .split(';').map(t => t.trim()).filter(Boolean);
+  const desc  = document.getElementById('drill-desc').value.trim();
 
-// ─────────────────────────────────────────────────────────────
-//  Load JSON — file picker
-// ─────────────────────────────────────────────────────────────
+  // ── Temporarily deselect so selection handles don't appear in the print
+  const prevSelected = State.selected;
+  const prevMulti    = new Set(State.multiSelected);
+  State.selected = null;
+  State.multiSelected.clear();
+  render();
 
-async function loadJSON(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    applySceneData(JSON.parse(await file.text()));
-    showToast('✓ Scene loaded');
-  } catch (err) {
-    showToast('✗ Invalid JSON: ' + err.message, true);
-  }
-  e.target.value = '';
+  const imgData = await captureThumbnail();
+
+  // ── Restore selection
+  State.selected = prevSelected;
+  prevMulti.forEach(id => State.multiSelected.add(id));
+  render();
+  // ────────────────────────────────────────────────────────────
+
+  const tagHtml  = tags.map(t => `<span class="pc-tag">${escHtml(t)}</span>`).join('');
+  const descHtml = desc
+    ? escHtml(desc).replace(/\n/g, '<br>')
+    : '<span style="color:#999;font-style:italic;">No description provided.</span>';
+
+  document.getElementById('print-container').innerHTML = `
+    <div class="pc-header">
+      <h1>${escHtml(title)}</h1>
+      <div>${tagHtml}</div>
+    </div>
+    ${imgData ? `<img class="pc-drill-img" src="${imgData}" alt="${escHtml(title)}" />` : ''}
+    <div class="pc-desc-label">Description</div>
+    <div class="pc-desc">${descHtml}</div>
+  `;
+
+  setTimeout(() => window.print(), 100);
 }
 
 
