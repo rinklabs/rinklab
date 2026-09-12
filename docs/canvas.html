@@ -61,6 +61,38 @@
       #coach-indicator { font-size: 12px; gap: 4px; }
     }
 
+    /* ── Pinch-zoom layer ──────────────────────────────────────
+       Wraps the rink SVG + drawing canvas so a two-finger pinch/pan
+       can scale+translate both together via a plain CSS transform.
+       #canvas-wrap (unchanged) keeps overflow:hidden to clip it. */
+    #canvas-zoom-layer {
+      position: absolute;
+      inset: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+
+    #zoom-reset-btn {
+      display: none;   /* shown via JS once zoomed in */
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      z-index: 5;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,.4);
+    }
+    #zoom-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
     /* ── Canvas Help modal ── */
     #canvas-help-modal {
       display: none;
@@ -224,8 +256,11 @@
 <div id="main-row">
 
   <div id="canvas-wrap">
-    <div id="rink-layer"></div>
-    <canvas id="c"></canvas>
+    <div id="canvas-zoom-layer">
+      <div id="rink-layer"></div>
+      <canvas id="c"></canvas>
+    </div>
+    <button id="zoom-reset-btn" title="Reset zoom">⤢ Reset zoom</button>
   </div>
 
   <div id="toolbar">
@@ -482,6 +517,7 @@
 <script src="js/rink.js"></script>
 <script src="js/assets.js"></script>
 <script src="js/renderer.js"></script>
+<script src="js/pinchzoom.js"></script>
 <script src="js/interaction.js"></script>
 <script src="js/io.js"></script>
 <script src="js/report.js"></script> 
@@ -545,6 +581,7 @@
     await initRink();
     await initAssets();
     initRenderer();
+    initPinchZoom();
     initInteraction();
     initIO();
     requestAnimationFrame(render);

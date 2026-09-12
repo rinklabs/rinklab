@@ -104,17 +104,46 @@ function initMouseEvents() {
 // iOS doesn't fire mouse events for drags, so we translate touch
 // events into the same handlers, reusing the updated canvasPos()
 // which already understands both event types.
+
+/** Resets any in-progress single-finger draw/move/resize so a second
+ *  finger landing (→ pinch/pan) doesn't leave a half-finished shape. */
+function cancelActiveInteraction() {
+  State.drawing          = false;
+  State.penPoints        = [];
+  State.dragMode         = null;
+  State.dragHandle       = null;
+  State.dragOrigin       = null;
+  State.dragElementSnap  = null;
+  State.rotateCenter     = null;
+  State.rotateStartAngle = null;
+  State.moveStart        = null;
+  State.multiMoveOrigins = null;
+  State.bandRect         = null;
+  render();
+}
+
 function initTouchEvents() {
   // passive:false lets us call preventDefault() to stop page scroll
   // while the user is drawing or dragging on the canvas.
   canvas.addEventListener('touchstart', e => {
-    if (e.touches.length !== 1) return;   // ignore multi-touch
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      cancelActiveInteraction();   // don't leave a half-drawn shape behind
+      startPinchGesture(e.touches);
+      return;
+    }
+    if (e.touches.length !== 1 || PinchZoom.active) { e.preventDefault(); return; }
     e.preventDefault();
     State.usingTouch = true;
     onMouseDown(e);
   }, { passive: false });
 
   canvas.addEventListener('touchmove', e => {
+    if (PinchZoom.active || e.touches.length === 2) {
+      e.preventDefault();
+      if (e.touches.length === 2) updatePinchGesture(e.touches);
+      return;
+    }
     if (e.touches.length !== 1) return;
     e.preventDefault();
     onMouseMove(e);
@@ -122,12 +151,20 @@ function initTouchEvents() {
 
   canvas.addEventListener('touchend', e => {
     e.preventDefault();
+    // A pinch ends the moment fewer than 2 fingers remain — require a full
+    // lift (all fingers up) before drawing can resume, so the last finger
+    // coming off a pinch doesn't register as an accidental tap/stroke.
+    if (PinchZoom.active) {
+      endPinchGesture();
+      return;
+    }
     onMouseUp(e);
   }, { passive: false });
 
   // A quick tap (no drag) on text should still trigger double-click edit
   canvas.addEventListener('touchend', e => {
     if (State.tool !== 'select') return;
+    if (Date.now() - PinchZoom.endedAt < 400) return;   // just finished a pinch
     const now = Date.now();
     const last = canvas._lastTap ?? 0;
     canvas._lastTap = now;
@@ -137,18 +174,22 @@ function initTouchEvents() {
 
 function canvasPos(e) {
   const r   = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
   const src = (e.touches && e.touches.length > 0)
     ? e.touches[0]
     : (e.changedTouches && e.changedTouches.length > 0)
       ? e.changedTouches[0]
       : e;
   const rT = getRinkTransform();
-  // getBoundingClientRect() and clientX/Y are in CSS pixels; rT is in physical
-  // pixels (canvas.width = cssWidth × dpr), so scale up before applying the transform.
+  // getBoundingClientRect() reports the canvas's actual on-screen size,
+  // which already reflects the pinch-zoom CSS transform (if any) as well
+  // as devicePixelRatio. Deriving the ratio from canvas.width/r.width
+  // (rather than assuming a fixed devicePixelRatio) keeps this correct
+  // whether or not the user is currently zoomed in.
+  const ratioX = canvas.width  / r.width;
+  const ratioY = canvas.height / r.height;
   return {
-    x: ((src.clientX - r.left) * dpr - rT.x) / rT.s,
-    y: ((src.clientY - r.top)  * dpr - rT.y) / rT.s,
+    x: ((src.clientX - r.left) * ratioX - rT.x) / rT.s,
+    y: ((src.clientY - r.top)  * ratioY - rT.y) / rT.s,
   };
 }
 
