@@ -36,6 +36,31 @@
       color: #f38ba8;  /* red-ish warning */
     }
 
+    /* ── Mobile top bar: icon-only buttons, condensed labels ── */
+    @media (max-width: 680px) {
+      #top-bar { gap: 6px; padding: 0 8px; }
+
+      #btn-back-lab .btn-text,
+      #top-actions .btn-text,
+      #coach-indicator .ci-label {
+        display: none;
+      }
+
+      #btn-back-lab { padding: 6px 10px; font-size: 16px; }
+
+      #top-actions { gap: 4px; }
+      #top-actions .btn {
+        padding: 6px 10px;
+        font-size: 16px;
+        min-width: 34px;
+        justify-content: center;
+      }
+
+      #drill-title { font-size: 14px; min-width: 70px; }
+
+      #coach-indicator { font-size: 12px; gap: 4px; }
+    }
+
     /* ── Canvas Help modal ── */
     #canvas-help-modal {
       display: none;
@@ -179,18 +204,18 @@
 
 <!-- ── Top bar ───────────────────────────────────────────────── -->
 <div id="top-bar">
-  <a href="index.html" class="btn btn-lab" id="btn-back-lab">← LAB</a>
+  <a href="index.html" class="btn btn-lab" id="btn-back-lab" aria-label="Back to Lab">←<span class="btn-text"> LAB</span></a>
   <input type="text" id="drill-title"
          placeholder="Drill Title"
          autocomplete="off"/>
   <div id="top-actions">
-    <button class="btn btn-outline" id="btn-print" title="Print this drill to PDF">🖨️ Print</button>
-    <button class="btn btn-primary" id="btn-save-local" title="Save this drill to cloud">💾 Save</button>
-    <button class="btn btn-primary" id="btn-library" title="Load drill from cloud">📂 Library</button>
-    <button class="btn btn-outline" id="btn-help" title="How to use the Canvas">❓ Help</button>
+    <button class="btn btn-outline" id="btn-print" title="Print this drill to PDF" aria-label="Print this drill to PDF">🖨️<span class="btn-text"> Print</span></button>
+    <button class="btn btn-primary" id="btn-save-local" title="Save this drill to cloud" aria-label="Save this drill to cloud">💾<span class="btn-text"> Save</span></button>
+    <button class="btn btn-primary" id="btn-library" title="Load drill from cloud" aria-label="Load drill from cloud">📂<span class="btn-text"> Library</span></button>
+    <button class="btn btn-outline" id="btn-help" title="How to use the Canvas" aria-label="How to use the Canvas">❓<span class="btn-text"> Help</span></button>
   </div>
   <div id="coach-indicator" title="Logged in as">
-    Saving as: <strong id="coach-indicator-name">—</strong>
+    <span class="ci-label">Saving as:</span> <strong id="coach-indicator-name">—</strong>
   </div>
 
 </div>
