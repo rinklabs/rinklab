@@ -400,9 +400,33 @@ function drawPuck(el) {
   ctx.stroke();
 }
 
-const HANDLE_R     = 5;    // half-size of resize handle squares
-const HANDLE_HIT_R = 9;    // hit-detection radius (slightly larger for usability)
+const HANDLE_R     = 5;    // half-size of resize handle squares (visual, unchanged)
 const ROT_OFFSET   = 22;   // px above element top for rotation handle
+
+// ── Touch-aware hit-testing ──────────────────────────────────
+// Element/handle sizes are stored in rink-coordinate units, so their
+// on-screen (CSS pixel) size shrinks as the canvas gets narrower — exactly
+// backwards from what touch needs. hitRadiusPx() takes a *constant* target
+// size in CSS pixels and converts it to rink units using the current zoom
+// (rT.s) and devicePixelRatio, so the hit target stays a fixed physical
+// size on screen no matter how small the canvas is. `touchPx` (used when
+// State.usingTouch is true) should be meaningfully larger than `mousePx` —
+// a fingertip is much less precise than a cursor.
+function hitRadiusPx(mousePx, touchPx = mousePx) {
+  const dpr = window.devicePixelRatio || 1;
+  const rT  = getRinkTransform();
+  const px  = State.usingTouch ? touchPx : mousePx;
+  return (px * dpr) / (rT.s || 1);
+}
+
+// Resize / rotate handle grab radius: ~16px for mouse, ~26px for touch.
+function getHandleHitRadius() { return hitRadiusPx(16, 26); }
+
+// Extra padding added around round/point elements (players, pucks) and
+// line/pen strokes for hit-testing, on top of their own visual size.
+function getHitPad()       { return hitRadiusPx(6, 14); }
+function getLineHitDist()  { return hitRadiusPx(8, 16); }
+function getPenHitPad()    { return hitRadiusPx(8, 16); }
 
 function drawSelection(el) {
   ctx.save();

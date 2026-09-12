@@ -48,6 +48,11 @@ const State = {
   multiSelected:     new Set(),   // Set of selected element IDs
   bandRect:          null,        // { x, y, w, h } rubber-band box while dragging
   multiMoveOrigins:  null,        // Map id→{x,y} snapshots for group move
+
+  // Input mode — set true on touchstart, false on real mousedown.
+  // Lets hit-testing use a larger, finger-friendly radius on touch devices
+  // without permanently degrading precision for mouse/trackpad users.
+  usingTouch:        false,
 };
 
 // ── Unique ID generator ──────────────────────────────────────

@@ -57,11 +57,12 @@ function hitEl(el, x, y) {
     }
     case 'line':
     case 'arrow':
-      return pointSegDist(x, y, el.x, el.y, el.x + el.w, el.y + el.h) < 8;
+      return pointSegDist(x, y, el.x, el.y, el.x + el.w, el.y + el.h) < getLineHitDist();
     case 'pen':
     case 'penArrow': {
-      const bb = penBounds(el.points);
-      return tx >= bb.x - 8 && tx <= bb.x + bb.w + 8 && ty >= bb.y - 8 && ty <= bb.y + bb.h + 8;
+      const bb  = penBounds(el.points);
+      const pad = getPenHitPad();
+      return tx >= bb.x - pad && tx <= bb.x + bb.w + pad && ty >= bb.y - pad && ty <= bb.y + bb.h + pad;
     }
     case 'text': {
       ctx.font = `${el.fontSize ?? 20}px sans-serif`;
@@ -69,11 +70,11 @@ function hitEl(el, x, y) {
       return tx >= el.x - 4 && tx <= el.x + w + 4 && ty >= el.y - 4 && ty <= el.y + (el.fontSize ?? 20) * 1.4 + 4;
     }
     case 'player': {
-      const r = playerRadius(el) + 4;   // matches the selection circle
+      const r = playerRadius(el) + getHitPad();   // grows for touch input
       return Math.hypot(x - el.x, y - el.y) <= r;
     }
     case 'puck': {
-      const r = (el.r ?? 12) + 4;
+      const r = (el.r ?? 12) + getHitPad();
       return Math.hypot(x - el.x, y - el.y) <= r;
     }
     default: return false;
@@ -89,7 +90,10 @@ function pointSegDist(px, py, ax, ay, bx, by) {
 
 // ── Mouse events ─────────────────────────────────────────────
 function initMouseEvents() {
-  canvas.addEventListener('mousedown', onMouseDown);
+  // A real mousedown means a mouse/trackpad is driving — hand back the
+  // tighter, more precise hit radius (touchscreen laptops can freely
+  // switch between the two).
+  canvas.addEventListener('mousedown', e => { State.usingTouch = false; onMouseDown(e); });
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mouseup',   onMouseUp);
   canvas.addEventListener('dblclick',  onDblClick);
@@ -106,6 +110,7 @@ function initTouchEvents() {
   canvas.addEventListener('touchstart', e => {
     if (e.touches.length !== 1) return;   // ignore multi-touch
     e.preventDefault();
+    State.usingTouch = true;
     onMouseDown(e);
   }, { passive: false });
 
@@ -763,7 +768,8 @@ function allSelectedIds() {
 /** Returns the handle under (x,y) for the given element, or null. */
 function pickHandle(el, x, y) {
   const handles = getElementHandles(el);
-  return handles.find(h => Math.hypot(x - h.x, y - h.y) < HANDLE_HIT_R) ?? null;
+  const r = getHandleHitRadius();
+  return handles.find(h => Math.hypot(x - h.x, y - h.y) < r) ?? null;
 }
 
 /** Initialises resize or rotate drag from a handle click. */
