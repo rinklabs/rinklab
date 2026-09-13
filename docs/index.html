@@ -390,6 +390,76 @@
       padding: 2px 8px;
       margin-right: 8px;
     }
+
+    /* ── Restored: still used further down the page ──────────── */
+    .hero-section {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 40px auto;
+      max-width: 600px;
+    }
+
+    .section-label {
+      font-size: 13px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+    }
+    .hub-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .hub-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+    .hub-card h2 { color: var(--accent); margin-bottom: 15px; font-size: 22px; }
+    .hub-card p  { font-size: 14px; color: var(--text); opacity: 0.8; }
+
+    .final-note { font-style: italic; color: var(--muted); text-align: center; margin-top: 30px; }
+
+    .welcome-text { font-size: 15px; color: var(--muted); }
+    .welcome-text strong { color: var(--text); font-size: 17px; }
+
+    .change-link {
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+    }
+
+    /* ── Team panel ──────────────────────────────────────────── */
+    .team-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .team-input {
+      flex: 1; min-width: 140px; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 5px; padding: 7px 11px; font-size: 14px;
+    }
+    .team-code-display {
+      font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px;
+      color: var(--accent); background: var(--bg); border: 1px solid var(--border);
+      border-radius: 5px; padding: 6px 14px; cursor: pointer;
+    }
+    .team-error { font-size: 13px; color: #f38ba8; display: none; width: 100%; margin-top: 4px; }
   </style>
 </head>
 <body class="scroll-layout">

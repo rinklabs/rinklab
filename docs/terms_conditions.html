@@ -5,6 +5,105 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms & Conditions | Rink Draw</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
+      display: block !important;
+    }
+
+    #hero-banner {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      overflow: hidden;
+      background-image: url('assets/NHLRink.svg');
+      background-size: cover;
+      background-position: center 40%;
+      background-color: #0a1a2e;
+    }
+    #hero-banner-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, #0f0f0f 100%);
+    }
+    #hero-banner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 30px;
+      text-align: center;
+    }
+    #hero-banner-title {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: #ffffff;
+      line-height: 1;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+    }
+    #hero-banner-title span { color: var(--accent); }
+    #hero-banner-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    #hero-banner-cta {
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      border-radius: 4px;
+      text-decoration: none;
+    }
+    #hero-banner-cta:hover { background: #ff8559; }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 40px auto;
+      max-width: 600px;
+    }
+    .hero-section {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .motivation-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 900px;     /* Required for margin: auto to work */
+      margin: 40px auto;
+      text-align: center;
+    }
+    .motivation-section { margin-top: 40px !important; text-align: left !important; }
+    .motivation-section h2 { text-align: center; color: var(--accent); }
+
+    .mission-statement {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 50px;
+      border-left: 3px solid var(--accent);
+      padding-left: 20px;
+      text-align: left;
+    }
+  </style>
 </head>
 <body class="scroll-layout">
 
