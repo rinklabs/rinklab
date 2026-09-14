@@ -32,6 +32,9 @@
       text-decoration: underline;
       font-size: 12px;
     }
+    #coach-indicator.unset {
+      cursor: pointer;
+    }
     #coach-indicator.unset strong {
       color: #f38ba8;  /* red-ish warning */
     }
@@ -591,6 +594,7 @@
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>
 <script src="js/toast.js"></script>
+<script src="js/auth-modal.js"></script>
 <script src="js/rink.js"></script>
 <script src="js/assets.js"></script>
 <script src="js/renderer.js"></script>
@@ -630,7 +634,7 @@
       span.textContent = name;
       el.classList.remove('unset');
     } else {
-      span.textContent = 'Not set — click Change';
+      span.textContent = 'Not set — click to sign in';
       el.classList.add('unset');
     }
   }

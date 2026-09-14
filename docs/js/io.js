@@ -107,14 +107,37 @@ async function captureThumbnail() {
 //  Init
 // ─────────────────────────────────────────────────────────────
 
+// Authoritative coach-indicator sync — checks the real Supabase session
+// (not just the cached name) and updates the indicator + cache to match.
+// Reused after a fresh sign-in so the UI reflects it immediately.
+async function refreshCoachIndicator() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  const name = session ? (session.user.user_metadata?.display_name || session.user.email) : '';
+  _setCoachCache(name);
+
+  const el   = document.getElementById('coach-indicator');
+  const span = document.getElementById('coach-indicator-name');
+  if (!el || !span) return;
+  if (name) {
+    span.textContent = name;
+    el.classList.remove('unset');
+  } else {
+    span.textContent = 'Not set — click to sign in';
+    el.classList.add('unset');
+  }
+}
+
 function initIO() {
-  _supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) {
-      const name = session.user.user_metadata?.display_name || session.user.email;
-      _setCoachCache(name);
-      const ind = document.getElementById('coach-indicator-name');
-      if (ind) ind.textContent = name;
-    }
+  refreshCoachIndicator();
+
+  // Clicking the indicator while logged out opens the login modal right
+  // here on the canvas — no navigation, so nothing on the canvas is lost.
+  document.getElementById('coach-indicator')?.addEventListener('click', () => {
+    if (getCoach()) return;
+    openAuthModal(() => {
+      refreshCoachIndicator();
+      showToast('✓ Signed in as ' + getCoach());
+    }, 'Sign in to save this drill to the cloud.');
   });
 
   document.getElementById('btn-print').addEventListener('click', printDrill);
@@ -375,7 +398,7 @@ async function printDrill() {
 async function saveToServer() {
   const session = await getSession();
   if (!session) {
-    showToast('✗ Not logged in — sign in from the home page', true);
+    openAuthModal(() => saveToServer(), 'Sign in to save this drill to the cloud.');
     return;
   }
 

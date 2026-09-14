@@ -13,6 +13,27 @@ function getCoach() {
   return (localStorage.getItem('drillLab:coach') || '').trim();
 }
 
+// Authoritative coach-indicator sync — checks the real Supabase session
+// (not just the cached name) and updates the indicator + cache to match.
+// Reused after a fresh sign-in so the UI reflects it immediately.
+async function refreshCoachIndicator() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  const name = session ? (session.user.user_metadata?.display_name || session.user.email) : '';
+  if (name) localStorage.setItem('drillLab:coach', name);
+  else      localStorage.removeItem('drillLab:coach');
+
+  const el   = document.getElementById('coach-indicator');
+  const span = document.getElementById('coach-indicator-name');
+  if (!el || !span) return;
+  if (name) {
+    span.textContent = name;
+    el.classList.remove('unset');
+  } else {
+    span.textContent = 'Not set — click to sign in';
+    el.classList.add('unset');
+  }
+}
+
 // ── Sidebar toggle ───────────────────────────────────────────
 function toggleSidebar() {
   document.getElementById('pg-sidebar').classList.contains('open') ? closeSidebar() : openSidebar();
@@ -71,6 +92,18 @@ async function init() {
   updateTimeline();
   await fetchDrills();
   await initTeamSelector();
+  refreshCoachIndicator();
+
+  // Clicking the indicator while logged out opens the login modal right
+  // here on the practice plan — no navigation, so nothing is lost.
+  document.getElementById('coach-indicator')?.addEventListener('click', () => {
+    if (getCoach()) return;
+    openAuthModal(async () => {
+      await initTeamSelector();
+      refreshCoachIndicator();
+      showToast('✓ Signed in as ' + getCoach());
+    }, 'Sign in to save your practice plans to the cloud.');
+  });
 }
 
 // ── Fetch drills ─────────────────────────────────────────────
@@ -421,7 +454,14 @@ function getPracticeData() {
 
 async function savePractice() {
   const { data: { session } } = await _supabase.auth.getSession();
-  if (!session) { showToast('Not logged in — sign in from the home page', true); return; }
+  if (!session) {
+    openAuthModal(async () => {
+      await initTeamSelector();
+      refreshCoachIndicator();
+      savePractice();
+    }, 'Sign in to save this practice plan to the cloud.');
+    return;
+  }
 
   const coach  = getCoach();
   const data   = getPracticeData();
