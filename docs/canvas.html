@@ -572,6 +572,19 @@
 </div>
 
 <div id="print-container"></div>
+
+<!-- Hidden input that mirrors the on-canvas text being edited. It has no
+     visible presence — the canvas still draws the text + caret exactly as
+     before — but a real, focusable input is required to trigger the mobile
+     on-screen keyboard; a plain document keydown listener (which is all
+     this used to rely on) never does. Deliberately kept OUTSIDE
+     #canvas-zoom-layer: that layer has a CSS `transform` for pinch-zoom,
+     and a `position:fixed` descendant of a transformed ancestor is
+     repositioned relative to that ancestor instead of the viewport. -->
+<input type="text" id="text-edit-input" autocomplete="off" autocapitalize="off"
+       autocorrect="off" spellcheck="false"
+       style="position:fixed; top:0; left:0; opacity:0; pointer-events:none; border:none; padding:0; margin:0; width:1px; height:1px; font-size:16px;" />
+
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

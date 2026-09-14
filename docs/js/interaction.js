@@ -5,6 +5,7 @@
 function initInteraction() {
   initMouseEvents();
   initKeyboard();
+  initTextEditInput();
   initToolButtons();
   initToolbarInputs();
   initPropsPanel();
@@ -507,11 +508,52 @@ function onDblClick(e) {
 }
 
 // ── Text editing ─────────────────────────────────────────────
+// A hidden, real <input> (see #text-edit-input in canvas.html) mirrors
+// State.textCursor. Focusing it is what makes mobile browsers show the
+// on-screen keyboard — a document-level keydown listener alone (the old
+// approach) only ever worked with a physical keyboard, since nothing was
+// ever actually focused. The canvas still does 100% of the visible
+// rendering (text + blinking caret); the input is never shown.
+function initTextEditInput() {
+  const input = document.getElementById('text-edit-input');
+  if (!input) return;
+
+  input.addEventListener('input', () => {
+    if (!State.editingText) return;
+    State.textCursor = input.value;
+    render();
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault();
+      commitText();
+    }
+  });
+
+  // Tapping/clicking elsewhere while editing should commit, same as
+  // before — but a blur can also happen on its own (e.g. the user
+  // switches apps on mobile), so handle it independently of onMouseDown.
+  input.addEventListener('blur', () => {
+    if (State.editingText) commitText();
+  });
+}
+
 function startEditText(el) {
-  State.selected   = el.id;
+  State.selected    = el.id;
   State.editingText = { id: el.id };
   State.textCursor  = el.text ?? '';
   canvas.classList.add('cursor-text');
+
+  const input = document.getElementById('text-edit-input');
+  if (input) {
+    input.value = State.textCursor;
+    // Must run synchronously inside the click/tap handler that triggered
+    // this — a deferred focus() (e.g. via setTimeout) is not treated as
+    // user-initiated and mobile browsers will silently refuse to open
+    // the keyboard for it.
+    input.focus();
+  }
   render();
 }
 
@@ -525,6 +567,13 @@ function commitText() {
   State.editingText = null;
   State.textCursor  = '';
   canvas.classList.remove('cursor-text');
+
+  const input = document.getElementById('text-edit-input');
+  if (input) {
+    input.value = '';
+    if (document.activeElement === input) input.blur();
+  }
+
   pushHistory();
   render();
   updatePropsPanel();
@@ -536,10 +585,12 @@ function initKeyboard() {
     // Don't capture keys when typing in metadata fields
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+    // Normal case: while editing text, #text-edit-input is focused, so
+    // e.target above is that INPUT and this whole listener already
+    // returned. This is just a safety net for the rare case focus was
+    // lost some other way.
     if (State.editingText) {
-      if (e.key === 'Enter' || e.key === 'Escape') { commitText(); return; }
-      if (e.key === 'Backspace') { State.textCursor = State.textCursor.slice(0, -1); render(); return; }
-      if (e.key.length === 1)    { State.textCursor += e.key; render(); return; }
+      if (e.key === 'Escape') commitText();
       return;
     }
 
