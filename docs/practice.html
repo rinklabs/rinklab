@@ -1444,12 +1444,20 @@ async function performSave(session) {
 //  Load Practice modal
 // ─────────────────────────────────────────────
 async function openLoadModal() {
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) {
+    openAuthModal(async () => {
+      await initTeamSelector();
+      await openLoadModal();
+    }, 'Sign in to view your saved practices.');
+    return;
+  }
+
   document.getElementById('load-modal').style.display = 'flex';
   const el = document.getElementById('load-list');
   el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:var(--muted)">Loading…</div>`;
   try {
-    const { data: { session } } = await _supabase.auth.getSession();
-    const userId = session?.user?.id || null;
+    const userId = session.user.id;
     const sel = document.getElementById('save-team-selector');
     const selectedTeamId = sel?.value || null;
     const teamLabel = selectedTeamId
