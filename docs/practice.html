@@ -147,21 +147,7 @@
       color: var(--muted); white-space: nowrap;
     }
 
-    /* Thumbnail hover preview */
     .lib-item { position: relative; }
-    .lib-thumb-tip {
-      display: none;
-      position: fixed;
-      z-index: 500;
-      pointer-events: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-      box-shadow: 0 6px 24px rgba(0,0,0,.7);
-      width: 220px;
-    }
-    .lib-thumb-tip img { width: 100%; display: block; }
-    .lib-thumb-tip.visible { display: block; }
 
     .lib-add {
       width: 20px; height: 20px;
@@ -871,6 +857,20 @@
     </div>
   </div>
 
+    <div class="modal-backdrop" id="preview-modal" style="display:none">
+    <div class="modal" style="width:520px;max-width:92vw;">
+      <h3 id="preview-title">Drill Preview</h3>
+      <div style="margin-bottom:14px;">
+        <img id="preview-img" style="width:100%;border-radius:4px;border:1px solid var(--border);margin-bottom:10px;display:none;" />
+        <div id="preview-tags" style="margin-bottom:8px;"></div>
+        <p id="preview-desc" style="font-size:12px;color:var(--text);line-height:1.6;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePreviewModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
     <div class="modal-backdrop" id="load-modal" style="display:none">
     <div class="modal" style="width:500px;">
       <h3>Load Practice</h3>
@@ -973,6 +973,14 @@ let practiceItems = [];
 let drillLibrary  = [];
 let dragSrcIdx    = null;
 let libDragId     = null;
+let isDirty       = false;
+function markDirty() { isDirty = true; }
+
+window.addEventListener('beforeunload', e => {
+  if (!isDirty) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
 
 // ─────────────────────────────────────────────
 //  Coach (read from localStorage — same key as canvas editor)
@@ -1034,6 +1042,10 @@ async function init() {
   updateTimeline();
   await fetchDrills();
   await initTeamSelector();
+  ['practice-name','practice-date','practice-team','target-duration'].forEach(id =>
+    document.getElementById(id).addEventListener('input', markDirty)
+  );
+  isDirty = false;
 }
 
 // ─────────────────────────────────────────────
@@ -1120,19 +1132,16 @@ function renderLibrary(filter = '') {
       `<span class="lib-tag">${esc(t)}</span>`
     ).join('');
     const coachTxt  = d.coach ? `<span style="font-size:9px;color:var(--muted)">${esc(d.coach)}</span>` : '';
-    const hasTip    = d.thumbnail ? 'data-thumb="true"' : '';
     return `
-      <div class="lib-item" draggable="true" ${hasTip}
+      <div class="lib-item" draggable="true"
            ondragstart="libDragStart(event,${d.id})"
-           onclick="addFromLibrary(${d.id})"
-           onmouseenter="showThumbTip(event,${d.id})"
-           onmousemove="moveThumbTip(event)"
-           onmouseleave="hideThumbTip()">
+           onclick="addFromLibrary(${d.id})">
         <div class="lib-icon" style="${iconStyle}">${iconHtml}</div>
         <div class="lib-info">
           <div class="lib-name">${esc(d.name)} ${coachTxt}</div>
           <div class="lib-tags">${tagPills}</div>
         </div>
+        <button class="lib-add" onclick="event.stopPropagation();openDrillPreview(${d.id})" title="Preview" style="margin-right:2px;">👁</button>
         <button class="lib-add" onclick="event.stopPropagation();addFromLibrary(${d.id})" title="Add">+</button>
       </div>`;
   }).join('');
@@ -1161,6 +1170,7 @@ async function addFromLibrary(id) {
     desc, tags: d.tags || [], thumbnail: d.thumbnail || null,
     rinkView, type: 'diagram', duration: 10,
   });
+  markDirty();
   renderList();
   showToast('Added: ' + d.name);
   if (window.innerWidth <= 680) closeSidebar();
@@ -1174,6 +1184,7 @@ function addQuickDrill() {
   const desc = document.getElementById('qd-desc').value.trim();
   if (!name) { showToast('Enter a drill name', true); return; }
   practiceItems.push({ id: uid(), name, desc, type: 'quick', duration: 5 });
+  markDirty();
   renderList();
   document.getElementById('qd-name').value = '';
   document.getElementById('qd-desc').value = '';
@@ -1197,10 +1208,14 @@ function renderList() {
          ondragend="itemDragEnd()">
       <div class="item-num">${i+1}</div>
       <div class="drag-handle" title="Drag to reorder">⠿</div>
-      <div class="item-icon ${item.type === 'diagram' ? 'type-diagram' : 'type-quick'}">
-        ${item.type === 'diagram' ? '🏒' : '📝'}
+      <div class="item-icon ${item.type === 'diagram' ? 'type-diagram' : 'type-quick'}"
+           style="${item.thumbnail ? 'padding:0;overflow:hidden;' : ''}cursor:pointer;"
+           onclick="openPracticeItemPreview('${item.id}')" title="Preview">
+        ${item.thumbnail
+          ? `<img src="${item.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;" />`
+          : (item.type === 'diagram' ? '🏒' : '📝')}
       </div>
-      <div class="item-info">
+      <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
         <div class="item-name">${esc(item.name)}</div>
         ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
         <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
@@ -1227,12 +1242,14 @@ function updateEmpty() {
 
 function removeItem(id) {
   practiceItems = practiceItems.filter(x => x.id !== id);
+  markDirty();
   renderList();
 }
 
 function setDuration(id, val) {
   const item = practiceItems.find(x => x.id === id);
   if (item) item.duration = Math.max(1, parseInt(val) || 1);
+  markDirty();
   updateTimeline();
 }
 
@@ -1298,6 +1315,7 @@ function itemDrop(e, idx) {
     const d = drillLibrary.find(x => x.id == libDragId);
     if (d) {
       practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
+      markDirty();
       renderList();
       showToast('Added: ' + d.name);
     }
@@ -1309,6 +1327,7 @@ function itemDrop(e, idx) {
   const [moved] = practiceItems.splice(dragSrcIdx, 1);
   practiceItems.splice(idx, 0, moved);
   dragSrcIdx = null;
+  markDirty();
   renderList();
 }
 
@@ -1385,6 +1404,7 @@ function itemDragEnd() {
     if (lastOver !== null && lastOver !== touchSrcIdx) {
       const [moved] = practiceItems.splice(touchSrcIdx, 1);
       practiceItems.splice(lastOver, 0, moved);
+      markDirty();
       renderList();
     }
     touchSrcIdx = null;
@@ -1436,8 +1456,12 @@ async function performSave(session) {
     saved_at: new Date().toISOString(),
   }, { onConflict: 'user_id,slug' });
 
-  if (error) showToast('Save failed: ' + error.message, true);
-  else       showToast(teamId ? '✓ Practice saved & shared with team' : '✓ Practice saved (private)');
+  if (error) {
+    showToast('Save failed: ' + error.message, true);
+  } else {
+    isDirty = false;
+    showToast(teamId ? '✓ Practice saved & shared with team' : '✓ Practice saved (private)');
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1522,6 +1546,7 @@ async function loadPractice(id) {
     practiceItems = JSON.parse(data.items || '[]');
     renderList();
     closeLoadModal();
+    isDirty = false;
     showToast('Loaded: ' + (data.name || 'Practice'));
   } catch (err) {
     showToast('Load failed: ' + err.message, true);
@@ -1655,43 +1680,37 @@ function exportPDF() {
 }
 
 // ─────────────────────────────────────────────
-//  Thumbnail hover preview
+//  Preview modal
 // ─────────────────────────────────────────────
-let thumbTip = null;
-
-function getThumbTip() {
-  if (!thumbTip) {
-    thumbTip = document.createElement('div');
-    thumbTip.className = 'lib-thumb-tip';
-    thumbTip.innerHTML = '<img />';
-    document.body.appendChild(thumbTip);
-  }
-  return thumbTip;
-}
-
-function showThumbTip(e, id) {
+async function openDrillPreview(id) {
   const d = drillLibrary.find(x => x.id == id);
-  if (!d || !d.thumbnail) return;
-  const tip = getThumbTip();
-  tip.querySelector('img').src = d.thumbnail;
-  tip.classList.add('visible');
-  moveThumbTip(e);
+  if (!d) return;
+  showPreviewModal(d.name, d.thumbnail, d.tags, 'Loading description…');
+  try {
+    const { data, error } = await _supabase.from('drill').select('scene').eq('id', d.id).single();
+    const scene = !error && data ? JSON.parse(data.scene) : null;
+    document.getElementById('preview-desc').textContent = scene?.metadata?.description || 'No description provided.';
+  } catch (_) {
+    document.getElementById('preview-desc').textContent = '';
+  }
 }
 
-function moveThumbTip(e) {
-  if (!thumbTip || !thumbTip.classList.contains('visible')) return;
-  const gap = 12;
-  const tw  = 220;
-  const x   = e.clientX + gap + tw > window.innerWidth
-              ? e.clientX - tw - gap : e.clientX + gap;
-  const y   = Math.min(e.clientY - 20, window.innerHeight - thumbTip.offsetHeight - 8);
-  thumbTip.style.left = x + 'px';
-  thumbTip.style.top  = y + 'px';
+function openPracticeItemPreview(id) {
+  const item = practiceItems.find(x => x.id === id);
+  if (!item) return;
+  showPreviewModal(item.name, item.thumbnail, item.tags, item.desc || 'No description provided.');
 }
 
-function hideThumbTip() {
-  if (thumbTip) thumbTip.classList.remove('visible');
+function showPreviewModal(name, thumb, tags, desc) {
+  document.getElementById('preview-title').textContent = name;
+  const img = document.getElementById('preview-img');
+  if (thumb) { img.src = thumb; img.style.display = 'block'; } else { img.style.display = 'none'; }
+  document.getElementById('preview-tags').innerHTML = (tags || []).map(t => `<span class="lib-tag">${esc(t)}</span>`).join(' ');
+  document.getElementById('preview-desc').textContent = desc;
+  document.getElementById('preview-modal').style.display = 'flex';
 }
+
+function closePreviewModal() { document.getElementById('preview-modal').style.display = 'none'; }
 
 // ─────────────────────────────────────────────
 //  Toast  (uses #toast from style.css)
@@ -1713,6 +1732,9 @@ function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+document.getElementById('preview-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePreviewModal();
+});
 document.getElementById('share-modal').addEventListener('click', function(e) {
   if (e.target === this) closeShareModal();
 });
