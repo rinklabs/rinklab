@@ -87,6 +87,9 @@
           <button id="auth-modal-toggle" type="button">Create account</button>
           <button id="auth-modal-forgot" type="button">Forgot password?</button>
         </div>
+        <p id="auth-modal-sender-note" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
+          Account emails (confirmations, password resets) come from <strong>rinklabsadmin@gmail.com</strong> — check spam if you don't see them.
+        </p>
         <p id="auth-modal-error"></p>
       </div>
     `;
