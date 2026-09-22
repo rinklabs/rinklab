@@ -551,6 +551,8 @@
     @page { size: letter portrait; margin: 13mm 14mm; }
 
     @media print {
+      html, body { height: auto !important; overflow: visible !important; }
+
       body > * { display: none !important; }
 
       #print-container {
