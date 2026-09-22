@@ -213,7 +213,8 @@ function showTeamInfo(teams, userId) {
   chipsEl.innerHTML = teams.map(t => {
     const isOwner   = t.owner_id === userId;
     const actionBtn = isOwner
-      ? `<button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:#f38ba8;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Disband</button>`
+      ? `<button onclick="renameTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Rename</button>
+         <button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:#f38ba8;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Disband</button>`
       : `<button onclick="leaveTeam('${t.id}')" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Leave</button>`;
     return `
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:10px;">
@@ -235,6 +236,16 @@ async function leaveTeam(teamId) {
   const { data: { session } } = await _supabase.auth.getSession();
   await _supabase.from('team_member').delete().eq('user_id', session.user.id).eq('team_id', teamId);
   if (localStorage.getItem('drillLab:teamId') === teamId) localStorage.removeItem('drillLab:teamId');
+  await refreshTeams();
+}
+
+async function renameTeam(teamId, currentName) {
+  const newName = prompt('Rename team:', currentName);
+  if (newName === null) return;               // cancelled
+  const trimmed = newName.trim();
+  if (!trimmed || trimmed === currentName) return;
+  const { error } = await _supabase.from('team').update({ name: trimmed }).eq('id', teamId);
+  if (error) { alert('Could not rename team: ' + error.message); return; }
   await refreshTeams();
 }
 
