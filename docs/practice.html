@@ -1251,21 +1251,27 @@ function renderLibrary(filter = '') {
 
 function filterLibrary(val) { renderLibrary(val); }
 
-async function addFromLibrary(id) {
-  const d = drillLibrary.find(x => x.id == id);
-  if (!d) return;
-
-  let desc = '';
-  let rinkView = 'half'; // overwritten by fetched scene below
-
+// Fetches a drill's saved description + rink view from its scene JSON.
+// The library list itself doesn't carry these (kept lean for search/render),
+// so any path that adds a drill to the practice needs this lookup.
+async function fetchDrillDetails(drillId) {
+  let desc = '', rinkView = 'half';
   try {
-    const { data, error } = await _supabase.from('drill').select('scene').eq('id', d.id).single();
+    const { data, error } = await _supabase.from('drill').select('scene').eq('id', drillId).single();
     if (!error && data) {
       const scene = JSON.parse(data.scene);
       desc     = scene?.metadata?.description || '';
       rinkView = scene?.appState?.rinkView || 'half';
     }
   } catch (_) { /* fall through */ }
+  return { desc, rinkView };
+}
+
+async function addFromLibrary(id) {
+  const d = drillLibrary.find(x => x.id == id);
+  if (!d) return;
+
+  const { desc, rinkView } = await fetchDrillDetails(d.id);
 
   practiceItems.push({
     id: uid(), sourceId: d.id, name: d.name,
@@ -1554,21 +1560,23 @@ function itemDragLeave(e, key) {
   if (el) el.classList.remove('drag-over');
 }
 
-function itemDrop(e, key) {
+async function itemDrop(e, key) {
   e.preventDefault();
   document.querySelectorAll('.practice-item, .station-block').forEach(el => el.classList.remove('drag-over', 'dragging'));
 
   if (libDragId !== null) {
-    const d = drillLibrary.find(x => x.id == libDragId);
+    const dragId = libDragId;
+    libDragId = null;
+    const d = drillLibrary.find(x => x.id == dragId);
     if (d) {
+      const { desc, rinkView } = await fetchDrillDetails(d.id);
       const targetIdx = practiceItems.findIndex(x => x.id === key || x.groupId === key);
       practiceItems.splice(targetIdx === -1 ? practiceItems.length : targetIdx, 0,
-        { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
+        { id: uid(), sourceId: d.id, name: d.name, desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView, type: 'diagram', duration: 10 });
       markDirty();
       renderList();
       showToast('Added: ' + d.name);
     }
-    libDragId = null;
     return;
   }
 
