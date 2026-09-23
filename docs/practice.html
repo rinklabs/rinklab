@@ -343,6 +343,57 @@
     }
     .item-remove:hover { background: #e05a5a22; color: #e05a5a; }
 
+    /* ── Simultaneous station blocks ── */
+    .station-block {
+      background: var(--panel);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      overflow: hidden;
+      animation: fadeUp .15s ease;
+    }
+    .station-block.drag-over { background: var(--hover); }
+    .station-block.dragging  { opacity: .3; }
+
+    .station-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      background: #ff6b3518;
+      cursor: grab;
+    }
+    .station-header:active { cursor: grabbing; }
+    .station-label {
+      flex: 1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .station-members { display: flex; flex-direction: column; }
+    .station-member {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px 12px 30px;
+      border-top: 1px solid var(--border);
+    }
+    .station-member-letter {
+      font-size: 13px; font-weight: 700; color: var(--muted);
+      width: 16px; flex-shrink: 0; text-align: center;
+    }
+    .station-link-btn, .station-unlink-btn {
+      width: 22px; height: 22px;
+      background: transparent; border: 1px solid var(--border); border-radius: 3px;
+      color: var(--muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all .1s; font-size: 12px;
+    }
+    .station-link-btn:hover   { background: var(--accent); border-color: var(--accent); color: #000; }
+    .station-unlink-btn:hover { background: #e05a5a22; color: #e05a5a; border-color: #e05a5a44; }
+
     /* Timeline bar */
     #pg-timeline {
       height: 34px;
@@ -629,6 +680,28 @@
         padding-bottom: 2pt;
         margin-bottom: 6pt;
       }
+
+      /* ── Simultaneous station wrapper ── */
+      .pc-station {
+        border: 1.5pt solid #ff6b35;
+        border-radius: 3pt;
+        margin-bottom: 7pt;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .pc-station-bar {
+        background: #ff6b35;
+        color: #fff;
+        padding: 5pt 8pt;
+        display: table;
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 1.5pt 1.5pt 0 0;
+      }
+      .pc-station-bar-left  { display: table-cell; vertical-align: middle; font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+      .pc-station-bar-right { display: table-cell; vertical-align: middle; text-align: right; font-size: 10pt; font-weight: 700; white-space: nowrap; }
+      .pc-station .pc-drill { border: none; border-top: 1pt solid #d0d8e0; border-radius: 0; margin-bottom: 0; break-inside: avoid; }
+      .pc-station .pc-drill:first-child { border-top: none; }
 
       /* ── Drill card ── */
       .pc-drill {
@@ -988,7 +1061,7 @@ function closeSidebar() {
 // ─────────────────────────────────────────────
 let practiceItems = [];
 let drillLibrary  = [];
-let dragSrcIdx    = null;
+let dragSrcIds    = null;  // ids of the item(s) currently being dragged (a station block or a single item)
 let libDragId     = null;
 let isDirty       = false;
 function markDirty() { isDirty = true; }
@@ -1217,25 +1290,28 @@ function addQuickDrill() {
 // ─────────────────────────────────────────────
 //  Practice List
 // ─────────────────────────────────────────────
-function renderList() {
-  updateEmpty();
-  document.getElementById('practice-list').innerHTML = practiceItems.map((item, i) => `
+function renderItemIcon(item) {
+  return `${item.thumbnail
+    ? `<img src="${item.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;" />`
+    : (item.type === 'diagram' ? '🏒' : '📝')}`;
+}
+
+function renderSoloRow(item, num, canLink) {
+  return `
     <div class="practice-item" id="pi-${item.id}"
-         data-idx="${i}"
+         data-idx="${num - 1}" data-key="${item.id}"
          draggable="true"
-         ondragstart="itemDragStart(event,${i})"
-         ondragover="itemDragOver(event,${i})"
-         ondragleave="itemDragLeave(event,${i})"
-         ondrop="itemDrop(event,${i})"
+         ondragstart="itemDragStart(event,'${item.id}')"
+         ondragover="itemDragOver(event,'${item.id}')"
+         ondragleave="itemDragLeave(event,'${item.id}')"
+         ondrop="itemDrop(event,'${item.id}')"
          ondragend="itemDragEnd()">
-      <div class="item-num">${i+1}</div>
+      <div class="item-num">${num}</div>
       <div class="drag-handle" title="Drag to reorder">⠿</div>
       <div class="item-icon ${item.type === 'diagram' ? 'type-diagram' : 'type-quick'}"
            style="${item.thumbnail ? 'padding:0;overflow:hidden;' : ''}cursor:pointer;"
            onclick="openPracticeItemPreview('${item.id}')" title="Preview">
-        ${item.thumbnail
-          ? `<img src="${item.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;" />`
-          : (item.type === 'diagram' ? '🏒' : '📝')}
+        ${renderItemIcon(item)}
       </div>
       <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
         <div class="item-name">${esc(item.name)}</div>
@@ -1251,9 +1327,68 @@ function renderList() {
                title="Duration in minutes" />
         <span class="item-time-lbl">min</span>
       </div>
+      ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${item.id}')" title="Run at the same time as the next drill">⚡</button>` : ''}
       <button class="item-remove" onclick="removeItem('${item.id}')" title="Remove">✕</button>
-    </div>
-  `).join('');
+    </div>`;
+}
+
+function renderStationBlock(block, num, canLink) {
+  const gid = block.groupId;
+  const letters = 'ABCDEFGHIJ';
+  const members = block.items.map((item, i) => `
+    <div class="station-member">
+      <div class="station-member-letter">${letters[i] || (i+1)}</div>
+      <div class="item-icon ${item.type === 'diagram' ? 'type-diagram' : 'type-quick'}"
+           style="${item.thumbnail ? 'padding:0;overflow:hidden;' : ''}cursor:pointer;"
+           onclick="openPracticeItemPreview('${item.id}')" title="Preview">
+        ${renderItemIcon(item)}
+      </div>
+      <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
+        <div class="item-name">${esc(item.name)}</div>
+        ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
+        <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
+          ${item.type === 'diagram' ? 'Diagram' : 'Quick'}
+        </span>
+      </div>
+      <button class="item-remove" onclick="removeItem('${item.id}')" title="Remove">✕</button>
+    </div>`).join('');
+
+  return `
+    <div class="station-block" id="pb-${gid}"
+         data-idx="${num - 1}" data-key="${gid}"
+         draggable="true"
+         ondragstart="itemDragStart(event,'${gid}')"
+         ondragover="itemDragOver(event,'${gid}')"
+         ondragleave="itemDragLeave(event,'${gid}')"
+         ondrop="itemDrop(event,'${gid}')"
+         ondragend="itemDragEnd()">
+      <div class="station-header">
+        <div class="item-num">${num}</div>
+        <div class="drag-handle" title="Drag to reorder">⠿</div>
+        <span class="station-label">⚡ Simultaneous — ${block.items.length} stations</span>
+        <div class="item-time">
+          <input type="number" min="1" max="120" value="${blockDuration(block)}"
+                 onchange="setGroupDuration('${gid}',this.value)"
+                 oninput="setGroupDuration('${gid}',this.value)"
+                 title="Duration in minutes" />
+          <span class="item-time-lbl">min</span>
+        </div>
+        ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${block.items[block.items.length - 1].id}')" title="Add the next drill as another station">⚡</button>` : ''}
+        <button class="station-unlink-btn" onclick="ungroupBlock('${gid}')" title="Ungroup — run sequentially instead">⛓</button>
+      </div>
+      <div class="station-members">${members}</div>
+    </div>`;
+}
+
+function renderList() {
+  updateEmpty();
+  const blocks = getBlocks();
+  document.getElementById('practice-list').innerHTML = blocks.map((block, bi) => {
+    const canLink = bi < blocks.length - 1;
+    return block.groupId
+      ? renderStationBlock(block, bi + 1, canLink)
+      : renderSoloRow(block.items[0], bi + 1, canLink);
+  }).join('');
 
   updateTimeline();
 }
@@ -1263,7 +1398,14 @@ function updateEmpty() {
 }
 
 function removeItem(id) {
+  const removed = practiceItems.find(x => x.id === id);
   practiceItems = practiceItems.filter(x => x.id !== id);
+  // If removing this item leaves a "group" of one, dissolve it — a lone item
+  // isn't simultaneous with anything.
+  if (removed && removed.groupId) {
+    const siblings = practiceItems.filter(x => x.groupId === removed.groupId);
+    if (siblings.length === 1) siblings[0].groupId = null;
+  }
   markDirty();
   renderList();
 }
@@ -1276,10 +1418,69 @@ function setDuration(id, val) {
 }
 
 // ─────────────────────────────────────────────
+//  Simultaneous stations (grouped drills)
+// ─────────────────────────────────────────────
+function getBlocks() {
+  const blocks = [];
+  let i = 0;
+  while (i < practiceItems.length) {
+    const item = practiceItems[i];
+    if (item.groupId) {
+      const gid = item.groupId;
+      const members = [item];
+      let j = i + 1;
+      while (j < practiceItems.length && practiceItems[j].groupId === gid) {
+        members.push(practiceItems[j]);
+        j++;
+      }
+      blocks.push({ groupId: gid, startIdx: i, items: members });
+      i = j;
+    } else {
+      blocks.push({ groupId: null, startIdx: i, items: [item] });
+      i++;
+    }
+  }
+  return blocks;
+}
+
+function blockDuration(block) {
+  return block.items[0]?.duration || 0;
+}
+
+// Pull the item right after `id` into the same simultaneous group,
+// creating a new group if `id` isn't in one yet.
+function linkWithNext(id) {
+  const idx = practiceItems.findIndex(x => x.id === id);
+  if (idx === -1 || idx + 1 >= practiceItems.length) return;
+  const item = practiceItems[idx];
+  const next = practiceItems[idx + 1];
+  const gid  = item.groupId || uid();
+  item.groupId = gid;
+  next.groupId = gid;
+  next.duration = item.duration; // one shared duration for the station block
+  markDirty();
+  renderList();
+  showToast('Linked as simultaneous stations');
+}
+
+function ungroupBlock(groupId) {
+  practiceItems.forEach(x => { if (x.groupId === groupId) x.groupId = null; });
+  markDirty();
+  renderList();
+}
+
+function setGroupDuration(groupId, val) {
+  const mins = Math.max(1, parseInt(val) || 1);
+  practiceItems.forEach(x => { if (x.groupId === groupId) x.duration = mins; });
+  markDirty();
+  updateTimeline();
+}
+
+// ─────────────────────────────────────────────
 //  Timeline
 // ─────────────────────────────────────────────
 function updateTimeline() {
-  const total  = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
+  const total  = getBlocks().reduce((s, b) => s + blockDuration(b), 0);
   const target = parseInt(document.getElementById('target-duration').value) || 60;
   const pct    = Math.min((total / target) * 100, 100);
   const remain = Math.max(target - total, 0);
@@ -1307,36 +1508,55 @@ function libDragStart(e, id) {
   e.dataTransfer.effectAllowed = 'copy';
 }
 
-function itemDragStart(e, idx) {
-  dragSrcIdx = idx;
+// `key` identifies a row: a solo item's id, or a station block's groupId.
+function blockElementId(key) {
+  return practiceItems.some(x => x.groupId === key) ? ('pb-' + key) : ('pi-' + key);
+}
+function blockIdsFor(key) {
+  const members = practiceItems.filter(x => x.groupId === key);
+  return members.length ? members.map(x => x.id) : [key];
+}
+function moveBlock(draggedIds, targetKey) {
+  const draggedSet   = new Set(draggedIds);
+  const draggedItems = practiceItems.filter(x => draggedSet.has(x.id));
+  const remaining     = practiceItems.filter(x => !draggedSet.has(x.id));
+  const anchorIdx = remaining.findIndex(x => x.id === targetKey || x.groupId === targetKey);
+  remaining.splice(anchorIdx === -1 ? remaining.length : anchorIdx, 0, ...draggedItems);
+  practiceItems = remaining;
+}
+
+function itemDragStart(e, key) {
+  dragSrcIds = blockIdsFor(key);
   e.dataTransfer.effectAllowed = 'move';
   setTimeout(() => {
-    const el = document.getElementById('pi-' + practiceItems[idx].id);
+    const el = document.getElementById(blockElementId(key));
     if (el) el.classList.add('dragging');
   }, 0);
 }
 
-function itemDragOver(e, idx) {
+function itemDragOver(e, key) {
   e.preventDefault();
   e.dataTransfer.dropEffect = libDragId ? 'copy' : 'move';
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('drag-over'));
-  const el = document.getElementById('pi-' + practiceItems[idx].id);
+  document.querySelectorAll('.practice-item, .station-block').forEach(el => el.classList.remove('drag-over'));
+  const el = document.getElementById(blockElementId(key));
   if (el) el.classList.add('drag-over');
 }
 
-function itemDragLeave(e, idx) {
-  const el = document.getElementById('pi-' + practiceItems[idx].id);
+function itemDragLeave(e, key) {
+  const el = document.getElementById(blockElementId(key));
   if (el) el.classList.remove('drag-over');
 }
 
-function itemDrop(e, idx) {
+function itemDrop(e, key) {
   e.preventDefault();
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('drag-over', 'dragging'));
+  document.querySelectorAll('.practice-item, .station-block').forEach(el => el.classList.remove('drag-over', 'dragging'));
 
   if (libDragId !== null) {
     const d = drillLibrary.find(x => x.id == libDragId);
     if (d) {
-      practiceItems.splice(idx, 0, { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
+      const targetIdx = practiceItems.findIndex(x => x.id === key || x.groupId === key);
+      practiceItems.splice(targetIdx === -1 ? practiceItems.length : targetIdx, 0,
+        { id: uid(), sourceId: d.id, name: d.name, desc: d.desc, tags: d.tags || [], thumbnail: d.thumbnail || null, rinkView: d.rinkView || 'half', type: 'diagram', duration: 10 });
       markDirty();
       renderList();
       showToast('Added: ' + d.name);
@@ -1345,18 +1565,17 @@ function itemDrop(e, idx) {
     return;
   }
 
-  if (dragSrcIdx === null || dragSrcIdx === idx) return;
-  const [moved] = practiceItems.splice(dragSrcIdx, 1);
-  practiceItems.splice(idx, 0, moved);
-  dragSrcIdx = null;
+  if (!dragSrcIds || blockIdsFor(key).some(id => dragSrcIds.includes(id))) { dragSrcIds = null; return; }
+  moveBlock(dragSrcIds, key);
+  dragSrcIds = null;
   markDirty();
   renderList();
 }
 
 function itemDragEnd() {
-  document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('dragging', 'drag-over'));
+  document.querySelectorAll('.practice-item, .station-block').forEach(el => el.classList.remove('dragging', 'drag-over'));
   libDragId = null;
-  dragSrcIdx = null;
+  dragSrcIds = null;
 }
 
 // ─────────────────────────────────────────────
@@ -1364,12 +1583,13 @@ function itemDragEnd() {
 //  (HTML5 drag events don't fire on iOS Safari)
 // ─────────────────────────────────────────────
 (function initTouchDrag() {
-  let touchSrcIdx = null;
-  let ghost       = null;
-  let lastOver    = null;
+  const ROW_SEL = '.practice-item, .station-block';
+  let touchSrcKey = null;
+  let ghost        = null;
+  let lastOverKey  = null;
 
   function clearHighlights() {
-    document.querySelectorAll('.practice-item.drag-over').forEach(e => e.classList.remove('drag-over'));
+    document.querySelectorAll(ROW_SEL + '.drag-over').forEach(e => e.classList.remove('drag-over'));
   }
 
   function createGhost(sourceEl, touchX, touchY) {
@@ -1388,19 +1608,19 @@ function itemDragEnd() {
   }
 
   document.addEventListener('touchstart', e => {
-    const handle = e.target.closest('.drag-handle');
+    const handle = e.target.closest('.drag-handle, .station-header');
     if (!handle) return;
     e.preventDefault();
     const t = e.touches[0];
-    const item = handle.closest('.practice-item');
+    const item = handle.closest(ROW_SEL);
     if (!item) return;
-    touchSrcIdx = +item.dataset.idx;
+    touchSrcKey = item.dataset.key;
     item.classList.add('dragging');
     ghost = createGhost(item, t.clientX, t.clientY);
   }, { passive: false });
 
   document.addEventListener('touchmove', e => {
-    if (touchSrcIdx === null || !ghost) return;
+    if (touchSrcKey === null || !ghost) return;
     e.preventDefault();
     const t = e.touches[0];
     ghost.style.left = (t.clientX - ghost._offX) + 'px';
@@ -1409,28 +1629,24 @@ function itemDragEnd() {
     const below = document.elementFromPoint(t.clientX, t.clientY);
     ghost.style.display = '';
     clearHighlights();
-    const targetItem = below && below.closest('.practice-item');
-    if (targetItem) {
-      const targetIdx = +targetItem.dataset.idx;
-      if (!isNaN(targetIdx) && targetIdx !== touchSrcIdx) {
-        targetItem.classList.add('drag-over');
-        lastOver = targetIdx;
-      } else { lastOver = null; }
-    } else { lastOver = null; }
+    const targetItem = below && below.closest(ROW_SEL);
+    if (targetItem && targetItem.dataset.key !== touchSrcKey) {
+      targetItem.classList.add('drag-over');
+      lastOverKey = targetItem.dataset.key;
+    } else { lastOverKey = null; }
   }, { passive: false });
 
   document.addEventListener('touchend', e => {
-    if (touchSrcIdx === null) return;
-    document.querySelectorAll('.practice-item').forEach(el => el.classList.remove('dragging', 'drag-over'));
+    if (touchSrcKey === null) return;
+    document.querySelectorAll(ROW_SEL).forEach(el => el.classList.remove('dragging', 'drag-over'));
     if (ghost) { ghost.remove(); ghost = null; }
-    if (lastOver !== null && lastOver !== touchSrcIdx) {
-      const [moved] = practiceItems.splice(touchSrcIdx, 1);
-      practiceItems.splice(lastOver, 0, moved);
+    if (lastOverKey !== null && lastOverKey !== touchSrcKey) {
+      moveBlock(blockIdsFor(touchSrcKey), lastOverKey);
       markDirty();
       renderList();
     }
-    touchSrcIdx = null;
-    lastOver    = null;
+    touchSrcKey = null;
+    lastOverKey = null;
   }, { passive: false });
 })();
 
@@ -1621,8 +1837,10 @@ function loadFromURL() {
 }
 
 function exportPDF() {
-  const data = getPracticeData();
-  const total = practiceItems.reduce((s, x) => s + (x.duration || 0), 0);
+  const data   = getPracticeData();
+  const blocks = getBlocks();
+  const total  = blocks.reduce((s, b) => s + blockDuration(b), 0);
+  const letters = 'ABCDEFGHIJ';
 
   // 1. GENERATE THE MISSING PAGE HEADER
   const pageHeader = `
@@ -1635,14 +1853,14 @@ function exportPDF() {
       </div>
     </div>`;
 
-  // 2. GENERATE THE MISSING SUMMARY TABLE
-  const summaryRows = practiceItems.map((item, i) => `
+  // 2. GENERATE THE MISSING SUMMARY TABLE (grouped rows share a number, e.g. 3A / 3B)
+  const summaryRows = blocks.map((block, bi) => block.items.map((item, mi) => `
     <tr>
-      <td class="pc-summary-num">${i + 1}</td>
-      <td class="pc-summary-name">${esc(item.name)}</td>
+      <td class="pc-summary-num">${bi + 1}${block.groupId ? letters[mi] || (mi + 1) : ''}</td>
+      <td class="pc-summary-name">${esc(item.name)}${block.groupId && mi === 0 ? ' <span class="pc-summary-tag">⚡ Simultaneous</span>' : ''}</td>
       <td>${item.type === 'quick' ? 'Quick Drill' : (item.tags || []).join(', ')}</td>
-      <td>${item.duration} min</td>
-    </tr>`).join('');
+      <td>${mi === 0 ? blockDuration(block) + ' min' : '—'}</td>
+    </tr>`).join('')).join('');
 
   const summaryTable = `
     <table class="pc-summary">
@@ -1650,11 +1868,10 @@ function exportPDF() {
       <tbody>${summaryRows}</tbody>
     </table>`;
 
-  // 3. GENERATE DRILL CARDS
-  const drillCards = practiceItems.map((item, i) => {
+  // 3. GENERATE DRILL CARDS — simultaneous stations are wrapped in one bracketed card
+  function drillCard(item) {
     const tagPills = (item.tags || []).map(t =>
       `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
-
     const rinkClass = (item.rinkView === 'full') ? 'rink-full' : 'rink-half';
     const imgCell = item.type === 'diagram' ? `
       <td class="pc-drill-img-cell ${rinkClass}">
@@ -1662,24 +1879,59 @@ function exportPDF() {
           ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
           : `<div class="pc-no-img">No diagram available.</div>`}
       </td>` : '';
-
     const descHtml = item.desc
       ? item.desc.split(/\n|<br>/i).map(l => `<p>${esc(l)}</p>`).join('')
       : `<p style="color:#aaa;font-style:italic">No description provided.</p>`;
-
     return `
       <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
         <div class="pc-drill-bar">
           <div class="pc-drill-bar-left">
-            <span class="pc-drill-num">${i + 1}.</span>
             <span class="pc-drill-title">${esc(item.name)}</span>
             ${tagPills}
           </div>
-          <div class="pc-drill-bar-right">${item.duration} min</div>
         </div>
         <table class="pc-drill-body">
           <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
         </table>
+      </div>`;
+  }
+
+  const drillCards = blocks.map((block, bi) => {
+    if (!block.groupId) {
+      const item = block.items[0];
+      const tagPills = (item.tags || []).map(t => `<span class="pc-drill-tag">${esc(t)}</span>`).join('');
+      const rinkClass = (item.rinkView === 'full') ? 'rink-full' : 'rink-half';
+      const imgCell = item.type === 'diagram' ? `
+        <td class="pc-drill-img-cell ${rinkClass}">
+          ${item.thumbnail
+            ? `<img src="${item.thumbnail}" alt="${esc(item.name)}" />`
+            : `<div class="pc-no-img">No diagram available.</div>`}
+        </td>` : '';
+      const descHtml = item.desc
+        ? item.desc.split(/\n|<br>/i).map(l => `<p>${esc(l)}</p>`).join('')
+        : `<p style="color:#aaa;font-style:italic">No description provided.</p>`;
+      return `
+        <div class="pc-drill ${item.type === 'quick' ? 'quick' : ''}">
+          <div class="pc-drill-bar">
+            <div class="pc-drill-bar-left">
+              <span class="pc-drill-num">${bi + 1}.</span>
+              <span class="pc-drill-title">${esc(item.name)}</span>
+              ${tagPills}
+            </div>
+            <div class="pc-drill-bar-right">${item.duration} min</div>
+          </div>
+          <table class="pc-drill-body">
+            <tr>${imgCell}<td class="pc-drill-desc-cell">${descHtml}</td></tr>
+          </table>
+        </div>`;
+    }
+    return `
+      <div class="pc-station">
+        <div class="pc-station-bar">
+          <div class="pc-station-bar-left">${bi + 1}. ⚡ Simultaneous — ${block.items.length} stations</div>
+          <div class="pc-station-bar-right">${blockDuration(block)} min</div>
+        </div>
+        ${block.items.map(drillCard).join('')}
       </div>`;
   }).join('');
 
