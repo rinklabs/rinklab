@@ -813,6 +813,121 @@
       .practice-item { padding: 7px 8px; gap: 6px; }
       .item-num { display: none; }
     }
+
+    /* ── Practice View overlay (Cards / On-Ice) — read-only mobile view ── */
+    #view-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 1700;
+      background: var(--bg);
+      flex-direction: column;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .pv-topbar {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .pv-close {
+      width: 30px; height: 30px; flex-shrink: 0;
+      background: transparent; border: 1px solid var(--border); border-radius: 5px;
+      color: var(--muted); cursor: pointer; font-size: 15px;
+    }
+    .pv-close:hover { border-color: var(--accent); color: var(--accent); }
+    .pv-title {
+      flex: 1; min-width: 0; font-size: 14px; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #pv-mode-select { width: auto; flex-shrink: 0; font-size: 12px; height: 30px; }
+    .pv-meta {
+      flex-shrink: 0; font-size: 11px; color: var(--muted);
+      padding: 8px 14px 0; display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .pv-bar-track {
+      flex-shrink: 0; height: 4px; background: var(--border); border-radius: 2px;
+      margin: 8px 14px 0; overflow: hidden;
+    }
+    .pv-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+
+    #pv-body { flex: 1; min-height: 0; position: relative; overflow: hidden; margin-top: 8px; }
+
+    /* Cards sub-view */
+    #pv-cards { position: absolute; inset: 0; overflow-y: auto; padding: 10px 12px 24px; }
+    .pv-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    .pv-card-head { display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .pv-card-num { font-size: 13px; color: var(--muted); width: 16px; flex-shrink: 0; }
+    .pv-card-icon {
+      width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+      background: var(--hover); border: 1px solid var(--border);
+    }
+    .pv-card-icon.diagram { background: #ff6b3518; border-color: #ff6b3540; }
+    .pv-card-title-wrap { flex: 1; min-width: 0; }
+    .pv-card-title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pv-card-tags { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+    .pv-pill {
+      font-size: 9px; letter-spacing: .05em; text-transform: uppercase; padding: 1px 6px;
+      border-radius: 2px; background: var(--hover); border: 1px solid var(--border); color: var(--muted);
+    }
+    .pv-card-time { font-size: 13px; font-weight: 700; color: var(--accent); flex-shrink: 0; white-space: nowrap; }
+    .pv-chevron { color: var(--muted); font-size: 11px; transition: transform .2s; flex-shrink: 0; }
+    .pv-card.open .pv-chevron { transform: rotate(90deg); }
+    .pv-card-body { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
+    .pv-card.open .pv-card-body { max-height: 500px; border-top: 1px solid var(--border); }
+    .pv-card-body-inner { padding: 11px 13px 14px; font-size: 13px; line-height: 1.55; opacity: .9; }
+    .pv-card-body-inner p { margin: 0 0 6px; }
+    .pv-thumb-img { width: 100%; border-radius: 6px; margin-bottom: 10px; display: block; border: 1px solid var(--border); }
+    .pv-thumb-empty {
+      font-size: 11px; color: var(--muted); font-style: italic; text-align: center;
+      padding: 20px 0; margin-bottom: 8px; border: 1px dashed var(--border); border-radius: 6px;
+    }
+    .pv-station { border-color: var(--accent); }
+    .pv-station .pv-card-title { color: var(--accent); }
+    .pv-station-members { border-top: 1px solid var(--border); }
+    .pv-station-member { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-top: 1px solid var(--border); }
+    .pv-station-member:first-child { border-top: none; }
+
+    /* On-Ice sub-view */
+    #pv-onice { position: absolute; inset: 0; display: none; flex-direction: column; }
+    #pv-dots { flex-shrink: 0; display: flex; gap: 5px; justify-content: center; padding: 4px 0 0; }
+    .pv-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: background .2s, transform .2s; }
+    .pv-dot.active { background: var(--accent); transform: scale(1.3); }
+    #pv-stage { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+    .pv-slide {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      padding: 18px 22px 8px; opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    }
+    .pv-slide.active { opacity: 1; pointer-events: auto; }
+    .pv-slide-num { font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
+    .pv-slide-tag {
+      display: inline-block; margin-top: 6px; font-size: 10px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px; background: #ff6b3518; border: 1px solid #ff6b3540; color: var(--accent);
+    }
+    .pv-slide-title { font-size: 22px; font-weight: 800; line-height: 1.15; margin: 12px 0 4px; }
+    .pv-slide-thumb { flex: 1; min-height: 0; margin: 12px 0; overflow: hidden; }
+    .pv-slide-thumb-img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #fff; }
+    .pv-slide-thumb-empty {
+      height: 100%; border-radius: 10px; border: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px;
+    }
+    .pv-slide-desc { font-size: 14px; line-height: 1.55; opacity: .9; max-height: 28%; overflow-y: auto; }
+    .pv-slide-desc p { margin: 0 0 5px; }
+    .pv-station-slide-row { padding: 4px 0; font-size: 14px; }
+    .pv-timer-val { font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 10px; flex-shrink: 0; }
+    #pv-nav { flex-shrink: 0; display: flex; border-top: 1px solid var(--border); }
+    #pv-nav button {
+      flex: 1; background: var(--panel); border: none; color: var(--text);
+      padding: 13px 0; font-size: 14px; font-weight: 700; -webkit-tap-highlight-color: transparent;
+    }
+    #pv-nav button:first-child { border-right: 1px solid var(--border); color: var(--muted); }
+    #pv-nav button:disabled { opacity: .3; }
+
+    @media (max-width: 680px) {
+      .pv-title { font-size: 13px; }
+      .pv-slide-title { font-size: 19px; }
+    }
   </style>
 </head>
 <body>
@@ -842,12 +957,18 @@
       <button class="btn btn-primary" onclick="openLoadModal()">📂 Library</button>
       <button class="btn btn-outline" onclick="exportPDF()">PDF</button>
       <button class="btn btn-outline" onclick="openShareModal()">Share</button>
+      <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)">👁 View</button>
       <button class="btn btn-outline" onclick="openHelpModal()" title="How to use the Practice Lab">❓ Help</button>
       <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
         Save to team:
         <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
       </div>
     </div>
+  </div>
+
+  <div class="tool-flyout" id="view-flyout">
+    <button class="tool-btn flyout-item" onclick="pvOpen('cards')">📋 <span>Cards</span></button>
+    <button class="tool-btn flyout-item" onclick="pvOpen('onice')">🏒 <span>On-Ice</span></button>
   </div>
 
   <div class="pg-shell">
@@ -1028,6 +1149,31 @@
 
   <div id="print-container"></div>
 
+  <!-- ── Practice View overlay: read-only Cards / On-Ice mode ────────── -->
+  <div id="view-overlay">
+    <div class="pv-topbar">
+      <button class="pv-close" onclick="pvClose()" aria-label="Close view">✕</button>
+      <div class="pv-title" id="pv-title"></div>
+      <select id="pv-mode-select" onchange="pvSwitch(this.value)">
+        <option value="cards">📋 Cards</option>
+        <option value="onice">🏒 On-Ice</option>
+      </select>
+    </div>
+    <div class="pv-meta" id="pv-meta"></div>
+    <div class="pv-bar-track"><div class="pv-bar-fill" id="pv-bar-fill" style="width:0%"></div></div>
+
+    <div id="pv-body">
+      <div id="pv-cards"></div>
+      <div id="pv-onice">
+        <div id="pv-dots"></div>
+        <div id="pv-stage"></div>
+        <div id="pv-nav">
+          <button id="pv-prev" onclick="pvGo(-1)">‹ Prev</button>
+          <button id="pv-next" onclick="pvGo(1)">Next ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="toast"></div>
 
@@ -1072,6 +1218,12 @@ let dragSrcIds    = null;  // ids of the item(s) currently being dragged (a stat
 let libDragId     = null;
 let isDirty       = false;
 function markDirty() { isDirty = true; }
+
+// currentPracticeId is set once a practice has been loaded from or saved to
+// the DB — it's what lets the View overlay build a short, reload-proof
+// `?id=` link instead of a long `?plan=` one. Stays null for an unsaved plan.
+let currentPracticeId = null;
+let pvStep = 0;
 
 window.addEventListener('beforeunload', e => {
   if (!isDirty) return;
@@ -1134,7 +1286,7 @@ async function initTeamSelector() {
 // ─────────────────────────────────────────────
 async function init() {
   document.getElementById('practice-date').value = new Date().toISOString().slice(0, 10);
-  loadFromURL();
+  await restoreFromURL();
   updateEmpty();
   updateTimeline();
   await fetchDrills();
@@ -1696,7 +1848,7 @@ async function performSave(session) {
   const slug   = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'untitled';
   const teamId = document.getElementById('save-team-selector').value || null;
 
-  const { error } = await _supabase.from('practice').upsert({
+  const { data: saved, error } = await _supabase.from('practice').upsert({
     user_id:  session.user.id,
     coach,
     slug,
@@ -1707,12 +1859,13 @@ async function performSave(session) {
     items:    JSON.stringify(data.items),
     team_id:  teamId ? parseInt(teamId) : null,
     saved_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,slug' });
+  }, { onConflict: 'user_id,slug' }).select('id').single();
 
   if (error) {
     showToast('Save failed: ' + error.message, true);
   } else {
     isDirty = false;
+    currentPracticeId = saved?.id ?? currentPracticeId;
     showToast(teamId ? '✓ Practice saved & shared with team' : '✓ Practice saved (private)');
   }
 }
@@ -1797,6 +1950,7 @@ async function loadPractice(id) {
     document.getElementById('practice-team').value   = data.team   || '';
     document.getElementById('target-duration').value = data.target || 60;
     practiceItems = JSON.parse(data.items || '[]');
+    currentPracticeId = data.id;
     renderList();
     closeLoadModal();
     isDirty = false;
@@ -1834,6 +1988,23 @@ function closeShareModal() { document.getElementById('share-modal').style.displa
 function copyShareURL() {
   navigator.clipboard.writeText(document.getElementById('share-url').value)
     .then(() => { showToast('Link copied!'); closeShareModal(); });
+}
+
+// Boot-time restore: a `?id=` deep link loads that saved practice from the
+// DB (survives a fully-killed tab, since it re-fetches rather than relying
+// on anything held in memory); otherwise falls back to the existing
+// `?plan=` link. If a `?view=` param is present too, opens straight into
+// the Cards/On-Ice view at its last-known step.
+async function restoreFromURL() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  if (id) {
+    await loadPractice(id);
+  } else {
+    loadFromURL();
+  }
+  const view = params.get('view');
+  if (view === 'cards' || view === 'onice') pvOpen(view);
 }
 
 function loadFromURL() {
@@ -1969,6 +2140,218 @@ function exportPDF() {
 }
 
 // ─────────────────────────────────────────────
+//  Practice View — read-only Cards / On-Ice mode for phone/tablet.
+//  State (mode + on-ice step) lives in the URL, mirrored to localStorage,
+//  so a fully reloaded/killed tab resumes where it left off. A saved
+//  practice links via `?id=`, re-fetching from the DB; an unsaved one
+//  falls back to the same `?plan=` encoding the Share button uses.
+// ─────────────────────────────────────────────
+function toggleViewFlyout(e) {
+  e.stopPropagation();
+  const flyout = document.getElementById('view-flyout');
+  const btn    = document.getElementById('btn-view');
+  const isOpen = flyout.classList.contains('open');
+  flyout.classList.remove('open');
+  if (isOpen) return;
+  const rect = btn.getBoundingClientRect();
+  flyout.style.top  = (rect.bottom + 6) + 'px';
+  flyout.style.left = rect.left + 'px';
+  flyout.classList.add('open');
+}
+document.addEventListener('click', () => document.getElementById('view-flyout').classList.remove('open'));
+
+function pvOpen(mode) {
+  const blocks = getBlocks();
+  if (!blocks.length) { showToast('Nothing to view yet — add a drill first', true); return; }
+  document.getElementById('view-flyout').classList.remove('open');
+  closeSidebar();
+
+  const data  = getPracticeData();
+  const total = blocks.reduce((s, b) => s + blockDuration(b), 0);
+  document.getElementById('pv-title').textContent = data.name;
+  document.getElementById('pv-meta').textContent =
+    [data.date, data.team, `${total}/${data.target} min`].filter(Boolean).join(' · ');
+  document.getElementById('pv-bar-fill').style.width =
+    Math.min((total / (data.target || 60)) * 100, 100) + '%';
+
+  pvRenderCards(blocks);
+  pvRenderOnIce(blocks);
+
+  const params = new URLSearchParams(location.search);
+  let step = parseInt(params.get('step'), 10);
+  if (isNaN(step)) step = parseInt(localStorage.getItem('drillLab:view:step'), 10) || 0;
+  pvStep = Math.max(0, Math.min(step, blocks.length - 1));
+
+  document.getElementById('pv-mode-select').value = mode;
+  document.getElementById('view-overlay').style.display = 'flex';
+  pvSwitch(mode);
+}
+
+function pvClose() {
+  document.getElementById('view-overlay').style.display = 'none';
+  const p = new URLSearchParams(location.search);
+  p.delete('view');
+  p.delete('step');
+  history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p.toString() : ''));
+}
+
+function pvSwitch(mode) {
+  document.getElementById('pv-cards').style.display = mode === 'cards' ? 'block' : 'none';
+  document.getElementById('pv-onice').style.display  = mode === 'onice' ? 'flex'  : 'none';
+  if (mode === 'onice') pvShowStep();
+  pvWriteState(mode, pvStep);
+}
+
+function pvGo(delta) {
+  const blocks = getBlocks();
+  const next = pvStep + delta;
+  if (next < 0 || next > blocks.length - 1) return;
+  pvStep = next;
+  pvShowStep();
+  pvWriteState('onice', pvStep);
+}
+
+function pvShowStep() {
+  const blocks = getBlocks();
+  blocks.forEach((_, i) => {
+    document.getElementById('pv-s' + i)?.classList.toggle('active', i === pvStep);
+    document.getElementById('pv-d' + i)?.classList.toggle('active', i === pvStep);
+  });
+  const last = pvStep === blocks.length - 1;
+  document.getElementById('pv-prev').disabled = pvStep === 0;
+  document.getElementById('pv-next').disabled = last;
+  document.getElementById('pv-next').textContent = last ? 'Done ✓' : 'Next ›';
+}
+
+// Persist mode + step to both the URL (source of truth on reload/deep link)
+// and localStorage (backup for a boot with no view params at all).
+function pvWriteState(mode, step) {
+  const p = new URLSearchParams(location.search);
+  p.set('view', mode);
+  if (mode === 'onice') p.set('step', step); else p.delete('step');
+  if (currentPracticeId) { p.set('id', currentPracticeId); p.delete('plan'); }
+  else { p.delete('id'); p.set('plan', btoa(encodeURIComponent(JSON.stringify(getPracticeData())))); }
+  history.replaceState(null, '', location.pathname + '?' + p.toString());
+  localStorage.setItem('drillLab:view:mode', mode);
+  localStorage.setItem('drillLab:view:step', step);
+}
+
+// Flush right before the tab is backgrounded/suspended — covers the OS
+// reclaiming memory without firing a clean unload event.
+function pvFlush() {
+  if (document.getElementById('view-overlay').style.display === 'none') return;
+  pvWriteState(document.getElementById('pv-mode-select').value, pvStep);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) pvFlush(); });
+window.addEventListener('pagehide', pvFlush);
+
+function pvRenderCards(blocks) {
+  document.getElementById('pv-cards').innerHTML = blocks.map((block, i) =>
+    block.groupId ? pvStationCard(block, i) : pvDrillCard(block.items[0], i, blockDuration(block))
+  ).join('');
+}
+
+function pvDrillCard(item, i, duration) {
+  const tagHtml = (item.tags || []).map(t => `<span class="pv-pill">${esc(t)}</span>`).join('');
+  const thumb = item.thumbnail
+    ? `<img src="${item.thumbnail}" class="pv-thumb-img" alt="${esc(item.name)}"/>`
+    : (item.type === 'diagram' ? `<div class="pv-thumb-empty">No diagram available</div>` : '');
+  const descHtml = item.desc
+    ? esc(item.desc).split('\n').map(l => `<p>${l}</p>`).join('')
+    : `<p style="color:var(--muted);font-style:italic;">No description</p>`;
+  return `
+    <div class="pv-card" id="pvc${i}">
+      <div class="pv-card-head" onclick="document.getElementById('pvc${i}').classList.toggle('open')">
+        <div class="pv-card-num">${i + 1}</div>
+        <div class="pv-card-icon ${item.type}">${item.type === 'diagram' ? '🏒' : '📝'}</div>
+        <div class="pv-card-title-wrap">
+          <div class="pv-card-title">${esc(item.name)}</div>
+          <div class="pv-card-tags">${tagHtml}</div>
+        </div>
+        <div class="pv-card-time">${duration}′</div>
+        <div class="pv-chevron">▸</div>
+      </div>
+      <div class="pv-card-body"><div class="pv-card-body-inner">${thumb}${descHtml}</div></div>
+    </div>`;
+}
+
+function pvStationCard(block, i) {
+  const membersHtml = block.items.map(item => `
+    <div class="pv-station-member">
+      <div class="pv-card-icon ${item.type}" style="width:26px;height:26px;font-size:13px;">${item.type === 'diagram' ? '🏒' : '📝'}</div>
+      <div class="pv-card-title-wrap">
+        <div class="pv-card-title" style="font-size:13px;">${esc(item.name)}</div>
+        <div class="pv-card-tags">${(item.tags || []).map(t => `<span class="pv-pill">${esc(t)}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+  return `
+    <div class="pv-card pv-station">
+      <div class="pv-card-head" style="cursor:default;">
+        <div class="pv-card-num">${i + 1}</div>
+        <div class="pv-card-title-wrap">
+          <div class="pv-card-title">⚡ Simultaneous — ${block.items.length} stations</div>
+        </div>
+        <div class="pv-card-time">${blockDuration(block)}′</div>
+      </div>
+      <div class="pv-station-members">${membersHtml}</div>
+    </div>`;
+}
+
+function pvRenderOnIce(blocks) {
+  document.getElementById('pv-stage').innerHTML = blocks.map((block, i) =>
+    block.groupId ? pvStationSlide(block, i, blocks.length) : pvDrillSlide(block, i, blocks.length)
+  ).join('');
+  document.getElementById('pv-dots').innerHTML =
+    blocks.map((_, i) => `<div class="pv-dot" id="pv-d${i}"></div>`).join('');
+}
+
+function pvDrillSlide(block, i, total) {
+  const item = block.items[0];
+  const descHtml = item.desc
+    ? esc(item.desc).split('\n').map(l => `<p>${l}</p>`).join('')
+    : `<p style="color:var(--muted);font-style:italic;">No description</p>`;
+  const thumb = item.thumbnail
+    ? `<img src="${item.thumbnail}" class="pv-slide-thumb-img" alt=""/>`
+    : `<div class="pv-slide-thumb-empty">${item.type === 'diagram' ? 'No diagram available' : ''}</div>`;
+  return `
+    <div class="pv-slide" id="pv-s${i}">
+      <div class="pv-slide-num">Drill ${i + 1} of ${total}</div>
+      ${(item.tags || [])[0] ? `<span class="pv-slide-tag">${esc(item.tags[0])}</span>` : ''}
+      <div class="pv-slide-title">${esc(item.name)}</div>
+      <div class="pv-slide-thumb">${thumb}</div>
+      <div class="pv-slide-desc">${descHtml}</div>
+      <div class="pv-timer-val">${blockDuration(block)}′</div>
+    </div>`;
+}
+
+function pvStationSlide(block, i, total) {
+  const rows = block.items.map(item =>
+    `<div class="pv-station-slide-row">${item.type === 'diagram' ? '🏒' : '📝'} ${esc(item.name)}</div>`
+  ).join('');
+  return `
+    <div class="pv-slide" id="pv-s${i}">
+      <div class="pv-slide-num">Drill ${i + 1} of ${total}</div>
+      <span class="pv-slide-tag">⚡ simultaneous</span>
+      <div class="pv-slide-title">${block.items.length} Stations</div>
+      <div class="pv-slide-desc" style="flex:1;">${rows}</div>
+      <div class="pv-timer-val">${blockDuration(block)}′</div>
+    </div>`;
+}
+
+// Swipe support for On-Ice mode
+(function initPvSwipe() {
+  let touchX = null;
+  const stage = document.getElementById('pv-stage');
+  stage.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+  stage.addEventListener('touchend', e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) pvGo(dx < 0 ? 1 : -1);
+    touchX = null;
+  }, { passive: true });
+})();
+
+// ─────────────────────────────────────────────
 //  Preview modal
 // ─────────────────────────────────────────────
 async function openDrillPreview(id) {
@@ -2038,7 +2421,9 @@ document.getElementById('practice-help-modal').addEventListener('click', functio
   if (e.target === this) closeHelpModal();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('practice-help-modal').style.display === 'flex') closeHelpModal();
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('practice-help-modal').style.display === 'flex') closeHelpModal();
+  else if (document.getElementById('view-overlay').style.display === 'flex') pvClose();
 });
 document.getElementById('qd-desc').addEventListener('keydown', e => {
   if (e.key === 'Enter') addQuickDrill();
