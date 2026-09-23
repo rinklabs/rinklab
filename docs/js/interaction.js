@@ -94,7 +94,7 @@ function initMouseEvents() {
   // A real mousedown means a mouse/trackpad is driving — hand back the
   // tighter, more precise hit radius (touchscreen laptops can freely
   // switch between the two).
-  canvas.addEventListener('mousedown', e => { State.usingTouch = false; onMouseDown(e); });
+  canvas.addEventListener('mousedown', e => { e.preventDefault(); State.usingTouch = false; onMouseDown(e); });
   canvas.addEventListener('mousemove', onMouseMove);
   canvas.addEventListener('mouseup',   onMouseUp);
   canvas.addEventListener('dblclick',  onDblClick);
