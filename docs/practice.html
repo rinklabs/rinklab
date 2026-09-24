@@ -886,8 +886,15 @@
     .pv-station { border-color: var(--accent); }
     .pv-station .pv-card-title { color: var(--accent); }
     .pv-station-members { border-top: 1px solid var(--border); }
-    .pv-station-member { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-top: 1px solid var(--border); }
+    .pv-station-member { border-top: 1px solid var(--border); }
     .pv-station-member:first-child { border-top: none; }
+    .pv-station-member-head {
+      display: flex; align-items: center; gap: 10px; padding: 10px 13px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .pv-station-member .pv-card-body { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
+    .pv-station-member.open .pv-card-body { max-height: 500px; border-top: 1px solid var(--border); }
+    .pv-station-member.open .pv-chevron { transform: rotate(90deg); }
 
     /* On-Ice sub-view */
     #pv-onice { position: absolute; inset: 0; display: none; flex-direction: column; }
@@ -914,7 +921,14 @@
     }
     .pv-slide-desc { font-size: 14px; line-height: 1.55; opacity: .9; max-height: 28%; overflow-y: auto; }
     .pv-slide-desc p { margin: 0 0 5px; }
-    .pv-station-slide-row { padding: 4px 0; font-size: 14px; }
+    .pv-sub-pills { flex-shrink: 0; display: flex; gap: 6px; margin: 10px 0 2px; flex-wrap: wrap; }
+    .pv-sub-pill {
+      min-width: 30px; height: 30px; padding: 0 10px; border-radius: 15px;
+      background: var(--hover); border: 1px solid var(--border); color: var(--muted);
+      font-size: 13px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .pv-sub-pill.active { background: var(--accent); border-color: var(--accent); color: #000; }
+    .pv-station-detail { display: flex; flex-direction: column; flex: 1; min-height: 0; }
     .pv-timer-val { font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 10px; flex-shrink: 0; }
     #pv-nav { flex-shrink: 0; display: flex; border-top: 1px solid var(--border); }
     #pv-nav button {
@@ -2276,14 +2290,7 @@ function pvDrillCard(item, i, duration) {
 }
 
 function pvStationCard(block, i) {
-  const membersHtml = block.items.map(item => `
-    <div class="pv-station-member">
-      <div class="pv-card-icon ${item.type}" style="width:26px;height:26px;font-size:13px;">${item.type === 'diagram' ? '🏒' : '📝'}</div>
-      <div class="pv-card-title-wrap">
-        <div class="pv-card-title" style="font-size:13px;">${esc(item.name)}</div>
-        <div class="pv-card-tags">${(item.tags || []).map(t => `<span class="pv-pill">${esc(t)}</span>`).join('')}</div>
-      </div>
-    </div>`).join('');
+  const membersHtml = block.items.map((item, mi) => pvStationMemberRow(item, i, mi)).join('');
   return `
     <div class="pv-card pv-station">
       <div class="pv-card-head" style="cursor:default;">
@@ -2294,6 +2301,29 @@ function pvStationCard(block, i) {
         <div class="pv-card-time">${blockDuration(block)}′</div>
       </div>
       <div class="pv-station-members">${membersHtml}</div>
+    </div>`;
+}
+
+function pvStationMemberRow(item, i, mi) {
+  const memberId = `pvm${i}-${mi}`;
+  const tagHtml = (item.tags || []).map(t => `<span class="pv-pill">${esc(t)}</span>`).join('');
+  const thumb = item.thumbnail
+    ? `<img src="${item.thumbnail}" class="pv-thumb-img" alt="${esc(item.name)}"/>`
+    : (item.type === 'diagram' ? `<div class="pv-thumb-empty">No diagram available</div>` : '');
+  const descHtml = item.desc
+    ? esc(item.desc).split('\n').map(l => `<p>${l}</p>`).join('')
+    : `<p style="color:var(--muted);font-style:italic;">No description</p>`;
+  return `
+    <div class="pv-station-member" id="${memberId}">
+      <div class="pv-station-member-head" onclick="document.getElementById('${memberId}').classList.toggle('open')">
+        <div class="pv-card-icon ${item.type}" style="width:26px;height:26px;font-size:13px;">${item.type === 'diagram' ? '🏒' : '📝'}</div>
+        <div class="pv-card-title-wrap">
+          <div class="pv-card-title" style="font-size:13px;">${esc(item.name)}</div>
+          <div class="pv-card-tags">${tagHtml}</div>
+        </div>
+        <div class="pv-chevron">▸</div>
+      </div>
+      <div class="pv-card-body"><div class="pv-card-body-inner">${thumb}${descHtml}</div></div>
     </div>`;
 }
 
@@ -2325,17 +2355,45 @@ function pvDrillSlide(block, i, total) {
 }
 
 function pvStationSlide(block, i, total) {
-  const rows = block.items.map(item =>
-    `<div class="pv-station-slide-row">${item.type === 'diagram' ? '🏒' : '📝'} ${esc(item.name)}</div>`
+  const pills = block.items.map((item, mi) =>
+    `<button class="pv-sub-pill${mi === 0 ? ' active' : ''}" id="pv-sub-${i}-${mi}" onclick="pvStationGo(${i},${mi})">${mi + 1}</button>`
   ).join('');
   return `
     <div class="pv-slide" id="pv-s${i}">
       <div class="pv-slide-num">Drill ${i + 1} of ${total}</div>
-      <span class="pv-slide-tag">⚡ simultaneous</span>
-      <div class="pv-slide-title">${block.items.length} Stations</div>
-      <div class="pv-slide-desc" style="flex:1;">${rows}</div>
+      <span class="pv-slide-tag">⚡ simultaneous — ${block.items.length} stations</span>
+      <div class="pv-sub-pills">${pills}</div>
+      <div class="pv-station-detail" id="pv-station-detail-${i}">${pvStationMemberDetail(block.items[0])}</div>
       <div class="pv-timer-val">${blockDuration(block)}′</div>
     </div>`;
+}
+
+// Renders one station member's full detail (name, tags, thumbnail, description)
+// inside the current On-Ice slide — swapped in by the sub-pills without
+// advancing Next/Prev, which still moves between practice steps, not stations.
+function pvStationMemberDetail(item) {
+  const tagHtml = (item.tags || []).map(t => `<span class="pv-pill">${esc(t)}</span>`).join('');
+  const thumb = item.thumbnail
+    ? `<img src="${item.thumbnail}" class="pv-slide-thumb-img" alt=""/>`
+    : `<div class="pv-slide-thumb-empty">${item.type === 'diagram' ? 'No diagram available' : ''}</div>`;
+  const descHtml = item.desc
+    ? esc(item.desc).split('\n').map(l => `<p>${l}</p>`).join('')
+    : `<p style="color:var(--muted);font-style:italic;">No description</p>`;
+  return `
+    <div class="pv-slide-title" style="font-size:18px;margin:6px 0 4px;">${esc(item.name)}</div>
+    <div class="pv-card-tags" style="margin-bottom:6px;">${tagHtml}</div>
+    <div class="pv-slide-thumb">${thumb}</div>
+    <div class="pv-slide-desc">${descHtml}</div>`;
+}
+
+function pvStationGo(blockIndex, memberIndex) {
+  const block = getBlocks()[blockIndex];
+  const item  = block?.items[memberIndex];
+  if (!item) return;
+  document.getElementById(`pv-station-detail-${blockIndex}`).innerHTML = pvStationMemberDetail(item);
+  block.items.forEach((_, mi) =>
+    document.getElementById(`pv-sub-${blockIndex}-${mi}`)?.classList.toggle('active', mi === memberIndex)
+  );
 }
 
 // Swipe support for On-Ice mode
