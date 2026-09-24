@@ -574,6 +574,29 @@
     }
     #sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
+    /* Mobile "more actions" menu trigger — hidden until <680px */
+    #btn-mobile-menu {
+      display: none;
+      width: 30px; height: 30px;
+      padding: 0;
+      align-items: center; justify-content: center;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    #mobile-actions-menu .flyout-item { width: 168px; }
+    #mobile-actions-menu .flyout-submenu-label {
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 10px 2px;
+    }
+    #mobile-actions-menu .flyout-sub {
+      padding-left: 26px;
+      font-size: 12px;
+    }
+
     #sidebar-backdrop {
       display: none;
       position: fixed; inset: 0;
@@ -788,11 +811,14 @@
     @media (max-width: 680px) {
       html, body { overflow: hidden; }
       #top-bar { padding: 0 8px; gap: 6px; }
-      #logo { font-size: 11px; }
+      #canvas-nav-btn { display: none; }
+      #logo { display: none; }
       #practice-name { font-size: 13px; }
       .btn { padding: 4px 8px; font-size: 10px; }
 
       #sidebar-toggle { display: flex; }
+      #btn-library-top, #btn-pdf-top, #btn-share-top, #btn-view, #btn-help-top { display: none; }
+      #btn-mobile-menu { display: flex; }
 
       #pg-sidebar {
         position: fixed;
@@ -954,7 +980,7 @@
     </button>
 
     <a href="index.html" class="btn btn-lab">← LAB</a>
-    <a href="canvas.html" class="btn btn-lab" style="display: inline-flex; align-items: center; gap: 8px;">
+    <a href="canvas.html" class="btn btn-lab" id="canvas-nav-btn" style="display: inline-flex; align-items: center; gap: 8px;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -968,11 +994,12 @@
 
     <div id="top-actions">
       <button class="btn btn-primary" onclick="savePractice()">💾 Save</button>
-      <button class="btn btn-primary" onclick="openLoadModal()">📂 Library</button>
-      <button class="btn btn-outline" onclick="exportPDF()">PDF</button>
-      <button class="btn btn-outline" onclick="openShareModal()">Share</button>
+      <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()">📂 Library</button>
+      <button class="btn btn-outline" id="btn-pdf-top" onclick="exportPDF()">PDF</button>
+      <button class="btn btn-outline" id="btn-share-top" onclick="openShareModal()">Share</button>
       <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)">👁 View</button>
-      <button class="btn btn-outline" onclick="openHelpModal()" title="How to use the Practice Lab">❓ Help</button>
+      <button class="btn btn-outline" id="btn-help-top" onclick="openHelpModal()" title="How to use the Practice Lab">❓ Help</button>
+      <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions">⋮</button>
       <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
         Save to team:
         <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
@@ -983,6 +1010,17 @@
   <div class="tool-flyout" id="view-flyout">
     <button class="tool-btn flyout-item" onclick="pvOpen('cards')">📋 <span>Cards</span></button>
     <button class="tool-btn flyout-item" onclick="pvOpen('onice')">🏒 <span>On-Ice</span></button>
+  </div>
+
+  <!-- Mobile-only "more actions" menu: houses everything but Save + team select -->
+  <div class="tool-flyout" id="mobile-actions-menu">
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openLoadModal();">📂 <span>Library</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();exportPDF();">📄 <span>PDF</span></button>
+    <div class="flyout-submenu-label">👁 View</div>
+    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('cards');">📋 <span>Cards</span></button>
+    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('onice');">🏒 <span>On-Ice</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openShareModal();">🔗 <span>Share</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openHelpModal();">❓ <span>Help</span></button>
   </div>
 
   <div class="pg-shell">
@@ -2173,6 +2211,25 @@ function toggleViewFlyout(e) {
   flyout.classList.add('open');
 }
 document.addEventListener('click', () => document.getElementById('view-flyout').classList.remove('open'));
+
+function toggleMobileMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('mobile-actions-menu');
+  const btn  = document.getElementById('btn-mobile-menu');
+  const isOpen = menu.classList.contains('open');
+  document.getElementById('view-flyout').classList.remove('open');
+  closeMobileMenu();
+  if (isOpen) return;
+  const rect = btn.getBoundingClientRect();
+  menu.style.top   = (rect.bottom + 6) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.style.left  = 'auto';
+  menu.classList.add('open');
+}
+function closeMobileMenu() {
+  document.getElementById('mobile-actions-menu').classList.remove('open');
+}
+document.addEventListener('click', closeMobileMenu);
 
 function pvOpen(mode) {
   const blocks = getBlocks();
