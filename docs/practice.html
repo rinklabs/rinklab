@@ -1558,7 +1558,7 @@ function addQuickDrill() {
 function renderItemIcon(item) {
   return `${item.thumbnail
     ? `<img src="${item.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;" />`
-    : (item.type === 'diagram' ? '🏒' : '📝')}`;
+    : (item.type === 'diagram' ? '🏒' : '<i class="ti ti-pencil" aria-hidden="true"></i>')}`;
 }
 
 function renderSoloRow(item, num, canLink) {
@@ -2382,7 +2382,7 @@ function pvDrillCard(item, i, duration) {
     <div class="pv-card" id="pvc${i}">
       <div class="pv-card-head" onclick="document.getElementById('pvc${i}').classList.toggle('open')">
         <div class="pv-card-num">${i + 1}</div>
-        <div class="pv-card-icon ${item.type}">${item.type === 'diagram' ? '🏒' : '📝'}</div>
+        <div class="pv-card-icon ${item.type}">${item.type === 'diagram' ? '🏒' : '<i class="ti ti-pencil" aria-hidden="true"></i>'}</div>
         <div class="pv-card-title-wrap">
           <div class="pv-card-title">${esc(item.name)}</div>
           <div class="pv-card-tags">${tagHtml}</div>
@@ -2421,7 +2421,7 @@ function pvStationMemberRow(item, i, mi) {
   return `
     <div class="pv-station-member" id="${memberId}">
       <div class="pv-station-member-head" onclick="document.getElementById('${memberId}').classList.toggle('open')">
-        <div class="pv-card-icon ${item.type}" style="width:26px;height:26px;font-size:13px;">${item.type === 'diagram' ? '🏒' : '📝'}</div>
+        <div class="pv-card-icon ${item.type}" style="width:26px;height:26px;font-size:13px;">${item.type === 'diagram' ? '🏒' : '<i class="ti ti-pencil" aria-hidden="true"></i>'}</div>
         <div class="pv-card-title-wrap">
           <div class="pv-card-title" style="font-size:13px;">${esc(item.name)}</div>
           <div class="pv-card-tags">${tagHtml}</div>
