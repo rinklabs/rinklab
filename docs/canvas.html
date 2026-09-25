@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Drill Canvas | Rink Lab</title>
   <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
   <style>
     .btn-lab { 
       background: #d00000; /* Racing Red */
@@ -303,12 +304,12 @@
   <input type="text" id="drill-title"
          placeholder="Drill Title"
          autocomplete="off"/>
-  <button id="toolbar-toggle" onclick="toggleToolbarDrawer()" aria-label="Toggle tools">🧰</button>
+  <button id="toolbar-toggle" onclick="toggleToolbarDrawer()" aria-label="Toggle tools"><i class="ti ti-tools" aria-hidden="true"></i></button>
   <div id="top-actions">
-    <button class="btn btn-outline" id="btn-print" title="Print this drill to PDF" aria-label="Print this drill to PDF">🖨️<span class="btn-text"> Print</span></button>
-    <button class="btn btn-primary" id="btn-save-local" title="Save this drill to cloud" aria-label="Save this drill to cloud">💾<span class="btn-text"> Save</span></button>
-    <button class="btn btn-primary" id="btn-library" title="Load drill from cloud" aria-label="Load drill from cloud">📂<span class="btn-text"> Library</span></button>
-    <button class="btn btn-outline" id="btn-help" title="How to use the Canvas" aria-label="How to use the Canvas">❓<span class="btn-text"> Help</span></button>
+    <button class="btn btn-outline" id="btn-print" title="Print this drill to PDF" aria-label="Print this drill to PDF"><i class="ti ti-file-type-pdf" aria-hidden="true"></i><span class="btn-text"> Print</span></button>
+    <button class="btn btn-primary" id="btn-save-local" title="Save this drill to cloud" aria-label="Save this drill to cloud"><i class="ti ti-device-floppy" aria-hidden="true"></i><span class="btn-text"> Save</span></button>
+    <button class="btn btn-primary" id="btn-library" title="Load drill from cloud" aria-label="Load drill from cloud"><i class="ti ti-folder-open" aria-hidden="true"></i><span class="btn-text"> Library</span></button>
+    <button class="btn btn-outline" id="btn-help" title="How to use the Canvas" aria-label="How to use the Canvas"><i class="ti ti-help" aria-hidden="true"></i><span class="btn-text"> Help</span></button>
   </div>
   <div id="coach-indicator" title="Logged in as">
     <span class="ci-label">Saving as:</span> <strong id="coach-indicator-name">—</strong>
@@ -340,7 +341,7 @@
       <button class="tool-btn tool-group-btn" id="group-btn-lines" title="Lines &amp; Pen">╱<span class="group-pip">▸</span></button>
       <button class="tool-btn"        data-tool="text"    title="Text (T)">T</button>
       <button class="tool-btn tool-group-btn" id="group-btn-equip" title="Equipment">▲<span class="group-pip">▸</span></button>
-      <button class="tool-btn"        data-tool="player"  title="Place Player">🏒</button>
+      <button class="tool-btn"        data-tool="player"  title="Place Player"><i class="ti ti-ice-skating" aria-hidden="true"></i></button>
     </div>
 
     <div class="tb-sep"></div>
