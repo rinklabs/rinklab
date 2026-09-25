@@ -570,6 +570,8 @@
       color: var(--muted);
       cursor: pointer;
       flex-shrink: 0;
+      font-size: 14px;
+      line-height: 1;
       transition: all .1s;
     }
     #sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
@@ -596,6 +598,12 @@
       padding-left: 26px;
       font-size: 12px;
     }
+
+    #canvas-nav-btn { display: inline-flex; align-items: center; gap: 8px; }
+
+    /* Row 2 (title): flows inline on desktop, becomes its own line under
+       the toolbar on mobile — see mobile media query below. */
+    #top-bar-row2 { display: contents; }
 
     #sidebar-backdrop {
       display: none;
@@ -810,11 +818,33 @@
     /* Responsive / mobile */
     @media (max-width: 680px) {
       html, body { overflow: hidden; }
-      #top-bar { padding: 0 8px; gap: 6px; }
+      #top-bar {
+        flex-wrap: wrap;
+        height: auto;
+        overflow: visible;
+        padding: 6px 8px;
+        row-gap: 6px;
+      }
       #canvas-nav-btn { display: none; }
       #logo { display: none; }
       #practice-name { font-size: 13px; }
       .btn { padding: 4px 8px; font-size: 10px; }
+
+      /* Row 1 order: LAB far left, then the two dropdown triggers, then
+         Save/Team (top-actions) — row 2 (title) wraps beneath via order:10 */
+      a[href="index.html"].btn-lab { order: 1; }
+      #sidebar-toggle { order: 2; }
+      #btn-mobile-menu { order: 3; }
+      #top-actions { order: 4; }
+
+      /* Row 2: title, on its own line below row 1 */
+      #top-bar-row2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1 0 100%;
+        order: 10;
+      }
 
       #sidebar-toggle { display: flex; }
       #btn-library-top, #btn-pdf-top, #btn-share-top, #btn-view, #btn-help-top { display: none; }
@@ -973,14 +1003,11 @@
 <body>
 
   <div id="top-bar">
-    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
+    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle drill library">🏒</button>
+    <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions">⋮</button>
 
     <a href="index.html" class="btn btn-lab">← LAB</a>
-    <a href="canvas.html" class="btn btn-lab" id="canvas-nav-btn" style="display: inline-flex; align-items: center; gap: 8px;">
+    <a href="canvas.html" class="btn btn-lab" id="canvas-nav-btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -990,7 +1017,9 @@
     </a>
     <div id="logo">⬡ PRACTICE LAB</div>
 
-    <input id="practice-name" type="text" placeholder="Untitled Practice…" maxlength="80" />
+    <div id="top-bar-row2">
+      <input id="practice-name" type="text" placeholder="Untitled Practice…" maxlength="80" />
+    </div>
 
     <div id="top-actions">
       <button class="btn btn-primary" onclick="savePractice()">💾 Save</button>
@@ -999,9 +1028,8 @@
       <button class="btn btn-outline" id="btn-share-top" onclick="openShareModal()">Share</button>
       <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)">👁 View</button>
       <button class="btn btn-outline" id="btn-help-top" onclick="openHelpModal()" title="How to use the Practice Lab">❓ Help</button>
-      <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions">⋮</button>
       <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
-        Save to team:
+        Team
         <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
       </div>
     </div>
@@ -1176,7 +1204,7 @@
           <p class="sub-label">Saving &amp; Teams</p>
           <table>
             <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd> Save practice</td></tr>
-            <tr><td>Pick a team in "Save to team" to share it, or leave as private</td></tr>
+            <tr><td>Pick a team in "Team" to share it, or leave as private</td></tr>
             <tr><td>📂 Library loads a saved practice (scoped to the selected team)</td></tr>
           </table>
 
@@ -2222,8 +2250,8 @@ function toggleMobileMenu(e) {
   if (isOpen) return;
   const rect = btn.getBoundingClientRect();
   menu.style.top   = (rect.bottom + 6) + 'px';
-  menu.style.right = (window.innerWidth - rect.right) + 'px';
-  menu.style.left  = 'auto';
+  menu.style.left  = rect.left + 'px';
+  menu.style.right = 'auto';
   menu.classList.add('open');
 }
 function closeMobileMenu() {
