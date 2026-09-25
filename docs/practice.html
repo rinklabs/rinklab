@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Practice Lab | Rink Lab</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css" />
   <style>
     /* ── Page-specific styles (style.css variables used throughout) ── */
     .btn-lab { 
@@ -601,6 +602,17 @@
 
     #canvas-nav-btn { display: inline-flex; align-items: center; gap: 8px; }
 
+    /* Icon alignment for the Tabler webfont icons used across the toolbar,
+       flyouts, and help modal */
+    #top-bar .btn i.ti,
+    .tool-flyout i.ti,
+    .flyout-submenu-label i.ti,
+    #practice-help-modal i.ti {
+      font-size: 15px;
+      vertical-align: -2px;
+      margin-right: 3px;
+    }
+
     /* Row 2 (title): flows inline on desktop, becomes its own line under
        the toolbar on mobile — see mobile media query below. */
     #top-bar-row2 { display: contents; }
@@ -1003,8 +1015,8 @@
 <body>
 
   <div id="top-bar">
-    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle drill library">🏒</button>
-    <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions">⋮</button>
+    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle drill library"><i class="ti ti-clipboard-list" aria-hidden="true"></i></button>
+    <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions"><i class="ti ti-dots-vertical" aria-hidden="true"></i></button>
 
     <a href="index.html" class="btn btn-lab">← LAB</a>
     <a href="canvas.html" class="btn btn-lab" id="canvas-nav-btn">
@@ -1022,12 +1034,12 @@
     </div>
 
     <div id="top-actions">
-      <button class="btn btn-primary" onclick="savePractice()">💾 Save</button>
-      <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()">📂 Library</button>
+      <button class="btn btn-primary" onclick="savePractice()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save</button>
+      <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()"><i class="ti ti-folder" aria-hidden="true"></i> Library</button>
       <button class="btn btn-outline" id="btn-pdf-top" onclick="exportPDF()">PDF</button>
       <button class="btn btn-outline" id="btn-share-top" onclick="openShareModal()">Share</button>
-      <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)">👁 View</button>
-      <button class="btn btn-outline" id="btn-help-top" onclick="openHelpModal()" title="How to use the Practice Lab">❓ Help</button>
+      <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)"><i class="ti ti-eye" aria-hidden="true"></i> View</button>
+      <button class="btn btn-outline" id="btn-help-top" onclick="openHelpModal()" title="How to use the Practice Lab"><i class="ti ti-help" aria-hidden="true"></i> Help</button>
       <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
         Team
         <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
@@ -1036,19 +1048,19 @@
   </div>
 
   <div class="tool-flyout" id="view-flyout">
-    <button class="tool-btn flyout-item" onclick="pvOpen('cards')">📋 <span>Cards</span></button>
-    <button class="tool-btn flyout-item" onclick="pvOpen('onice')">🏒 <span>On-Ice</span></button>
+    <button class="tool-btn flyout-item" onclick="pvOpen('cards')"><i class="ti ti-layout-cards" aria-hidden="true"></i> <span>Cards</span></button>
+    <button class="tool-btn flyout-item" onclick="pvOpen('onice')"><i class="ti ti-presentation" aria-hidden="true"></i> <span>On-Ice</span></button>
   </div>
 
   <!-- Mobile-only "more actions" menu: houses everything but Save + team select -->
   <div class="tool-flyout" id="mobile-actions-menu">
-    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openLoadModal();">📂 <span>Library</span></button>
-    <button class="tool-btn flyout-item" onclick="closeMobileMenu();exportPDF();">📄 <span>PDF</span></button>
-    <div class="flyout-submenu-label">👁 View</div>
-    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('cards');">📋 <span>Cards</span></button>
-    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('onice');">🏒 <span>On-Ice</span></button>
-    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openShareModal();">🔗 <span>Share</span></button>
-    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openHelpModal();">❓ <span>Help</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openLoadModal();"><i class="ti ti-folder" aria-hidden="true"></i> <span>Library</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();exportPDF();"><i class="ti ti-download" aria-hidden="true"></i> <span>PDF</span></button>
+    <div class="flyout-submenu-label"><i class="ti ti-eye" aria-hidden="true"></i> View</div>
+    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('cards');"><i class="ti ti-layout-cards" aria-hidden="true"></i> <span>Cards</span></button>
+    <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('onice');"><i class="ti ti-presentation" aria-hidden="true"></i> <span>On-Ice</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openShareModal();"><i class="ti ti-share" aria-hidden="true"></i> <span>Share</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openHelpModal();"><i class="ti ti-help" aria-hidden="true"></i> <span>Help</span></button>
   </div>
 
   <div class="pg-shell">
@@ -1205,7 +1217,7 @@
           <table>
             <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd> Save practice</td></tr>
             <tr><td>Pick a team in "Team" to share it, or leave as private</td></tr>
-            <tr><td>📂 Library loads a saved practice (scoped to the selected team)</td></tr>
+            <tr><td><i class="ti ti-folder" aria-hidden="true"></i> Library loads a saved practice (scoped to the selected team)</td></tr>
           </table>
 
           <p class="sub-label">Sharing &amp; Export</p>
