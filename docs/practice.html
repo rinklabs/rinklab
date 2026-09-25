@@ -607,10 +607,18 @@
     #top-bar .btn i.ti,
     .tool-flyout i.ti,
     .flyout-submenu-label i.ti,
-    #practice-help-modal i.ti {
+    #practice-help-modal i.ti,
+    .station-label i.ti,
+    .pv-card-title i.ti,
+    .pv-slide-tag i.ti {
       font-size: 15px;
       vertical-align: -2px;
       margin-right: 3px;
+    }
+    .pc-summary-tag i.ti,
+    .pc-station-bar-left i.ti {
+      vertical-align: -1px;
+      margin-right: 2px;
     }
 
     /* Row 2 (title): flows inline on desktop, becomes its own line under
@@ -1206,9 +1214,9 @@
 
           <p class="sub-label">Simultaneous Stations</p>
           <table>
-            <tr><td>⚡ on a drill links it with the next as one station block</td></tr>
+            <tr><td><i class="ti ti-arrows-join" aria-hidden="true"></i> on a drill links it with the next as one station block</td></tr>
             <tr><td>A station block shares one duration, counted once in the total</td></tr>
-            <tr><td>⛓ on a block splits it back into sequential drills</td></tr>
+            <tr><td><i class="ti ti-arrows-split" aria-hidden="true"></i> on a block splits it back into sequential drills</td></tr>
           </table>
         </div>
 
@@ -1584,7 +1592,7 @@ function renderSoloRow(item, num, canLink) {
                title="Duration in minutes" />
         <span class="item-time-lbl">min</span>
       </div>
-      ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${item.id}')" title="Run at the same time as the next drill">⚡</button>` : ''}
+      ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${item.id}')" title="Run at the same time as the next drill"><i class="ti ti-arrows-join" aria-hidden="true"></i></button>` : ''}
       <button class="item-remove" onclick="removeItem('${item.id}')" title="Remove">✕</button>
     </div>`;
 }
@@ -1622,7 +1630,7 @@ function renderStationBlock(block, num, canLink) {
       <div class="station-header">
         <div class="item-num">${num}</div>
         <div class="drag-handle" title="Drag to reorder">⠿</div>
-        <span class="station-label">⚡ Simultaneous — ${block.items.length} stations</span>
+        <span class="station-label"><i class="ti ti-arrows-join" aria-hidden="true"></i> Simultaneous — ${block.items.length} stations</span>
         <div class="item-time">
           <input type="number" min="1" max="120" value="${blockDuration(block)}"
                  onchange="setGroupDuration('${gid}',this.value)"
@@ -1630,8 +1638,8 @@ function renderStationBlock(block, num, canLink) {
                  title="Duration in minutes" />
           <span class="item-time-lbl">min</span>
         </div>
-        ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${block.items[block.items.length - 1].id}')" title="Add the next drill as another station">⚡</button>` : ''}
-        <button class="station-unlink-btn" onclick="ungroupBlock('${gid}')" title="Ungroup — run sequentially instead">⛓</button>
+        ${canLink ? `<button class="station-link-btn" onclick="linkWithNext('${block.items[block.items.length - 1].id}')" title="Add the next drill as another station"><i class="ti ti-arrows-join" aria-hidden="true"></i></button>` : ''}
+        <button class="station-unlink-btn" onclick="ungroupBlock('${gid}')" title="Ungroup — run sequentially instead"><i class="ti ti-arrows-split" aria-hidden="true"></i></button>
       </div>
       <div class="station-members">${members}</div>
     </div>`;
@@ -2135,7 +2143,7 @@ function exportPDF() {
   const summaryRows = blocks.map((block, bi) => block.items.map((item, mi) => `
     <tr>
       <td class="pc-summary-num">${bi + 1}${block.groupId ? letters[mi] || (mi + 1) : ''}</td>
-      <td class="pc-summary-name">${esc(item.name)}${block.groupId && mi === 0 ? ' <span class="pc-summary-tag">⚡ Simultaneous</span>' : ''}</td>
+      <td class="pc-summary-name">${esc(item.name)}${block.groupId && mi === 0 ? ' <span class="pc-summary-tag"><i class="ti ti-arrows-join" aria-hidden="true"></i> Simultaneous</span>' : ''}</td>
       <td>${item.type === 'quick' ? 'Quick Drill' : (item.tags || []).join(', ')}</td>
       <td>${mi === 0 ? blockDuration(block) + ' min' : '—'}</td>
     </tr>`).join('')).join('');
@@ -2206,7 +2214,7 @@ function exportPDF() {
     return `
       <div class="pc-station">
         <div class="pc-station-bar">
-          <div class="pc-station-bar-left">${bi + 1}. ⚡ Simultaneous — ${block.items.length} stations</div>
+          <div class="pc-station-bar-left">${bi + 1}. <i class="ti ti-arrows-join" aria-hidden="true"></i> Simultaneous — ${block.items.length} stations</div>
           <div class="pc-station-bar-right">${blockDuration(block)} min</div>
         </div>
         ${block.items.map(drillCard).join('')}
@@ -2393,7 +2401,7 @@ function pvStationCard(block, i) {
       <div class="pv-card-head" style="cursor:default;">
         <div class="pv-card-num">${i + 1}</div>
         <div class="pv-card-title-wrap">
-          <div class="pv-card-title">⚡ Simultaneous — ${block.items.length} stations</div>
+          <div class="pv-card-title"><i class="ti ti-arrows-join" aria-hidden="true"></i> Simultaneous — ${block.items.length} stations</div>
         </div>
         <div class="pv-card-time">${blockDuration(block)}′</div>
       </div>
@@ -2458,7 +2466,7 @@ function pvStationSlide(block, i, total) {
   return `
     <div class="pv-slide" id="pv-s${i}">
       <div class="pv-slide-num">Drill ${i + 1} of ${total}</div>
-      <span class="pv-slide-tag">⚡ simultaneous — ${block.items.length} stations</span>
+      <span class="pv-slide-tag"><i class="ti ti-arrows-join" aria-hidden="true"></i> simultaneous — ${block.items.length} stations</span>
       <div class="pv-sub-pills">${pills}</div>
       <div class="pv-station-detail" id="pv-station-detail-${i}">${pvStationMemberDetail(block.items[0])}</div>
       <div class="pv-timer-val">${blockDuration(block)}′</div>
