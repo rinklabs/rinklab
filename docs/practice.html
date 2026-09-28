@@ -310,6 +310,25 @@
       font-size: 16px; color: var(--muted);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    /* Inline-editable quick drill fields */
+    .item-edit {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      font-family: inherit;
+      outline: none;
+      padding: 1px 4px;
+      margin-left: -4px;
+      text-overflow: ellipsis;
+      transition: border-color .1s, background .1s;
+    }
+    .item-edit:hover { border-color: var(--border); }
+    .item-edit:focus { border-color: var(--accent); background: var(--bg); }
+    .item-edit.item-name { font-size: 20px; font-weight: 700; color: var(--text); }
+    .item-edit.item-desc { font-size: 16px; color: var(--muted); }
+    .item-edit::placeholder { color: var(--muted); opacity: .6; font-weight: 400; }
     .item-tag {
       display: inline-block;
       font-size: 8px; letter-spacing: .08em; text-transform: uppercase;
@@ -1636,6 +1655,59 @@ function renderItemIcon(item) {
     : (item.type === 'diagram' ? '🏒' : '<i class="ti ti-pencil" aria-hidden="true"></i>')}`;
 }
 
+// Name/desc block: editable inputs for quick drills, static text for diagrams
+function renderItemText(item) {
+  const tag = `
+    <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
+      ${item.type === 'diagram' ? 'Diagram' : 'Quick'}
+    </span>`;
+
+  if (item.type === 'quick') {
+    return `
+      <div class="item-info">
+        <input class="item-edit item-name" type="text" maxlength="60"
+               value="${esc(item.name)}" placeholder="Drill name…"
+               oninput="updateQuickField('${item.id}','name',this.value)"
+               onfocus="setItemDraggable(this,false)"
+               onblur="setItemDraggable(this,true);finishQuickName(this,'${item.id}')"
+               onkeydown="if(event.key==='Enter')this.blur()" />
+        <input class="item-edit item-desc" type="text" maxlength="120"
+               value="${esc(item.desc)}" placeholder="Add a description…"
+               oninput="updateQuickField('${item.id}','desc',this.value)"
+               onfocus="setItemDraggable(this,false)"
+               onblur="setItemDraggable(this,true)"
+               onkeydown="if(event.key==='Enter')this.blur()" />
+        ${tag}
+      </div>`;
+  }
+
+  return `
+    <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
+      <div class="item-name">${esc(item.name)}</div>
+      ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
+      ${tag}
+    </div>`;
+}
+
+function updateQuickField(id, field, val) {
+  const item = practiceItems.find(x => x.id === id);
+  if (!item) return;
+  item[field] = val;
+  markDirty();
+}
+
+// A draggable ancestor blocks caret placement/text selection in some browsers
+function setItemDraggable(el, on) {
+  const row = el.closest('[draggable]');
+  if (row) row.draggable = on;
+}
+
+function finishQuickName(el, id) {
+  if (el.value.trim()) return;
+  el.value = 'Untitled drill';
+  updateQuickField(id, 'name', el.value);
+}
+
 function renderSoloRow(item, num, canLink) {
   return `
     <div class="practice-item" id="pi-${item.id}"
@@ -1653,13 +1725,7 @@ function renderSoloRow(item, num, canLink) {
            onclick="openPracticeItemPreview('${item.id}')" title="Preview">
         ${renderItemIcon(item)}
       </div>
-      <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
-        <div class="item-name">${esc(item.name)}</div>
-        ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
-        <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
-          ${item.type === 'diagram' ? 'Diagram' : 'Quick'}
-        </span>
-      </div>
+      ${renderItemText(item)}
       <div class="item-time">
         <input type="number" min="1" max="120" value="${item.duration}"
                onchange="setDuration('${item.id}',this.value)"
@@ -1683,13 +1749,7 @@ function renderStationBlock(block, num, canLink) {
            onclick="openPracticeItemPreview('${item.id}')" title="Preview">
         ${renderItemIcon(item)}
       </div>
-      <div class="item-info" style="cursor:pointer;" onclick="openPracticeItemPreview('${item.id}')" title="Preview">
-        <div class="item-name">${esc(item.name)}</div>
-        ${item.desc ? `<div class="item-desc">${esc(item.desc)}</div>` : ''}
-        <span class="item-tag ${item.type === 'diagram' ? 'tag-diagram' : 'tag-quick'}">
-          ${item.type === 'diagram' ? 'Diagram' : 'Quick'}
-        </span>
-      </div>
+      ${renderItemText(item)}
       <button class="item-remove" onclick="removeItem('${item.id}')" title="Remove">✕</button>
     </div>`).join('');
 
