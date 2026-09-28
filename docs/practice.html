@@ -478,61 +478,126 @@
     .load-item:hover .load-item-del { opacity: 1; }
     .load-item-del:hover { background: #e05a5a22; color: #e05a5a; }
 
-    /* ── Practice Help modal ── */
+    /* ── Practice Help walkthrough modal ── */
     #practice-help-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.7);
+      background: rgba(0,0,0,.72);
       z-index: 2000;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
     #practice-help-modal .modal-box {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 28px 32px;
+      padding: 0;
       width: 100%;
-      max-width: 620px;
+      max-width: 560px;
       max-height: 85vh;
       overflow-y: auto;
       position: relative;
     }
     #practice-help-close {
       position: absolute;
-      top: 14px; right: 18px;
-      background: none; border: none;
+      top: 14px; right: 16px;
+      width: 24px; height: 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
       color: var(--muted);
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-    }
-    #practice-help-close:hover { color: var(--text); }
-    #practice-help-modal h2 {
-      margin: 0 0 16px;
-      font-size: 18px;
-      color: var(--accent);
-    }
-    #practice-help-modal .sub-label {
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 16px 0 6px;
-    }
-    #practice-help-modal .sub-label:first-child { margin-top: 0; }
-    #practice-help-modal table {
-      width: 100%;
-      border-collapse: collapse;
       font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
     }
-    #practice-help-modal table td {
-      padding: 4px 6px;
+    #practice-help-close:hover { border-color: var(--text); color: var(--text); }
+
+    #ph-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px 14px;
       border-bottom: 1px solid var(--border);
-      color: var(--text);
     }
-    #practice-help-modal kbd {
+    #ph-badge {
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      background: rgba(255,107,53,.1);
+      color: var(--accent);
+      border: 1px solid rgba(255,107,53,.3);
+      padding: 2px 9px;
+      border-radius: 3px;
+    }
+    #ph-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* Step track */
+    #ph-track {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px 10px;
+    }
+    .ph-dot {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      flex-shrink: 0;
+      transition: background .2s, box-shadow .2s;
+    }
+    .ph-done    { background: var(--accent); color: #000; }
+    .ph-active  { background: var(--accent); color: #000; box-shadow: 0 0 0 3px rgba(255,107,53,.22); }
+    .ph-pending { background: var(--hover); color: var(--muted); border: 1px solid var(--border); }
+    .ph-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .ph-line.ph-done { background: var(--accent); }
+
+    /* Step body */
+    #ph-body {
+      padding: 6px 20px 22px;
+      min-height: 190px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    #ph-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 10px;
+      background: rgba(255,107,53,.08);
+      border: 1px solid rgba(255,107,53,.25);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #ph-icon-wrap svg { width: 26px; height: 26px; stroke: var(--accent); }
+    #ph-text { flex: 1; min-width: 0; }
+    #ph-eyebrow {
+      display: block;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    #ph-heading {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 9px;
+    }
+    #ph-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
+    #ph-desc p { margin: 0 0 8px; }
+    #ph-desc strong { color: var(--text); }
+    #ph-desc ul { margin: 4px 0 0 18px; }
+    #ph-desc li { margin-bottom: 5px; }
+    #ph-desc kbd {
       background: var(--hover);
       border: 1px solid var(--border);
       border-radius: 3px;
@@ -540,24 +605,49 @@
       font-size: 11px;
       font-family: inherit;
     }
-    #practice-help-modal .help-cols {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 24px;
-    }
-    #practice-help-modal .help-footer {
-      margin-top: 22px;
-      padding-top: 16px;
+
+    /* Footer */
+    #ph-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
       border-top: 1px solid var(--border);
-      text-align: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    #practice-help-modal .help-footer a {
-      color: var(--accent);
-      font-size: 13px;
-      text-decoration: underline;
+    #ph-footer a { color: var(--accent); font-size: 11px; text-decoration: underline; white-space: nowrap; }
+    #ph-counter { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    #ph-btns { display: flex; gap: 8px; }
+    #ph-back {
+      padding: 7px 15px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
     }
-    @media (max-width: 680px) {
-      #practice-help-modal .help-cols { grid-template-columns: 1fr; }
+    #ph-back:hover { border-color: var(--text); color: var(--text); }
+    #ph-back:disabled { opacity: .35; cursor: not-allowed; }
+    #ph-next {
+      padding: 7px 16px;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      color: #000;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #ph-next:hover { background: #ff8559; border-color: #ff8559; }
+
+    @media (max-width: 480px) {
+      #ph-body { flex-direction: column; }
+      #ph-footer { justify-content: center; text-align: center; }
     }
 
     /* Mobile sidebar toggle */
@@ -1023,7 +1113,7 @@
 <body>
 
   <div id="top-bar">
-    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle drill library"><i class="ti ti-clipboard-list" aria-hidden="true"></i></button>
+    <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle drill load"><i class="ti ti-clipboard-list" aria-hidden="true"></i></button>
     <button class="btn btn-outline" id="btn-mobile-menu" onclick="toggleMobileMenu(event)" aria-label="More actions"><i class="ti ti-dots-vertical" aria-hidden="true"></i></button>
 
     <a href="index.html" class="btn btn-lab">← LAB</a>
@@ -1035,7 +1125,7 @@
       </svg>
       CANVAS
     </a>
-    <div id="logo">⬡ PRACTICE LAB</div>
+    <!-- <div id="logo">⬡ PRACTICE LAB</div> -->
 
     <div id="top-bar-row2">
       <input id="practice-name" type="text" placeholder="Untitled Practice…" maxlength="80" />
@@ -1043,7 +1133,7 @@
 
     <div id="top-actions">
       <button class="btn btn-primary" onclick="savePractice()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save</button>
-      <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()"><i class="ti ti-folder" aria-hidden="true"></i> Library</button>
+      <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()"><i class="ti ti-folder" aria-hidden="true"></i> Load</button>
       <button class="btn btn-outline" id="btn-pdf-top" onclick="exportPDF()">PDF</button>
       <button class="btn btn-outline" id="btn-share-top" onclick="openShareModal()">Share</button>
       <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)"><i class="ti ti-eye" aria-hidden="true"></i> View</button>
@@ -1196,53 +1286,38 @@
   <div id="practice-help-modal">
     <div class="modal-box">
       <button id="practice-help-close" onclick="closeHelpModal()">✕</button>
-      <h2>Practice Lab Quick Guide</h2>
 
-      <div class="help-cols">
-        <div>
-          <p class="sub-label">Adding Drills</p>
-          <table>
-            <tr><td>Click or drag a library drill onto the list</td></tr>
-            <tr><td>Use <b>Quick Drill</b> for non-diagram items (water break, scrimmage, talk)</td></tr>
-          </table>
+      <div id="ph-header">
+        <span id="ph-badge">Guide</span>
+        <span id="ph-title">Practice Lab Walkthrough</span>
+      </div>
 
-          <p class="sub-label">Reordering</p>
-          <table>
-            <tr><td>Drag the ⠿ handle to reorder drills</td></tr>
-            <tr><td>Edit the minutes field on any drill to adjust its time</td></tr>
-          </table>
+      <div id="ph-track">
+        <div class="ph-dot ph-active"  id="ph-dot-0">1</div>
+        <div class="ph-line"           id="ph-line-0"></div>
+        <div class="ph-dot ph-pending" id="ph-dot-1">2</div>
+        <div class="ph-line"           id="ph-line-1"></div>
+        <div class="ph-dot ph-pending" id="ph-dot-2">3</div>
+        <div class="ph-line"           id="ph-line-2"></div>
+        <div class="ph-dot ph-pending" id="ph-dot-3">4</div>
+      </div>
 
-          <p class="sub-label">Simultaneous Stations</p>
-          <table>
-            <tr><td><i class="ti ti-arrows-join" aria-hidden="true"></i> on a drill links it with the next as one station block</td></tr>
-            <tr><td>A station block shares one duration, counted once in the total</td></tr>
-            <tr><td><i class="ti ti-arrows-split" aria-hidden="true"></i> on a block splits it back into sequential drills</td></tr>
-          </table>
-        </div>
-
-        <div>
-          <p class="sub-label">Saving &amp; Teams</p>
-          <table>
-            <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd> Save practice</td></tr>
-            <tr><td>Pick a team in "Team" to share it, or leave as private</td></tr>
-            <tr><td><i class="ti ti-folder" aria-hidden="true"></i> Library loads a saved practice (scoped to the selected team)</td></tr>
-          </table>
-
-          <p class="sub-label">Sharing &amp; Export</p>
-          <table>
-            <tr><td>Share generates a link that opens this exact plan</td></tr>
-            <tr><td>PDF exports a printable plan with drill diagrams</td></tr>
-          </table>
+      <div id="ph-body">
+        <div id="ph-icon-wrap"></div>
+        <div id="ph-text">
+          <span id="ph-eyebrow"></span>
+          <span id="ph-heading"></span>
+          <div id="ph-desc"></div>
         </div>
       </div>
 
-      <p class="sub-label">Tip</p>
-      <p style="font-size:12px;color:var(--muted);line-height:1.6;">
-        Set your <b>Target</b> duration at the top — the timeline bar at the bottom turns orange once your drills run over it.
-      </p>
-
-      <div class="help-footer">
-        <a href="tutorial.html">Open the full tutorial →</a>
+      <div id="ph-footer">
+        <a href="tutorial.html">Full tutorial →</a>
+        <span id="ph-counter">Step 1 of 4</span>
+        <div id="ph-btns">
+          <button id="ph-back" onclick="phBack()">← Back</button>
+          <button id="ph-next" onclick="phNext()">Next →</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2577,16 +2652,127 @@ document.getElementById('load-modal').addEventListener('click', function(e) {
   if (e.target === this) closeLoadModal();
 });
 
-function openHelpModal()  { document.getElementById('practice-help-modal').style.display = 'flex'; }
+// ─────────────────────────────────────────────
+//  Practice Help — step-by-step walkthrough
+//  (same track/step pattern as the home page Quick Start)
+// ─────────────────────────────────────────────
+const PH_STEPS = [
+  {
+    eyebrow: 'Step 1',
+    heading: 'Add Drills to Your Plan',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/>
+      <line x1="18" y1="14" x2="18" y2="20"/><line x1="15" y1="17" x2="21" y2="17"/>
+    </svg>`,
+    desc: `
+      <p>Build your plan from two places:</p>
+      <ul>
+        <li>Click or <b>drag</b> a drill from the <b>Drill Library</b> on the left (or <i class="ti ti-clipboard-list" aria-hidden="true"></i> on mobile) onto the practice list.</li>
+        <li>Use <b>Quick Drill</b> at the top of the sidebar for anything without a diagram — water breaks, scrimmages, chalk talks.</li>
+      </ul>
+      <p>Set the <b>Target</b> minutes at the top — the timeline bar at the bottom turns orange once your drills run over it.</p>`
+  },
+  {
+    eyebrow: 'Step 2',
+    heading: 'Edit &amp; Reorder',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h5M4 12h5M4 17h5"/><path d="M13 19l1-4 7-7-3-3-7 7-1 4Z"/>
+    </svg>`,
+    desc: `
+      <p>Once a drill is in the plan:</p>
+      <ul>
+        <li>Drag the <b>⠿</b> handle to reorder it.</li>
+        <li>Edit the minutes box on any row to adjust its duration.</li>
+        <li>Click <b>✕</b> to remove a drill.</li>
+        <li>Use the link icon to run two or more drills as simultaneous stations sharing one duration.</li>
+      </ul>`
+  },
+  {
+    eyebrow: 'Step 3',
+    heading: 'Save to a Team',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/>
+      <circle cx="18" cy="9" r="2.4"/><path d="M15.2 20c.3-2 1.7-3.6 3.6-4"/>
+    </svg>`,
+    desc: `
+      <p>At the top of the page next to <b>Save</b>, pick a team from the <b>Team</b> dropdown before saving:</p>
+      <ul>
+        <li>Choose <b>None (private)</b> to keep the plan just for you.</li>
+        <li>Choose a team to share it with every coach on that team.</li>
+      </ul>
+      <p>Press <kbd>Ctrl</kbd>+<kbd>S</kbd> (or <kbd>⌘</kbd>+<kbd>S</kbd>) to save at any time.</p>
+      <p>Not on a team yet? Go to the home page and open <b>Manage Teams and Account</b>.</p>
+      <p>Once saved, any coaches on that team can load it from the <b>Load</b> tab.</p>`
+  },
+  {
+    eyebrow: 'Step 4',
+    heading: 'Load From Your Teams List',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+      <circle cx="16" cy="14" r="2.4"/><line x1="18" y1="16" x2="20.5" y2="18.5"/>
+    </svg>`,
+    desc: `
+      <p>The <b>Load</b> only shows practices saved to whichever team is currently selected in the <b>Team</b> dropdown at the top.</p>
+      <ul>
+        <li>Switch the <b>Team</b> dropdown to the team you saved the plan under.</li>
+        <li>Click <b>Load</b> — it lists every saved practice for that team (or your own private plans if "None" is selected).</li>
+        <li>Click a plan in the list to load it.</li>
+      </ul>
+      <p>Not on that team yet, or need its invite code? Go to the home page and open <b>Manage Teams and Account</b>.</p>`
+  },
+];
+
+let phStep = 0;
+
+function phRender() {
+  const step = PH_STEPS[phStep];
+  document.getElementById('ph-icon-wrap').innerHTML = step.icon;
+  document.getElementById('ph-eyebrow').textContent = step.eyebrow;
+  document.getElementById('ph-heading').innerHTML   = step.heading;
+  document.getElementById('ph-desc').innerHTML      = step.desc;
+  document.getElementById('ph-counter').textContent = `Step ${phStep + 1} of ${PH_STEPS.length}`;
+
+  PH_STEPS.forEach((_, i) => {
+    const dot  = document.getElementById('ph-dot-' + i);
+    if (dot) dot.className = 'ph-dot ' + (i < phStep ? 'ph-done' : i === phStep ? 'ph-active' : 'ph-pending');
+    const line = document.getElementById('ph-line-' + i);
+    if (line) line.className = 'ph-line' + (i < phStep ? ' ph-done' : '');
+  });
+
+  document.getElementById('ph-back').disabled = phStep === 0;
+  document.getElementById('ph-next').textContent = phStep === PH_STEPS.length - 1 ? 'Done ✓' : 'Next →';
+}
+
+function phBack() {
+  if (phStep === 0) return;
+  phStep--;
+  phRender();
+}
+
+function phNext() {
+  if (phStep === PH_STEPS.length - 1) { closeHelpModal(); return; }
+  phStep++;
+  phRender();
+}
+
+function openHelpModal() {
+  phStep = 0;
+  phRender();
+  document.getElementById('practice-help-modal').style.display = 'flex';
+}
 function closeHelpModal() { document.getElementById('practice-help-modal').style.display = 'none'; }
 
 document.getElementById('practice-help-modal').addEventListener('click', function(e) {
   if (e.target === this) closeHelpModal();
 });
 document.addEventListener('keydown', e => {
-  if (e.key !== 'Escape') return;
-  if (document.getElementById('practice-help-modal').style.display === 'flex') closeHelpModal();
-  else if (document.getElementById('view-overlay').style.display === 'flex') pvClose();
+  if (document.getElementById('practice-help-modal').style.display !== 'flex') {
+    if (e.key === 'Escape' && document.getElementById('view-overlay').style.display === 'flex') pvClose();
+    return;
+  }
+  if (e.key === 'Escape')     closeHelpModal();
+  else if (e.key === 'ArrowRight') phNext();
+  else if (e.key === 'ArrowLeft')  phBack();
 });
 document.getElementById('qd-desc').addEventListener('keydown', e => {
   if (e.key === 'Enter') addQuickDrill();
