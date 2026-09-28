@@ -1151,6 +1151,7 @@
     </div>
 
     <div id="top-actions">
+      <button class="btn btn-outline" id="btn-new" onclick="newPractice()" title="Start a new blank practice"><i class="ti ti-file-plus" aria-hidden="true"></i> New</button>
       <button class="btn btn-primary" onclick="savePractice()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save</button>
       <button class="btn btn-primary" id="btn-library-top" onclick="openLoadModal()"><i class="ti ti-folder" aria-hidden="true"></i> Load</button>
       <button class="btn btn-outline" id="btn-pdf-top" onclick="exportPDF()">PDF</button>
@@ -2184,6 +2185,24 @@ function formatLastEdit(savedAt, coach) {
     hour: 'numeric', minute: '2-digit',
   });
   return `Last edited ${when}` + (coach ? ` by ${coach}` : '');
+}
+
+function newPractice() {
+  if (isDirty && !confirm('Start a new practice? Unsaved changes to the current one will be lost.')) return;
+
+  document.getElementById('practice-name').value   = '';
+  document.getElementById('practice-date').value   = new Date().toISOString().slice(0, 10);
+  document.getElementById('practice-team').value   = '';
+  document.getElementById('target-duration').value = 60;
+  practiceItems     = [];
+  currentPracticeId = null;
+  pvStep            = 0;
+  renderList();
+  isDirty = false;
+
+  // Drop id/plan/view/step so a reload doesn't bring the old practice back
+  history.replaceState(null, '', location.pathname);
+  showToast('New practice started');
 }
 
 function closeLoadModal() { document.getElementById('load-modal').style.display = 'none'; }
