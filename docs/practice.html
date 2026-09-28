@@ -2165,6 +2165,7 @@ async function openLoadModal() {
           <div class="load-item-info">
             <div class="load-item-name">${esc(p.name)}</div>
             <div class="load-item-meta">${meta}</div>
+            <div class="load-item-meta">${esc(formatLastEdit(p.saved_at, p.coach))}</div>
           </div>
           ${delBtn}
         </div>`;
@@ -2172,6 +2173,17 @@ async function openLoadModal() {
   } catch (err) {
     el.innerHTML = `<div style="padding:20px;text-align:center;font-size:10px;color:#e05a5a">Could not load: ${err.message}</div>`;
   }
+}
+
+function formatLastEdit(savedAt, coach) {
+  if (!savedAt) return '';
+  const d = new Date(savedAt);
+  if (isNaN(d)) return '';
+  const when = d.toLocaleString([], {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit',
+  });
+  return `Last edited ${when}` + (coach ? ` by ${coach}` : '');
 }
 
 function closeLoadModal() { document.getElementById('load-modal').style.display = 'none'; }
