@@ -669,6 +669,11 @@
       #ph-footer { justify-content: center; text-align: center; }
     }
 
+    /* Touch devices: no hover, so always show a larger delete button */
+    @media (hover: none) {
+      .load-item-del { opacity: 1; width: 32px; height: 32px; font-size: 14px; }
+    }
+
     /* Mobile sidebar toggle */
     #sidebar-toggle {
       display: none;
@@ -1342,6 +1347,32 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="delete-modal" style="display:none">
+    <div class="modal" style="width:360px;">
+      <h3 style="color:#e05a5a;">Delete Practice?</h3>
+      <p>
+        Are you sure you want to delete <strong id="delete-modal-name" style="color:var(--text);"></strong>?
+        This action is irreversible.
+      </p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDeletePractice()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="team-change-modal" style="display:none">
+    <div class="modal" style="width:420px;">
+      <h3>Change Practice Team?</h3>
+      <p id="team-change-msg"></p>
+      <div class="modal-footer" style="flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="closeTeamChangeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmTeamChange(true)">Save a copy</button>
+        <button class="btn btn-danger" onclick="confirmTeamChange(false)">Move</button>
+      </div>
+    </div>
+  </div>
+
   <div id="print-container"></div>
 
   <!-- ── Practice View overlay: read-only Cards / On-Ice mode ────────── -->
@@ -1418,6 +1449,9 @@ function markDirty() { isDirty = true; }
 // the DB — it's what lets the View overlay build a short, reload-proof
 // `?id=` link instead of a long `?plan=` one. Stays null for an unsaved plan.
 let currentPracticeId = null;
+// Team the current practice is stored under (null = private); used to keep the
+// "Save to team" dropdown in step with whatever practice is open.
+let currentPracticeTeamId = null;
 let pvStep = 0;
 
 window.addEventListener('beforeunload', e => {
@@ -1474,6 +1508,15 @@ async function initTeamSelector() {
       else localStorage.removeItem('drillLab:teamId');
     });
   }
+  syncTeamSelectorToPractice();
+}
+
+// Point the dropdown at the open practice's team (only if the user is still a member)
+function syncTeamSelectorToPractice() {
+  if (!currentPracticeId) return;
+  const sel  = document.getElementById('save-team-selector');
+  const want = currentPracticeTeamId ? String(currentPracticeTeamId) : '';
+  if ([...sel.options].some(o => o.value === want)) sel.value = want;
 }
 
 // ─────────────────────────────────────────────
@@ -2078,10 +2121,74 @@ async function savePractice() {
   await performSave(session);
 }
 
+function slugify(name) {
+  return (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'untitled';
+}
+
 async function performSave(session) {
+  const data   = getPracticeData();
+  const teamId = document.getElementById('save-team-selector').value || null;
+
+  // Would this save overwrite an existing practice and change its team (or make it private)?
+  const { data: existing } = await _supabase.from('practice')
+    .select('id, team_id')
+    .eq('user_id', session.user.id).eq('slug', slugify(data.name))
+    .maybeSingle();
+
+  if (existing && String(existing.team_id ?? '') !== String(teamId ?? '')) {
+    openTeamChangeModal(session, data.name, existing.team_id, teamId);
+    return;
+  }
+  await writePractice(session);
+}
+
+// ── Team-change confirmation ──────────────────────────────────
+let pendingTeamChange = null;
+
+function openTeamChangeModal(session, name, fromId, toId) {
+  const sel = document.getElementById('save-team-selector');
+  const label = id => {
+    if (!id) return 'your private practices';
+    const opt = [...sel.options].find(o => o.value === String(id));
+    return opt ? `team "${opt.textContent}"` : 'another team';
+  };
+  const from = label(fromId), to = label(toId);
+  document.getElementById('team-change-msg').textContent =
+    `"${name}" is currently in ${from}. You've selected ${to}. ` +
+    `Move it to change where it's saved (it will disappear from ${from}), ` +
+    `or save a copy to ${to} and leave the original untouched.`;
+  pendingTeamChange = { session, name };
+  document.getElementById('team-change-modal').style.display = 'flex';
+}
+
+function closeTeamChangeModal() {
+  document.getElementById('team-change-modal').style.display = 'none';
+  pendingTeamChange = null;
+}
+
+async function confirmTeamChange(asCopy) {
+  if (!pendingTeamChange) return;
+  const { session, name } = pendingTeamChange;
+  closeTeamChangeModal();
+  await writePractice(session, asCopy ? await uniqueCopyName(session, name) : null);
+}
+
+async function uniqueCopyName(session, name) {
+  let candidate = `${name} (copy)`, n = 2;
+  while (n < 100) {
+    const { data } = await _supabase.from('practice').select('id')
+      .eq('user_id', session.user.id).eq('slug', slugify(candidate)).maybeSingle();
+    if (!data) break;
+    candidate = `${name} (copy ${n++})`;
+  }
+  return candidate;
+}
+
+async function writePractice(session, nameOverride = null) {
   const coach  = getCoach();
   const data   = getPracticeData();
-  const slug   = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'untitled';
+  if (nameOverride) data.name = nameOverride;
+  const slug   = slugify(data.name);
   const teamId = document.getElementById('save-team-selector').value || null;
 
   const { data: saved, error } = await _supabase.from('practice').upsert({
@@ -2102,6 +2209,8 @@ async function performSave(session) {
   } else {
     isDirty = false;
     currentPracticeId = saved?.id ?? currentPracticeId;
+    currentPracticeTeamId = teamId ? parseInt(teamId) : null;
+    if (nameOverride) document.getElementById('practice-name').value = nameOverride;
     showToast(teamId ? '✓ Practice saved & shared with team' : '✓ Practice saved (private)');
   }
 }
@@ -2196,6 +2305,7 @@ function newPractice() {
   document.getElementById('target-duration').value = 60;
   practiceItems     = [];
   currentPracticeId = null;
+  currentPracticeTeamId = null;
   pvStep            = 0;
   renderList();
   isDirty = false;
@@ -2217,6 +2327,8 @@ async function loadPractice(id) {
     document.getElementById('target-duration').value = data.target || 60;
     practiceItems = JSON.parse(data.items || '[]');
     currentPracticeId = data.id;
+    currentPracticeTeamId = data.team_id ?? null;
+    syncTeamSelectorToPractice();
     renderList();
     closeLoadModal();
     isDirty = false;
@@ -2226,10 +2338,26 @@ async function loadPractice(id) {
   }
 }
 
-async function deletePractice(id, btn) {
+let pendingDelete = null;
+
+function deletePractice(id, btn) {
+  pendingDelete = { id, btn };
+  document.getElementById('delete-modal-name').textContent =
+    btn.closest('.load-item').querySelector('.load-item-name').textContent;
+  document.getElementById('delete-modal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').style.display = 'none';
+  pendingDelete = null;
+}
+
+async function confirmDeletePractice() {
+  if (!pendingDelete) return;
+  const { id, btn } = pendingDelete;
+  closeDeleteModal();
   const { data: { session } } = await _supabase.auth.getSession();
   if (!session) return;
-  if (!confirm('Delete this practice?')) return;
   try {
     const { error } = await _supabase.from('practice').delete()
       .eq('id', id).eq('user_id', session.user.id);
@@ -2741,6 +2869,12 @@ document.getElementById('share-modal').addEventListener('click', function(e) {
 });
 document.getElementById('load-modal').addEventListener('click', function(e) {
   if (e.target === this) closeLoadModal();
+});
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+document.getElementById('team-change-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeTeamChangeModal();
 });
 
 // ─────────────────────────────────────────────
