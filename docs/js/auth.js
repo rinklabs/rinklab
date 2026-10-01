@@ -205,39 +205,111 @@ async function loadTeamState(session) {
 
 const openMembers = new Set();   // team ids whose member list is expanded
 
+// Styles for the team cards (kept here so index.html needs no changes)
+(function injectTeamStyles() {
+  const css = `
+    .tm-card { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+    .tm-head { display:flex; align-items:center; gap:8px; }
+    .tm-name { font-size:15px; font-weight:700; color:var(--text); }
+    .tm-badge { font-size:10px; letter-spacing:.06em; text-transform:uppercase; padding:1px 6px; border-radius:3px;
+                border:1px solid var(--border); color:var(--muted); }
+    .tm-badge.owner { color:var(--accent); border-color:var(--accent); }
+    .tm-count { font-size:12px; color:var(--muted); margin-left:2px; }
+    .tm-code-row { display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:var(--muted); }
+    .tm-footer { display:flex; align-items:center; gap:14px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+    .tm-link { font-size:12px; color:var(--accent); background:none; border:none; cursor:pointer; padding:0; text-decoration:underline; }
+    .tm-link.muted { color:var(--muted); }
+    .tm-menu-wrap { position:relative; margin-left:auto; }
+    .tm-menu-btn { background:none; border:1px solid var(--border); border-radius:4px; color:var(--muted);
+                   cursor:pointer; font-size:16px; line-height:1; padding:2px 8px; }
+    .tm-menu-btn:hover { color:var(--text); border-color:#666; }
+    .tm-menu { display:none; position:absolute; right:0; bottom:calc(100% + 4px); min-width:150px; z-index:10;
+               background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:4px;
+               box-shadow:0 4px 15px rgba(0,0,0,.5); flex-direction:column; }
+    .tm-menu.open { display:flex; }
+    .tm-menu button { background:none; border:none; text-align:left; font-size:13px; color:var(--text);
+                      padding:6px 10px; border-radius:4px; cursor:pointer; }
+    .tm-menu button:hover { background:var(--hover); }
+    .tm-menu hr { border:0; height:1px; background:var(--border); margin:4px 0; }
+    .tm-menu button.danger { color:#f38ba8; }
+  `;
+  const el = document.createElement('style');
+  el.textContent = css;
+  document.head.appendChild(el);
+})();
+
+function toggleTeamMenu(e, teamId) {
+  e.stopPropagation();
+  const menu = document.getElementById('tm-menu-' + teamId);
+  const wasOpen = menu.classList.contains('open');
+  closeTeamMenus();
+  if (!wasOpen) menu.classList.add('open');
+}
+function closeTeamMenus() {
+  document.querySelectorAll('.tm-menu.open').forEach(m => m.classList.remove('open'));
+}
+document.addEventListener('click', closeTeamMenus);
+
 function showTeamInfo(teams, userId) {
   document.getElementById('team-prompt').style.display   = 'none';
   document.getElementById('team-add-form').style.display = 'none';
   const info = document.getElementById('team-info');
   info.style.display = 'flex';
 
-  const linkBtn = (color) =>
-    `font-size:11px;color:${color};background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;`;
-
   const chipsEl = document.getElementById('team-chips');
   chipsEl.innerHTML = teams.map(t => {
-    const isOwner   = t.owner_id === userId;
-    const actionBtn = isOwner
-      ? `<button onclick="renameTeam('${t.id}','${esc(t.name)}')" style="${linkBtn('var(--accent)')}">Rename</button>
-         <button onclick="regenerateCode('${t.id}')" style="${linkBtn('var(--accent)')}" title="Invalidate the old code and create a new one">New code</button>
-         <button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="${linkBtn('#f38ba8')}">Disband</button>`
-      : `<button onclick="leaveTeam('${t.id}')" style="${linkBtn('var(--muted)')}">Leave</button>`;
+    const isOwner = t.owner_id === userId;
+    const data    = `data-id="${esc(t.id)}" data-name="${esc(t.name)}"`;
+
+    const footerRight = isOwner
+      ? `<div class="tm-menu-wrap">
+           <button class="tm-menu-btn" title="Team actions" onclick="toggleTeamMenu(event,'${esc(t.id)}')">⋯</button>
+           <div class="tm-menu" id="tm-menu-${esc(t.id)}">
+             <button ${data} onclick="renameTeam(this.dataset.id, this.dataset.name)">Rename team</button>
+             <button ${data} onclick="regenerateCode(this.dataset.id)">New invite code</button>
+             <hr>
+             <button class="danger" ${data} onclick="disbandTeam(this.dataset.id, this.dataset.name)">Disband team</button>
+           </div>
+         </div>`
+      : `<button class="tm-link muted" style="margin-left:auto;" onclick="leaveTeam('${esc(t.id)}')">Leave team</button>`;
+
     return `
       <div style="flex-basis:100%;">
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <strong style="font-size:13px;">${esc(t.name)}</strong>
-          <span class="team-code-display" style="font-size:12px;" title="Click to copy" onclick="copyTeamCode('${t.code}')">${t.code}</span>
-          <button onclick="toggleMembers('${t.id}', ${isOwner})" style="${linkBtn('var(--accent)')}">Members</button>
-          ${actionBtn}
+        <div class="tm-card">
+          <div class="tm-head">
+            <span class="tm-name">${esc(t.name)}</span>
+            <span class="tm-badge ${isOwner ? 'owner' : ''}">${isOwner ? 'Owner' : 'Member'}</span>
+            <span class="tm-count" id="count-${esc(t.id)}"></span>
+          </div>
+          <div class="tm-code-row">
+            Invite code
+            <span class="team-code-display" style="font-size:12px;" title="Click to copy" onclick="copyTeamCode('${esc(t.code)}')">${esc(t.code)}</span>
+          </div>
+          <div class="tm-footer">
+            <button class="tm-link" onclick="toggleMembers('${esc(t.id)}', ${isOwner})">Members</button>
+            ${footerRight}
+          </div>
+          <div id="members-${esc(t.id)}" style="display:none;margin-top:8px;"></div>
         </div>
-        <div id="members-${t.id}" style="display:none;margin:6px 0 0 12px;"></div>
       </div>`;
   }).join('');
 
-  // Re-open any member lists that were expanded before the re-render
+  // Fill in member counts, and re-open any member lists that were expanded
   teams.forEach(t => {
-    if (openMembers.has(String(t.id))) loadMembers(t.id, t.owner_id === userId);
+    const isOwner = t.owner_id === userId;
+    if (openMembers.has(String(t.id))) loadMembers(t.id, isOwner);
+    else updateMemberCount(t.id);
   });
+}
+
+async function updateMemberCount(teamId) {
+  const { data } = await _supabase.rpc('get_team_members', { p_team_id: teamId });
+  setMemberCount(teamId, data);
+}
+function setMemberCount(teamId, members) {
+  const el = document.getElementById('count-' + teamId);
+  if (!el || !members) return;
+  el.textContent = `· ${members.length} ${members.length === 1 ? 'coach' : 'coaches'}`;
 }
 
 // ── Members list ─────────────────────────────────────────────
@@ -266,6 +338,7 @@ async function loadMembers(teamId, isOwner) {
     return;
   }
 
+  setMemberCount(teamId, data);
   el.innerHTML = (data || []).map(m => {
     const isMe  = m.user_id === session.user.id;
     const badge = m.is_owner
