@@ -203,26 +203,104 @@ async function loadTeamState(session) {
   teams.length === 0 ? showTeamPrompt() : showTeamInfo(teams, session.user.id);
 }
 
+const openMembers = new Set();   // team ids whose member list is expanded
+
 function showTeamInfo(teams, userId) {
   document.getElementById('team-prompt').style.display   = 'none';
   document.getElementById('team-add-form').style.display = 'none';
   const info = document.getElementById('team-info');
   info.style.display = 'flex';
 
+  const linkBtn = (color) =>
+    `font-size:11px;color:${color};background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;`;
+
   const chipsEl = document.getElementById('team-chips');
   chipsEl.innerHTML = teams.map(t => {
     const isOwner   = t.owner_id === userId;
     const actionBtn = isOwner
-      ? `<button onclick="renameTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Rename</button>
-         <button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="font-size:11px;color:#f38ba8;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Disband</button>`
-      : `<button onclick="leaveTeam('${t.id}')" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">Leave</button>`;
+      ? `<button onclick="renameTeam('${t.id}','${esc(t.name)}')" style="${linkBtn('var(--accent)')}">Rename</button>
+         <button onclick="regenerateCode('${t.id}')" style="${linkBtn('var(--accent)')}" title="Invalidate the old code and create a new one">New code</button>
+         <button onclick="disbandTeam('${t.id}','${esc(t.name)}')" style="${linkBtn('#f38ba8')}">Disband</button>`
+      : `<button onclick="leaveTeam('${t.id}')" style="${linkBtn('var(--muted)')}">Leave</button>`;
     return `
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:10px;">
-        <strong style="font-size:13px;">${esc(t.name)}</strong>
-        <span class="team-code-display" style="font-size:12px;" title="Click to copy" onclick="copyTeamCode('${t.code}')">${t.code}</span>
-        ${actionBtn}
+      <div style="flex-basis:100%;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <strong style="font-size:13px;">${esc(t.name)}</strong>
+          <span class="team-code-display" style="font-size:12px;" title="Click to copy" onclick="copyTeamCode('${t.code}')">${t.code}</span>
+          <button onclick="toggleMembers('${t.id}', ${isOwner})" style="${linkBtn('var(--accent)')}">Members</button>
+          ${actionBtn}
+        </div>
+        <div id="members-${t.id}" style="display:none;margin:6px 0 0 12px;"></div>
       </div>`;
   }).join('');
+
+  // Re-open any member lists that were expanded before the re-render
+  teams.forEach(t => {
+    if (openMembers.has(String(t.id))) loadMembers(t.id, t.owner_id === userId);
+  });
+}
+
+// ── Members list ─────────────────────────────────────────────
+function toggleMembers(teamId, isOwner) {
+  const el = document.getElementById('members-' + teamId);
+  if (!el) return;
+  if (el.style.display !== 'none') {
+    el.style.display = 'none';
+    openMembers.delete(String(teamId));
+    return;
+  }
+  openMembers.add(String(teamId));
+  loadMembers(teamId, isOwner);
+}
+
+async function loadMembers(teamId, isOwner) {
+  const el = document.getElementById('members-' + teamId);
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `<div style="font-size:12px;color:var(--muted);">Loading…</div>`;
+
+  const { data: { session } } = await _supabase.auth.getSession();
+  const { data, error } = await _supabase.rpc('get_team_members', { p_team_id: teamId });
+  if (error) {
+    el.innerHTML = `<div style="font-size:12px;color:#f38ba8;">Could not load members: ${esc(error.message)}</div>`;
+    return;
+  }
+
+  el.innerHTML = (data || []).map(m => {
+    const isMe  = m.user_id === session.user.id;
+    const badge = m.is_owner
+      ? `<span style="font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 5px;">Owner</span>`
+      : '';
+    const you = isMe ? `<span style="font-size:11px;color:var(--muted);">(you)</span>` : '';
+    const kick = (isOwner && !m.is_owner)
+      ? `<button data-team="${esc(teamId)}" data-user="${esc(m.user_id)}" data-name="${esc(m.display_name)}"
+                 onclick="removeMember(this)"
+                 style="font-size:11px;color:#f38ba8;background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;margin-left:auto;">Remove</button>`
+      : '';
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;border-bottom:1px solid var(--border);">
+        <span>${esc(m.display_name)}</span>${badge}${you}${kick}
+      </div>`;
+  }).join('') || `<div style="font-size:12px;color:var(--muted);">No members found.</div>`;
+}
+
+async function removeMember(btn) {
+  const { team, user, name } = btn.dataset;
+  if (!confirm(`Remove ${name} from this team? They will need the team code to rejoin.`)) return;
+  const { error } = await _supabase.rpc('kick_team_member', { p_team_id: team, p_user_id: user });
+  if (error) { alert('Could not remove member: ' + error.message); return; }
+  await loadMembers(team, true);
+}
+
+// ── New invite code (owner only) ─────────────────────────────
+async function regenerateCode(teamId) {
+  if (!confirm('Create a new team code? The old code will stop working immediately. Existing members are not affected.')) return;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await _supabase.from('team').update({ code: randomCode() }).eq('id', teamId);
+    if (!error) { await refreshTeams(); return; }
+    if (error.code !== '23505') { alert('Could not create new code: ' + error.message); return; }  // retry only on duplicate code
+  }
+  alert('Could not create a unique code — please try again.');
 }
 
 function copyTeamCode(code) {
