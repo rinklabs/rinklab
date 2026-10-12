@@ -993,7 +993,7 @@
       }
 
       #sidebar-toggle { display: flex; }
-      #btn-library-top, #btn-pdf-top, #btn-share-top, #btn-view, #btn-help-top { display: none; }
+      #btn-new, #btn-pdf-top, #btn-share-top, #btn-view, #btn-help-top { display: none; }
       #btn-mobile-menu { display: flex; }
 
       #pg-sidebar {
@@ -1187,9 +1187,9 @@
     <button class="tool-btn flyout-item" onclick="pvOpen('onice')"><i class="ti ti-presentation" aria-hidden="true"></i> <span>On-Ice</span></button>
   </div>
 
-  <!-- Mobile-only "more actions" menu: houses everything but Save + team select -->
+  <!-- Mobile-only "more actions" menu: houses everything but Save, Load + team select -->
   <div class="tool-flyout" id="mobile-actions-menu">
-    <button class="tool-btn flyout-item" onclick="closeMobileMenu();openLoadModal();"><i class="ti ti-folder" aria-hidden="true"></i> <span>Load</span></button>
+    <button class="tool-btn flyout-item" onclick="closeMobileMenu();newPractice();"><i class="ti ti-file-plus" aria-hidden="true"></i> <span>New</span></button>
     <button class="tool-btn flyout-item" onclick="closeMobileMenu();exportPDF();"><i class="ti ti-download" aria-hidden="true"></i> <span>PDF</span></button>
     <div class="flyout-submenu-label"><i class="ti ti-eye" aria-hidden="true"></i> View</div>
     <button class="tool-btn flyout-item flyout-sub" onclick="closeMobileMenu();pvOpen('cards');"><i class="ti ti-layout-cards" aria-hidden="true"></i> <span>Cards</span></button>
