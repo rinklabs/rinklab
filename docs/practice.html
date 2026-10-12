@@ -1246,6 +1246,8 @@
         </div>
       </div>
 
+      <div id="team-hint" style="display:none;padding:8px 14px;font-size:12px;background:rgba(255,107,53,.12);border-bottom:1px solid var(--accent);color:var(--text);"></div>
+
       <div id="pg-list-wrap">
         <div id="practice-list"></div>
         <div id="practice-empty">
@@ -1501,15 +1503,31 @@ async function initTeamSelector() {
       select.appendChild(opt);
     });
     const stored = localStorage.getItem('drillLab:teamId');
-    if (stored && teams.find(t => t.id === stored)) {
+    if (stored && teams.find(t => String(t.id) === stored)) {
       select.value = stored;
+    } else if (teams.length === 1) {
+      // one team: preselect it so nobody saves to "private" by accident
+      select.value = String(teams[0].id);
+      localStorage.setItem('drillLab:teamId', select.value);
     }
     select.addEventListener('change', () => {
       if (select.value) localStorage.setItem('drillLab:teamId', select.value);
       else localStorage.removeItem('drillLab:teamId');
+      updateTeamHint();
     });
   }
   syncTeamSelectorToPractice();
+  updateTeamHint();
+}
+
+// Warn when a coach who belongs to a team is about to save privately
+function updateTeamHint() {
+  const hint = document.getElementById('team-hint');
+  const sel  = document.getElementById('save-team-selector');
+  const needsTeam = sel.options.length > 1 && !sel.value;
+  hint.style.display = needsTeam ? 'block' : 'none';
+  hint.innerHTML = 'Saving <b>privately</b>: your team won\u2019t see this practice. Pick your team in the <b>Team</b> menu at the top.';
+  sel.style.borderColor = needsTeam ? 'var(--accent)' : 'var(--border)';
 }
 
 // Point the dropdown at the open practice's team (only if the user is still a member)
@@ -1518,6 +1536,7 @@ function syncTeamSelectorToPractice() {
   const sel  = document.getElementById('save-team-selector');
   const want = currentPracticeTeamId ? String(currentPracticeTeamId) : '';
   if ([...sel.options].some(o => o.value === want)) sel.value = want;
+  updateTeamHint();
 }
 
 // ─────────────────────────────────────────────
