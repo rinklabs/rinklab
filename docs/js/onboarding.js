@@ -52,7 +52,7 @@
     index: function (ctx) {
       return [
         { title: 'Welcome to Rink Lab 👋',
-          body: 'A quick tour of where things are. You can replay it any time with the “Replay tour” button at the top.' },
+          body: 'A quick tour of where things are. You can replay it any time from the “Replay the tour” button at the bottom of this page.' },
 
         ctx.signedIn
           ? { target: '#coach-greeting', title: 'You’re signed in',
@@ -135,9 +135,14 @@
         'border:1px solid var(--border,#333);background:transparent;color:var(--text,#eee)}' +
       '.rt-btn.rt-primary{background:var(--accent,#ff6b35);border-color:var(--accent,#ff6b35);color:#000;font-weight:600}' +
       '.rt-skip{background:none;border:none;color:var(--muted,#999);font-size:12px;text-decoration:underline;cursor:pointer;padding:0 4px}' +
-      '.rt-replay{font:inherit;font-size:12px;background:none;border:none;color:var(--muted,#999);' +
-        'text-decoration:underline;cursor:pointer;margin-left:10px}' +
-      '.rt-replay:hover{color:var(--accent,#ff6b35)}';
+      '.rt-help-row{display:flex;justify-content:center;margin:6px 0 18px}' +
+      '.rt-help{display:inline-flex;align-items:center;gap:9px;font:inherit;font-size:13px;cursor:pointer;' +
+        'color:var(--muted,#999);background:transparent;border:1px dashed var(--border,#333);' +
+        'border-radius:999px;padding:8px 18px;transition:color .15s,border-color .15s,background .15s}' +
+      '.rt-help svg{width:18px;height:18px;transition:transform .35s ease}' +
+      '.rt-help:hover,.rt-help:focus-visible{color:var(--accent,#ff6b35);border-color:var(--accent,#ff6b35);' +
+        'background:rgba(255,107,53,.08);outline:none}' +
+      '.rt-help:hover svg,.rt-help:focus-visible svg{transform:rotate(45deg)}';
     document.head.appendChild(s);
   }
 
@@ -291,17 +296,26 @@
     }, 200);
   }
 
-  // "Replay tour" link on the home page, next to Quick Start / How To Use
-  document.addEventListener('DOMContentLoaded', function () {
-    var row = document.getElementById('hero-cta-row');
-    if (!row || document.getElementById('rt-replay')) return;
+  // "Replay the tour" pill at the bottom of the home page, under the closing note
+  var COMPASS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5 15.5 8.5"/></svg>';
+
+  function addReplayButton() {
+    if (document.getElementById('rt-replay') || !document.getElementById('hero-cta-row')) return; // home page only
     injectCSS();
-    var b = document.createElement('button');
-    b.id = 'rt-replay'; b.className = 'rt-replay'; b.type = 'button';
-    b.textContent = 'Replay tour';
-    b.onclick = function () { start('index', { force: true }); };
-    row.appendChild(b);
-  });
+    var row = document.createElement('div');
+    row.className = 'rt-help-row';
+    row.innerHTML = '<button id="rt-replay" class="rt-help" type="button">' + COMPASS +
+                    '<span>Replay the tour</span></button>';
+    row.firstChild.onclick = function () { start('index', { force: true }); };
+    var note = document.querySelector('.final-note');
+    if (note && note.parentNode) note.parentNode.insertBefore(row, note.nextSibling);
+    else document.body.appendChild(row);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addReplayButton);
+  else addReplayButton();
 
   window.RinkTour = { auto: auto, start: start };
 })();
