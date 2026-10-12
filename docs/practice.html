@@ -1407,6 +1407,7 @@
 <script src="js/config.js"></script>
 <script src="js/toast.js"></script>
 <script src="js/auth-modal.js"></script>
+<script src="js/onboarding.js"></script>
 <script>
 window.addEventListener('keydown', function(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -1529,6 +1530,7 @@ async function init() {
   updateTimeline();
   await fetchDrills();
   await initTeamSelector();
+  RinkTour.auto('practice');
   ['practice-name','practice-date','practice-team','target-duration'].forEach(id =>
     document.getElementById(id).addEventListener('input', markDirty)
   );
