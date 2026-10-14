@@ -83,7 +83,7 @@
     practice: function (ctx) {
       var teamStep;
       if (!ctx.signedIn) {
-        teamStep = {target: ["btn btn-lab"], title: 'Sign in to use your team',
+        teamStep = {target: ["btn-lab"], title: 'Sign in to use your team',
           body: 'Sign in to save practices and see your team’s drills. Assistant coaches: after signing in, ' +
                 'join your team with the code from your head coach.',
           action: { label: 'Sign in', run: function () {

@@ -1338,6 +1338,9 @@
         <input id="share-url" type="text" readonly />
         <button class="btn btn-primary" onclick="copyShareURL()">Copy</button>
       </div>
+      <p id="share-note" style="font-size:12px;color:var(--muted);margin:10px 0 0;"></p>
+      <button id="share-toggle" type="button" onclick="shareUseFull = !shareUseFull; refreshShareURL();"
+        style="display:none;background:none;border:none;padding:0;margin-top:6px;font:inherit;font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;"></button>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeShareModal()">Close</button>
       </div>
@@ -2517,10 +2520,78 @@ async function confirmDeletePractice() {
   }
 }
 
-function openShareModal() {
-  const enc = btoa(encodeURIComponent(JSON.stringify(getPracticeData())));
-  document.getElementById('share-url').value = `${location.origin}${location.pathname}?plan=${enc}`;
+// ── Plan links ────────────────────────────────────────────
+// Short link  : ?id=<practice id>  (only for practices saved to a team and unchanged since saving)
+// Full link   : ?plan=z.<compressed plan>  (whole plan inside the URL; works without signing in)
+// Old links   : ?plan=<base64>  (still readable)
+function bytesToB64Url(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64UrlToBytes(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  const bin = atob(str);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function encodePlan(data) {
+  const json = JSON.stringify(data);
+  if (window.CompressionStream) {
+    try {
+      const stream = new Blob([new TextEncoder().encode(json)]).stream()
+        .pipeThrough(new CompressionStream('deflate-raw'));
+      return 'z.' + bytesToB64Url(new Uint8Array(await new Response(stream).arrayBuffer()));
+    } catch (e) { /* fall through to the old format */ }
+  }
+  return btoa(encodeURIComponent(json));
+}
+async function decodePlan(plan) {
+  if (plan.startsWith('z.')) {
+    const stream = new Blob([b64UrlToBytes(plan.slice(2))]).stream()
+      .pipeThrough(new DecompressionStream('deflate-raw'));
+    return JSON.parse(await new Response(stream).text());
+  }
+  // old-style link ("+" can arrive as a space after URL parsing)
+  return JSON.parse(decodeURIComponent(atob(plan.replace(/ /g, '+'))));
+}
+
+let shareUseFull = false;
+async function openShareModal() {
+  shareUseFull = false;
   document.getElementById('share-modal').style.display = 'flex';
+  await refreshShareURL();
+}
+async function refreshShareURL() {
+  const input  = document.getElementById('share-url');
+  const note   = document.getElementById('share-note');
+  const toggle = document.getElementById('share-toggle');
+  const base   = `${location.origin}${location.pathname}`;
+  const canShort = !!(currentPracticeId && currentPracticeTeamId && !isDirty);
+
+  if (canShort && !shareUseFull) {
+    input.value = `${base}?id=${currentPracticeId}`;
+    note.textContent = 'Short link. Coaches on your team need to be signed in to open it.';
+    toggle.textContent = 'Use the full link instead (works without signing in)';
+    toggle.style.display = 'inline';
+    return;
+  }
+  input.value = 'Building link…';
+  input.value = `${base}?plan=${await encodePlan(getPracticeData())}`;
+  if (canShort) {
+    note.textContent = 'Full link. It contains the whole plan and works without signing in.';
+    toggle.textContent = 'Use the short link instead';
+    toggle.style.display = 'inline';
+  } else {
+    toggle.style.display = 'none';
+    note.textContent = (currentPracticeId && currentPracticeTeamId && isDirty)
+      ? 'Tip: save your changes first to get a much shorter link.'
+      : 'Tip: save this practice to a team first to get a much shorter link.';
+  }
 }
 function closeShareModal() { document.getElementById('share-modal').style.display = 'none'; }
 function copyShareURL() {
@@ -2539,17 +2610,17 @@ async function restoreFromURL() {
   if (id) {
     await loadPractice(id);
   } else {
-    loadFromURL();
+    await loadFromURL();
   }
   const view = params.get('view');
   if (view === 'cards' || view === 'onice') pvOpen(view);
 }
 
-function loadFromURL() {
+async function loadFromURL() {
   const plan = new URLSearchParams(location.search).get('plan');
   if (!plan) return;
   try {
-    const data = JSON.parse(decodeURIComponent(atob(plan)));
+    const data = await decodePlan(plan);
     document.getElementById('practice-name').value   = data.name   || '';
     document.getElementById('practice-date').value   = data.date   || '';
     document.getElementById('practice-team').value   = data.team   || '';
