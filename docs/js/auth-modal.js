@@ -127,7 +127,7 @@
       const email = emailInput.value.trim();
       if (!email) { showMsg('Enter your email above first.', false); return; }
       const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/index.html'
+        redirectTo: new URL('index.html', window.location.href).href
       });
       showMsg(error ? error.message : '✓ Password reset email sent — check your inbox.', !error);
     });

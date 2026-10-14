@@ -495,8 +495,19 @@ _supabase.auth.getSession().then(({ data: { session } }) => {
     showGreeting(name);
     showTeamPanel(session);
   } else {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) showGreeting(stored);
-    else showPrompt();
+    // No real session: any cached name is stale. Don't pretend the coach is signed in
+    // (the other pages check the real session, so they would disagree with this one).
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('drillLab:teamId');
+    showPrompt();
+  }
+});
+
+// Logged so a surprise sign-out can be traced (Safari: Develop → Show Web Inspector → Console)
+_supabase.auth.onAuthStateChange((event, session) => {
+  console.info('[auth]', event, session ? 'session present' : 'no session');
+  if (event === 'SIGNED_OUT') {
+    localStorage.removeItem(STORAGE_KEY);
+    showPrompt();
   }
 });
