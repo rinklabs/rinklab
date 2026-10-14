@@ -12,6 +12,16 @@
       margin:    0 auto;
       padding:   48px 24px 64px;
     }
+    /* ── Allow page scrolling (override app-layout lock) ── */
+    html, body.scroll-layout {
+      height:     auto !important;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto !important;
+      position:   static !important;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
 
     /* ── Restored: hero banner (markup below still uses these ids) ── */
     #hero-banner {
