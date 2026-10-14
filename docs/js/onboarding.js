@@ -83,7 +83,7 @@
     practice: function (ctx) {
       var teamStep;
       if (!ctx.signedIn) {
-        teamStep = { title: 'Sign in to use your team',
+        teamStep = {target: ["btn btn-lab"], title: 'Sign in to use your team',
           body: 'Sign in to save practices and see your team’s drills. Assistant coaches: after signing in, ' +
                 'join your team with the code from your head coach.',
           action: { label: 'Sign in', run: function () {
@@ -100,17 +100,19 @@
       return [
         { title: 'Welcome to the Practice Lab',
           body: 'Build a practice plan from your drills. Quick tour of the main parts.' },
+        teamStep,
         { target: ['#pg-sidebar', '#sidebar-toggle'], title: 'Drill Library',
-          body: 'Your saved drills live here. Add them to the plan, or use <b>Quick Drill</b> for a one-off. ' +
+          body: 'The library of drills live here. Add them to your practice plan, or use <b>Quick Drill</b> for a one-off drill without a picture. ' +
                 'On a phone, tap the clipboard icon to open it.' },
         { target: '#pg-list-wrap', title: 'Your practice plan',
-          body: 'Added drills appear here in order. The bar at the bottom shows how much of the practice time is used.' },
-        teamStep,
-        { target: ['#top-actions .btn-primary', '#btn-mobile-menu'], title: 'Save and Load',
+          body: 'Added drills appear here in order. The bar at the bottom shows how much of the practice time is used. You can always reorder the drills or merge two drills to be run concurrently.' },
+        { target: '#practice-name', title: 'Name your practice',
+          body: 'Give your practice a name so you can find it later. The title is also printed on the PDF.' },
+        { union: ['#top-actions .btn-primary', '#btn-library-top'], title: 'Save and Load',
           body: '<b>Save</b> stores this practice to the team shown in the Team menu, so your team can find it. ' +
                 '<b>Load</b>, right beside it, reopens any practice you’ve saved. ' +
                 'Start a fresh one from <b>New</b> (in the ⋮ menu on a phone).' },
-        { target: ['#btn-pdf-top', '#btn-mobile-menu'], title: 'PDF and Share',
+        { union: ['#btn-pdf-top', '#btn-share-top', '#btn-mobile-menu'], title: 'PDF and Share',
           body: '<b>PDF</b> builds a printable plan with a summary table and each drill’s details. ' +
                 'Your browser’s print window opens: choose <b>Save as PDF</b> as the destination. ' +
                 '<b>Share</b> gives you a link instead. On a phone, both are in the ⋮ menu.' },
@@ -167,6 +169,26 @@
     return null;
   }
 
+  // Where to draw the spotlight for a step. A step can use:
+  //   target: [...]  → highlight the first of these that is visible
+  //   union:  [...]  → highlight ALL of these together (one box around every visible one)
+  function stepBox(st) {
+    if (st.union) {
+      var els = st.union.map(function (sel) { return findVisible(sel); }).filter(Boolean);
+      if (els.length) {
+        var rs = els.map(function (e) { return e.getBoundingClientRect(); });
+        var top = Math.min.apply(null, rs.map(function (r) { return r.top; })),
+            left = Math.min.apply(null, rs.map(function (r) { return r.left; })),
+            right = Math.max.apply(null, rs.map(function (r) { return r.right; })),
+            bottom = Math.max.apply(null, rs.map(function (r) { return r.bottom; }));
+        return { el: els[0], rect: { top: top, left: left, right: right, bottom: bottom,
+                                     width: right - left, height: bottom - top } };
+      }
+    }
+    var t = st.target && findVisible(st.target);
+    return t ? { el: t, rect: t.getBoundingClientRect() } : null;
+  }
+
   // steps: array of step objects; onEnd(): called when the tour finishes or is skipped
   function run(steps, onEnd) {
     if (active || !steps.length) return;
@@ -204,18 +226,18 @@
           (st.action ? '<button class="rt-btn" data-a="act">' + st.action.label + '</button>' : '') +
           '<button class="rt-btn rt-primary" data-a="next">' + (last ? 'Done' : 'Next') + '</button>' +
         '</div>';
-      var t = st.target && findVisible(st.target);
-      if (t) t.scrollIntoView({ block: 'center', inline: 'nearest' });
+      var box = stepBox(st);
+      if (box) box.el.scrollIntoView({ block: 'center', inline: 'nearest' });
       place();
       var nb = card.querySelector('[data-a="next"]'); if (nb) nb.focus();
     }
 
     function place() {
-      var st = steps[i], t = st.target && findVisible(st.target);
+      var st = steps[i], box = stepBox(st);
       var vw = window.innerWidth, vh = window.innerHeight;
       var cw = card.offsetWidth, ch = card.offsetHeight, top, left;
-      if (t) {
-        var r = t.getBoundingClientRect(), pad = 6;
+      if (box) {
+        var r = box.rect, pad = 6;
         dim.style.display = 'none';
         spot.style.display = 'block';
         spot.style.top = (r.top - pad) + 'px';
