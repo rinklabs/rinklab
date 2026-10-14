@@ -106,8 +106,14 @@
         { target: '#pg-list-wrap', title: 'Your practice plan',
           body: 'Added drills appear here in order. The bar at the bottom shows how much of the practice time is used.' },
         teamStep,
-        { target: ['#top-actions .btn-primary', '#btn-mobile-menu'], title: 'Save, Load and Share',
-          body: '<b>Save</b> stores the plan, <b>Load</b> reopens earlier practices, and <b>Share</b> gives you a link.' },
+        { target: ['#top-actions .btn-primary', '#btn-mobile-menu'], title: 'Save and Load',
+          body: '<b>Save</b> stores this practice to the team shown in the Team menu, so your team can find it. ' +
+                '<b>Load</b>, right beside it, reopens any practice you’ve saved. ' +
+                'Start a fresh one from <b>New</b> (in the ⋮ menu on a phone).' },
+        { target: ['#btn-pdf-top', '#btn-mobile-menu'], title: 'PDF and Share',
+          body: '<b>PDF</b> builds a printable plan with a summary table and each drill’s details. ' +
+                'Your browser’s print window opens: choose <b>Save as PDF</b> as the destination. ' +
+                '<b>Share</b> gives you a link instead. On a phone, both are in the ⋮ menu.' },
         { target: ['#btn-help-top', '#btn-mobile-menu'], title: 'Help is always here',
           body: 'Open <b>Help</b> any time for the walkthrough, or replay this tour from there.' }
       ];
