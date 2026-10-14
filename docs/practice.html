@@ -647,6 +647,47 @@
     #ph-replay svg { transition: transform .35s ease; }
     #ph-replay:hover, #ph-replay:focus-visible { color: var(--accent); outline: none; }
     #ph-replay:hover svg, #ph-replay:focus-visible svg { transform: rotate(45deg); }
+    /* Signed-in / signed-out status chip */
+    #auth-status { align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+    #auth-status.out {
+      color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+      padding: 3px 10px; background: rgba(255,107,53,.10);
+    }
+    #auth-status.in { color: var(--muted); }
+    #auth-status.in i { color: #4caf7d; }
+    #auth-status .auth-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+    #auth-status button {
+      background: none; border: none; padding: 0; font: inherit; font-weight: 700;
+      color: var(--accent); text-decoration: underline; cursor: pointer;
+    }
+    @media (max-width: 680px) {
+      #auth-status.in { display: none !important; }   /* no room on phones; the warning chip still shows */
+      #auth-status .auth-lbl { display: none; }
+    }
+
+    /* Team loading indicator: a puck sliding side to side */
+    #team-loading, #team-error {
+      align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    #team-loading { display: inline-flex; }
+    #team-error button {
+      background: none; border: none; padding: 0; margin-left: 4px;
+      font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer;
+    }
+    .puck-track {
+      position: relative; width: 34px; height: 12px; flex-shrink: 0;
+      border-bottom: 2px solid var(--border);
+    }
+    .puck {
+      position: absolute; left: 0; bottom: -1px;
+      width: 11px; height: 6px; border-radius: 3px;
+      background: var(--text); box-shadow: 0 0 0 1px var(--accent);
+      animation: puck-slide .75s ease-in-out infinite alternate;
+    }
+    @keyframes puck-slide { to { transform: translateX(23px); } }
+    @media (prefers-reduced-motion: reduce) { .puck { animation: none; left: 12px; } }
+    @media (max-width: 680px) { .team-loading-txt { display: none; } }
     #ph-counter { font-size: 11px; color: var(--muted); white-space: nowrap; }
     #ph-btns { display: flex; gap: 8px; }
     #ph-back {
@@ -1175,6 +1216,14 @@
       <button class="btn btn-outline" id="btn-share-top" onclick="openShareModal()">Share</button>
       <button class="btn btn-outline" id="btn-view" onclick="toggleViewFlyout(event)"><i class="ti ti-eye" aria-hidden="true"></i> View</button>
       <button class="btn btn-outline" id="btn-help-top" onclick="openHelpModal()" title="How to use the Practice Lab"><i class="ti ti-help" aria-hidden="true"></i> Help</button>
+      <div id="auth-status" role="status" style="display:none;"></div>
+      <div id="team-loading" role="status" aria-label="Loading teams" style="display:none;">
+        <span class="puck-track" aria-hidden="true"><span class="puck"></span></span>
+        <span class="team-loading-txt">Loading teams…</span>
+      </div>
+      <div id="team-error" style="display:none;">
+        Couldn’t load teams <button type="button" onclick="initTeamSelector()">Retry</button>
+      </div>
       <div id="team-selector-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;">
         Team
         <select id="save-team-selector" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:12px;outline:none;height:26px;"></select>
@@ -1492,14 +1541,56 @@ const coach = getCoach();
 // ─────────────────────────────────────────────
 //  Team selector
 // ─────────────────────────────────────────────
+// Show "Loading teams…" only if it takes longer than a blink (no flash for fast loads / signed-out)
+function teamsLoading(on) {
+  const el = document.getElementById('team-loading');
+  clearTimeout(teamsLoading._t);
+  if (on) teamsLoading._t = setTimeout(() => { el.style.display = 'inline-flex'; }, 250);
+  else el.style.display = 'none';
+}
+
 async function initTeamSelector() {
+  teamsLoading(true);
+  try { await loadTeamSelector(); }
+  finally { teamsLoading(false); }
+}
+
+// Make signed-in / signed-out state obvious (and easy to diagnose)
+function renderAuthStatus(session) {
+  const el = document.getElementById('auth-status');
+  if (session) {
+    const who = session.user.email || 'your account';
+    el.className = 'in';
+    el.title = 'Signed in as ' + who;
+    el.innerHTML = '<i class="ti ti-user-check" aria-hidden="true"></i><span class="auth-name"></span>';
+    el.querySelector('.auth-name').textContent = who;   // textContent: no HTML injection
+  } else {
+    el.className = 'out';
+    el.title = 'You are not signed in';
+    el.innerHTML = '<i class="ti ti-user-off" aria-hidden="true"></i><span class="auth-lbl">Not signed in</span>' +
+                   '<button type="button" onclick="signInFromStatus()">Sign in</button>';
+  }
+  el.style.display = 'inline-flex';
+}
+
+function signInFromStatus() {
+  if (typeof openAuthModal === 'function') openAuthModal(() => location.reload());
+}
+
+async function loadTeamSelector() {
+  const errBox = document.getElementById('team-error');
+  errBox.style.display = 'none';
+
   const { data: { session } } = await _supabase.auth.getSession();
+  renderAuthStatus(session);
   if (!session) return;
 
-  const { data: memberships } = await _supabase
+  const { data: memberships, error } = await _supabase
     .from('team_member')
     .select('team_id, team(id, name)')
     .eq('user_id', session.user.id);
+
+  if (error) { errBox.style.display = 'inline-flex'; return; }
 
   const teams = (memberships || []).map(m => m.team).filter(Boolean);
 
@@ -1562,11 +1653,22 @@ function syncTeamSelectorToPractice() {
 // ─────────────────────────────────────────────
 async function init() {
   document.getElementById('practice-date').value = new Date().toISOString().slice(0, 10);
+  // Logged to the console too, so a mysterious sign-out can be traced (F12 → Console)
+  _supabase.auth.onAuthStateChange((event, session) => {
+    console.info('[auth]', event, session ? 'session present' : 'no session');
+    renderAuthStatus(session);
+    if (event === 'SIGNED_OUT') {
+      document.getElementById('team-selector-wrap').style.display = 'none';
+      showToast('You’re signed out. Sign in again to use your teams.', true);
+    }
+  });
+  const teamsReady = initTeamSelector();   // start now, in parallel with the drill fetch
   await restoreFromURL();
   updateEmpty();
   updateTimeline();
   await fetchDrills();
-  await initTeamSelector();
+  await teamsReady;
+  syncTeamSelectorToPractice();
   RinkTour.auto('practice');
   ['practice-name','practice-date','practice-team','target-duration'].forEach(id =>
     document.getElementById(id).addEventListener('input', markDirty)
