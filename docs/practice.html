@@ -653,15 +653,13 @@
       color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
       padding: 3px 10px; background: rgba(255,107,53,.10);
     }
-    #auth-status.in { color: var(--muted); }
-    #auth-status.in i { color: #4caf7d; }
-    #auth-status .auth-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+    #auth-status.in { cursor: default; }
+    #auth-status.in i { color: #4caf7d; font-size: 18px; }
     #auth-status button {
       background: none; border: none; padding: 0; font: inherit; font-weight: 700;
       color: var(--accent); text-decoration: underline; cursor: pointer;
     }
     @media (max-width: 680px) {
-      #auth-status.in { display: none !important; }   /* no room on phones; the warning chip still shows */
       #auth-status .auth-lbl { display: none; }
     }
 
@@ -1558,15 +1556,20 @@ async function initTeamSelector() {
 // Make signed-in / signed-out state obvious (and easy to diagnose)
 function renderAuthStatus(session) {
   const el = document.getElementById('auth-status');
+  el.onclick = null;
   if (session) {
-    const who = session.user.email || 'your account';
+    const u = session.user, m = u.user_metadata || {};
+    const who = m.display_name || m.username || m.full_name || m.name ||
+                getCoach() || u.email || 'your account';
     el.className = 'in';
-    el.title = 'Signed in as ' + who;
-    el.innerHTML = '<i class="ti ti-user-check" aria-hidden="true"></i><span class="auth-name"></span>';
-    el.querySelector('.auth-name').textContent = who;   // textContent: no HTML injection
+    el.title = 'Signed in as ' + who;                      // hover tooltip
+    el.setAttribute('aria-label', 'Signed in as ' + who);
+    el.innerHTML = '<i class="ti ti-user-check" aria-hidden="true"></i>';
+    el.onclick = () => showToast('Signed in as ' + who);   // phones have no hover
   } else {
     el.className = 'out';
     el.title = 'You are not signed in';
+    el.removeAttribute('aria-label');
     el.innerHTML = '<i class="ti ti-user-off" aria-hidden="true"></i><span class="auth-lbl">Not signed in</span>' +
                    '<button type="button" onclick="signInFromStatus()">Sign in</button>';
   }
