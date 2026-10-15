@@ -677,14 +677,14 @@
   <section class="hero-section" id="showme">
     <p class="section-label">Not sure where to start?</p>
     <div class="showme-bar">
-      <button class="showme-btn" id="showme-drills-btn" aria-expanded="false" aria-controls="showme-drills">⚡ Show Me: Library Drills</button>
-      <button class="showme-btn" id="showme-practices-btn" aria-expanded="false" aria-controls="showme-practices">⚡ Show Me: Starter Practices</button>
+      <button class="showme-btn" id="showme-drills-btn" aria-expanded="false" aria-controls="showme-drills">Show Me: Example Drills</button>
+      <button class="showme-btn" id="showme-practices-btn" aria-expanded="false" aria-controls="showme-practices">Show Me: Example Practices</button>
     </div>
 
     <div class="showme-panel" id="showme-drills">
       <div class="showme-head">
         <h2>Drill Library</h2>
-        <button class="showme-shuffle" id="showme-shuffle" type="button">🔀 Shuffle</button>
+        <button class="showme-shuffle" id="showme-shuffle" type="button">Shuffle</button>
       </div>
       <p class="showme-sub">A few drills picked at random from the library. Click any drill to view and / or edit, or shuffle for more.</p>
       <div class="sm-grid" id="showme-drills-grid"></div>
@@ -899,7 +899,7 @@
             <div class="sm-body">
               <div class="sm-title">${esc(d.title)}</div>
               <div class="sm-cat">${tags.length ? 'Tags: ' + esc(tags.join(', ')) : 'Untagged'}</div>
-              <a class="sm-btn" href="canvas.html?id=${encodeURIComponent(d.id)}">👁 View &amp; Edit</a>
+              <a class="sm-btn" href="canvas.html?id=${encodeURIComponent(d.id)}">View &amp; Edit</a>
             </div>
           </div>`;
         }).join('');
@@ -953,7 +953,7 @@
               <div class="sm-title">${esc(c.p.name)}</div>
               <div class="sm-cat">${c.total} min · ${c.drills} drills</div>
               <ol class="sm-list">${c.rows.map(r => `<li>${esc(r.names.join(' + '))} (${r.min} min)</li>`).join('')}</ol>
-              <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">👁 View &amp; Edit</a>
+              <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">View &amp; Edit</a>
             </div>
           </div>`).join('');
       } catch (e) {

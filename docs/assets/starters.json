@@ -10,6 +10,10 @@
           "desc": "Free Skate"
         },
         {
+          "name": "Suicides",
+          "min": 5
+        },
+        {
           "sourceId": 30,
           "name": "Square Dance",
           "min": 10,
@@ -23,7 +27,8 @@
         },
         {
           "name": "Circle",
-          "min": 5
+          "min": 5,
+          "desc": "Players form a circle to discuss the practice and ask questions. Coach can also use this time to review any rules or expectations."
         },
         {
           "sourceId": 60,
@@ -38,13 +43,13 @@
         {
           "sourceId": 43,
           "name": "Zoned 1v1 + 2v2",
-          "min": 15,
+          "min": 10,
           "group": "b"
         },
         {
           "sourceId": 21,
           "name": "Read, React, Wrap",
-          "min": 15,
+          "min": 10,
           "group": "b"
         }
       ]
@@ -55,7 +60,8 @@
       "items": [
         {
           "name": "Skate Around Warm Up",
-          "min": 5
+          "min": 5,
+          "desc":"Players follow the coach around the ice"
         },
         {
           "sourceId": 42,
@@ -65,10 +71,6 @@
         {
           "sourceId": 69,
           "name": "Breakaway Warmup",
-          "min": 5
-        },
-        {
-          "name": "Suicides",
           "min": 5
         },
         {
