@@ -26,7 +26,7 @@
     #hero-banner {
       position: relative;
       width: 100%;
-      height: 250px;
+      min-height: 300px;
       overflow: hidden;
       background-image: url('assets/NHLRink.svg');
       background-size: cover;
@@ -39,17 +39,18 @@
       background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 55%, #0f0f0f 100%);
     }
     #hero-banner-content {
-      position: absolute;
-      inset: 0;
+      position: relative;
+      min-height: 300px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding-bottom: 40px;
+      padding: 40px 20px 50px;
       text-align: center;
     }
     #hero-banner-title {
-      font-size: 58px;
+      font-size: clamp(26px, 5.5vw, 44px);
+      max-width: 820px;
       font-weight: 800;
       letter-spacing: .03em;
       color: #ffffff;
@@ -59,10 +60,9 @@
     }
     #hero-banner-title span { color: var(--accent); }
     #hero-banner-sub {
-      font-size: 13px;
-      color: rgba(255,255,255,0.6);
-      letter-spacing: .1em;
-      text-transform: uppercase;
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: .02em;
     }
 
     /* ── Hero CTA row (Tutorial + QuickStart side by side) ── */
@@ -470,16 +470,115 @@
       border-radius: 5px; padding: 6px 14px; cursor: pointer;
     }
     .team-error { font-size: 13px; color: #f38ba8; display: none; width: 100%; margin-top: 4px; }
+
+    /* ── Site header ── */
+    #site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 900;
+    }
+    .brand { font-size: 20px; font-weight: 800; letter-spacing: .06em; color: #fff; text-decoration: none; }
+    .brand span { color: var(--accent); }
+    #header-actions { display: flex; gap: 10px; align-items: center; }
+    #header-actions .btn { padding: 8px 16px; font-size: 13px; white-space: nowrap; }
+    @media (max-width: 520px) {
+      #site-header { padding: 10px 14px; }
+      .brand { font-size: 17px; }
+      #header-actions { gap: 6px; }
+      #header-actions .btn { padding: 7px 10px; font-size: 12px; }
+    }
+
+    /* ── Auth drawer ── */
+    #coach-selector { display: none; position: relative; margin: 24px auto 0; }
+    #coach-selector.open { display: block; }
+    #auth-close {
+      position: absolute; top: -10px; right: 12px; z-index: 1;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--panel); border: 1px solid var(--border);
+      color: var(--muted); font-size: 11px; cursor: pointer;
+    }
+    #auth-close:hover { color: var(--text); border-color: var(--text); }
+
+    /* ── Show me ── */
+    .showme-bar { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+    .showme-btn {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 20px; font-family: inherit; font-weight: 800; font-size: 13px;
+      letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .showme-btn:hover, .showme-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+    .showme-panel {
+      display: none; text-align: left;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 22px; margin-bottom: 18px;
+    }
+    .showme-panel.open { display: block; animation: sm-pop .22s ease; }
+    @keyframes sm-pop { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+    .showme-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .showme-head h2 { font-size: 20px; color: var(--accent); margin: 0; }
+    .showme-sub { font-size: 14px; color: var(--muted); margin: 0 0 18px; }
+    .showme-shuffle {
+      background: none; border: 1px solid var(--border); border-radius: 5px;
+      color: var(--muted); font-family: inherit; font-size: 12px; padding: 5px 12px; cursor: pointer;
+    }
+    .showme-shuffle:hover { border-color: var(--accent); color: var(--accent); }
+    .sm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .sm-card {
+      background: #161616; border: 1px solid #2a2a2a; border-radius: 8px;
+      overflow: hidden; display: flex; flex-direction: column; transition: border-color .2s;
+    }
+    .sm-card:hover { border-color: var(--accent); }
+    .sm-thumb {
+      height: 130px; border-bottom: 1px solid #2a2a2a;
+      background: #0a1a2e url('assets/NHLRink.svg') center / cover no-repeat;
+    }
+    .sm-body { padding: 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .sm-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .sm-cat { font-size: 12px; color: var(--muted); }
+    .sm-list { margin: 4px 0 8px; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .sm-btn {
+      margin-top: auto; display: block; text-align: center; text-decoration: none;
+      border: 1px solid var(--border); border-radius: 5px; padding: 8px 12px;
+      color: var(--text); font-size: 13px; font-weight: 700;
+      transition: border-color .15s, color .15s;
+    }
+    .sm-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Footer ── */
+    #site-footer { text-align: center; padding: 28px 20px 40px; border-top: 1px solid var(--border); margin-top: 40px; }
+    #footer-nav { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 14px; }
+    #footer-nav a { color: var(--text); font-size: 14px; text-decoration: none; opacity: .85; }
+    #footer-nav a:hover { color: var(--accent); opacity: 1; }
+    #footer-nav span { color: var(--border); }
+    .footer-quote { font-style: italic; color: var(--muted); font-size: 13px; margin-top: 20px; }
   </style>
 </head>
 <body class="scroll-layout">
+
+  <!-- ── Site header ── -->
+  <header id="site-header">
+    <a class="brand" href="index.html">RINK<span>LABS</span></a>
+    <div id="header-actions">
+      <button class="btn btn-outline" id="hdr-signin">Sign In</button>
+      <button class="btn btn-primary" id="hdr-create">Create Free Account</button>
+    </div>
+  </header>
 
   <!-- ── Hero banner ── -->
   <div id="hero-banner">
     <div id="hero-banner-overlay"></div>
     <div id="hero-banner-content">
-      <div id="hero-banner-title">RINK<span>LABS</span></div>
-      <div id="hero-banner-sub">Empowering volunteer youth hockey mentors with free drills</div>
+      <div id="hero-banner-title">EMPOWERING VOLUNTEER<br><span>YOUTH HOCKEY MENTORS</span></div>
+      <div id="hero-banner-sub">Free, fast drill drawing and practice planning for coaches.</div>
       <div id="hero-cta-row">
         <button id="qs-trigger" onclick="openQuickstart()">⚡ Quick Start</button>
         <a id="tutorial-trigger" href="tutorial.html">📖 How To Use</a>
@@ -487,47 +586,42 @@
     </div>
   </div>
 
-  <hr class="section-divider">
+  <!-- ── Auth drawer (opened by header buttons; shows greeting when signed in) ── -->
+  <div id="coach-anchor"></div>
+  <div id="coach-selector">
+    <button id="auth-close" aria-label="Close sign in">✕</button>
+    <div id="coach-banner">
 
-  <!-- ── Coach identity ── -->
-  <section class="hero-section">
-    <div id="coach-selector">
-      <div id="coach-banner">
-
-        <!-- Auth form -->
-        <div id="coach-prompt">
-          <label for="coach-text" id="auth-label">Sign in</label>
-          <input type="text"     id="coach-display" class="auth-input" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;" />
-          <input type="email"    id="coach-text"    class="auth-input" placeholder="Email"    autocomplete="email"            style="min-width:160px;" />
-          <input type="password" id="coach-pin"     class="auth-input" placeholder="Password" autocomplete="current-password" style="min-width:120px;" />
-          <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
-          <button id="auth-toggle">Create account</button>
-          <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
-          <span id="coach-error"></span>
-          <span id="auth-sender-note" style="font-size:11px;color:var(--muted);width:100%;margin-top:2px;">
-            Account emails (confirmations, password resets) come from <strong>rinklabsadmin@gmail.com</strong> — check spam if you don't see them.
-          </span>
-        </div>
-
-        <!-- Signed-in greeting -->
-        <div id="coach-greeting" style="display:none;">
-          <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
-          <div style="display:flex;gap:16px;align-items:center;">
-            <button class="change-link" id="account-btn">Manage Teams and Account</button>
-            <button class="change-link" id="coach-change">Sign out</button>
-          </div>
-        </div>
-
+      <!-- Auth form -->
+      <div id="coach-prompt">
+        <label for="coach-text" id="auth-label">Sign in</label>
+        <input type="text"     id="coach-display" class="auth-input" placeholder="Display name" autocomplete="off" spellcheck="false" style="display:none;" />
+        <input type="email"    id="coach-text"    class="auth-input" placeholder="Email"    autocomplete="email"            style="min-width:160px;" />
+        <input type="password" id="coach-pin"     class="auth-input" placeholder="Password" autocomplete="current-password" style="min-width:120px;" />
+        <button class="btn btn-primary" id="coach-confirm">Sign in →</button>
+        <button id="auth-toggle">Create account</button>
+        <button id="auth-forgot" style="font-size:13px;color:var(--muted);cursor:pointer;background:none;border:none;padding:0;text-decoration:underline;white-space:nowrap;">Forgot password?</button>
+        <span id="coach-error"></span>
+        <span id="auth-sender-note" style="font-size:11px;color:var(--muted);width:100%;margin-top:2px;">
+          Account emails (confirmations, password resets) come from <strong>rinklabsadmin@gmail.com</strong> — check spam if you don't see them.
+        </span>
       </div>
+
+      <!-- Signed-in greeting -->
+      <div id="coach-greeting" style="display:none;">
+        <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
+        <div style="display:flex;gap:16px;align-items:center;">
+          <button class="change-link" id="account-btn">Manage Teams and Account</button>
+          <button class="change-link" id="coach-change">Sign out</button>
+        </div>
+      </div>
+
     </div>
-  </section>
+  </div>
 
-  <hr class="section-divider" id="coach-anchor">
-
-  <!-- ── Hub links ── -->
+  <!-- ── Core tools ── -->
   <section class="hero-section">
-    <p class="section-label">Explore the Labs</p>
-    <br>
+    <p class="section-label">Core Tools</p>
     <div class="grid-a">
 
       <a class="card-a" href="canvas.html">
@@ -553,7 +647,7 @@
             <line x1="8" y1="13" x2="16" y2="13"/>
             <line x1="8" y1="17" x2="13" y2="17"/>
           </svg>
-          <div class="card-a-title">Create Practice Plans</div>
+          <div class="card-a-title">Build Practice Plans</div>
         </div>
         <div class="card-a-overlay">
           <div style="text-align:center;margin-bottom:6px;"><span class="card-a-badge" style="color:#5567b0;border-color:rgba(85,103,176,.4);">Plan</span></div>
@@ -577,34 +671,44 @@
       </a>
 
     </div>
+  </section>
 
-    <hr class="section-divider">
-    <h1>"The best coaches are the best thieves"</h1>
-    <hr class="section-divider">
+  <!-- ── Show me ── -->
+  <section class="hero-section" id="showme">
+    <p class="section-label">Not sure where to start?</p>
+    <div class="showme-bar">
+      <button class="showme-btn" id="showme-drills-btn" aria-expanded="false" aria-controls="showme-drills">⚡ Show Me: Library Drills</button>
+      <button class="showme-btn" id="showme-practices-btn" aria-expanded="false" aria-controls="showme-practices">⚡ Show Me: Starter Practices</button>
+    </div>
 
-    <div class="hub-grid">
-      <a href="values.html" class="hub-card" style="border-style:dashed;">
-        <h2>Values &amp; Motivation</h2>
-        <p>Who we are and why we built this. A note from the founders on our core values, our motivation, and our hopes for the hockey community.</p>
-      </a>
-      <a href="terms_conditions.html" class="hub-card" style="border-style:dashed;">
-        <h2>Terms &amp; Conditions</h2>
-        <p>Please use Rink Draw responsibly. By using this tool, you agree to our terms and conditions, which include guidelines on uses and content creation.</p>
-      </a>
-      <a href="terms_conditions.html#contact-us" class="hub-card" style="border-style:dashed;">
-        <h2>Contact Us</h2>
-        <p>Have feedback, questions, or want to contribute? We'd love to hear from you! Reach out to us via email to share your thoughts and help out.</p>
-      </a>
-      <a href="stats.html" class="hub-card" style="border-style:dashed;">
-        <h2>Stats</h2>
-        <p>See how the Rink Lab is growing and making an impact in the hockey community.</p>
-      </a>
+    <div class="showme-panel" id="showme-drills">
+      <div class="showme-head">
+        <h2>Drill Library</h2>
+        <button class="showme-shuffle" id="showme-shuffle" type="button">🔀 Shuffle</button>
+      </div>
+      <p class="showme-sub">A few drills picked at random from the library. Click any drill to view and / or edit, or shuffle for more.</p>
+      <div class="sm-grid" id="showme-drills-grid"></div>
+    </div>
+
+    <div class="showme-panel" id="showme-practices">
+      <div class="showme-head"><h2>Starter Practices</h2></div>
+      <p class="showme-sub">Ready-made practice plans. Click any plan to view and / or edit.</p>
+      <div class="sm-grid" id="showme-practices-grid"></div>
     </div>
   </section>
 
-  <hr class="section-divider">
-  <p class="final-note">We hope this makes your coaching journey more rewarding for every player and coach. See you at the rink!</p>
-  <hr class="section-divider">
+  <!-- ── Footer ── -->
+  <footer id="site-footer">
+    <nav id="footer-nav" aria-label="Secondary links">
+        <a href="values.html">About Us</a><span aria-hidden="true">|</span>
+        <!-- TODO: point at faq.html once it exists -->
+        <a href="tutorial.html">FAQ</a><span aria-hidden="true">|</span>
+        <a href="terms_conditions.html">Terms &amp; Conditions</a><span aria-hidden="true">|</span>
+        <a href="terms_conditions.html#contact-us">Contact</a><span aria-hidden="true">|</span>
+        <a href="stats.html">Stats</a>
+    </nav>
+    <p class="footer-quote">"The best coaches are the best thieves"</p>
+  </footer>
 
   <!-- ── Account Modal ── -->
   <div id="account-modal">
@@ -717,6 +821,144 @@
   <script src="js/auth.js"></script>
   <script src="js/quickstart.js"></script>
   <script src="js/onboarding.js"></script>
+  <script src="js/starters.js"></script>
+  <script>
+  /* ── Header auth buttons + drawer ── */
+  (function () {
+    const $ = id => document.getElementById(id);
+    const drawer = $('coach-selector'), greeting = $('coach-greeting'),
+          actions = $('header-actions'), closeBtn = $('auth-close');
+    const signedIn   = () => getComputedStyle(greeting).display !== 'none';
+    const createMode = () => getComputedStyle($('coach-display')).display !== 'none';
+    let wasSignedIn = false;
+
+    function sync() {
+      const si = signedIn();
+      actions.style.display = si ? 'none' : '';
+      closeBtn.style.display = si ? 'none' : '';
+      if (si) drawer.classList.add('open');
+      else if (wasSignedIn) drawer.classList.remove('open');   // just signed out
+      wasSignedIn = si;
+    }
+    function openAuth(mode) {
+      drawer.classList.add('open');
+      if (mode === 'create' && !createMode()) $('auth-toggle').click();
+      if (mode === 'signin' &&  createMode()) $('auth-toggle').click();
+      drawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $(mode === 'create' ? 'coach-display' : 'coach-text').focus({ preventScroll: true });
+    }
+    $('hdr-signin').addEventListener('click', () => openAuth('signin'));
+    $('hdr-create').addEventListener('click', () => openAuth('create'));
+    closeBtn.addEventListener('click', () => drawer.classList.remove('open'));
+
+    new MutationObserver(sync).observe(greeting, { attributes: true, attributeFilter: ['style', 'class'] });
+    sync();
+    setTimeout(sync, 600);   // session restore in auth.js is async
+    if (location.hash === '#coach-anchor') openAuth('signin');
+  })();
+
+  /* ── Show me: random library drills + starter practices ── */
+  (function () {
+    const S = window.RINK_STARTERS || { practices: [] };
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const msg = t => `<p class="showme-sub">${esc(t)}</p>`;
+    const parseTags = raw => { try { return JSON.parse(raw || '[]'); } catch { return []; } };
+    const setThumb = (el, d) => {
+      if (d && d.thumbnail) el.style.backgroundImage = `url("${d.thumbnail}"), url('assets/NHLRink.svg')`;
+    };
+
+    function pick(arr, n) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a.slice(0, n);
+    }
+
+    /* Three random drills from the live library. Ids are fetched once (cheap),
+       then only the 3 chosen rows are fetched with their thumbnails. */
+    let drillIds = null;
+    async function renderDrills() {
+      const grid = $('showme-drills-grid');
+      grid.innerHTML = msg('Loading drills…');
+      try {
+        if (!drillIds) {
+          const { data, error } = await _supabase.from('drill').select('id');
+          if (error) throw error;
+          drillIds = data.map(r => r.id);
+        }
+        if (!drillIds.length) { grid.innerHTML = msg('No drills to show yet. Sign in or draw the first one!'); return; }
+        const { data: drills, error } = await _supabase
+          .from('drill').select('id, title, tags, thumbnail').in('id', pick(drillIds, 3));
+        if (error) throw error;
+        grid.innerHTML = drills.map(d => {
+          const tags = parseTags(d.tags).slice(0, 3);
+          return `
+          <div class="sm-card">
+            <div class="sm-thumb"></div>
+            <div class="sm-body">
+              <div class="sm-title">${esc(d.title)}</div>
+              <div class="sm-cat">${tags.length ? 'Tags: ' + esc(tags.join(', ')) : 'Untagged'}</div>
+              <a class="sm-btn" href="canvas.html?id=${encodeURIComponent(d.id)}">👁 View &amp; Edit</a>
+            </div>
+          </div>`;
+        }).join('');
+        grid.querySelectorAll('.sm-thumb').forEach((el, i) => setThumb(el, drills[i]));
+      } catch (e) {
+        console.warn('Show Me drills failed:', e);
+        grid.innerHTML = msg("Couldn't load drills right now.");
+      }
+    }
+
+    /* Fixed practices from js/starters.js; drill titles come from the library. */
+    async function renderPractices() {
+      const grid = $('showme-practices-grid');
+      if (!S.practices.length) { grid.innerHTML = msg('No starter practices yet.'); return; }
+      grid.innerHTML = msg('Loading practices…');
+      try {
+        const ids = [...new Set(S.practices.flatMap(p => p.items.map(it => it.drill)))];
+        const { data, error } = await _supabase.from('drill').select('id, title, thumbnail').in('id', ids);
+        if (error) throw error;
+        const byId = Object.fromEntries(data.map(d => [String(d.id), d]));
+        const cards = S.practices.map(p => {
+          const items = p.items.filter(it => byId[String(it.drill)] || console.warn('Drill not found:', it.drill));
+          const total = items.reduce((t, it) => t + (it.min || 0), 0);
+          return { p, items, total, first: items.length ? byId[String(items[0].drill)] : null };
+        });
+        grid.innerHTML = cards.map(c => `
+          <div class="sm-card">
+            <div class="sm-thumb"></div>
+            <div class="sm-body">
+              <div class="sm-title">${esc(c.p.name)}</div>
+              <div class="sm-cat">${c.total} min · ${c.items.length} drills</div>
+              <ol class="sm-list">${c.items.map(it => `<li>${esc(byId[String(it.drill)].title)} (${it.min} min)</li>`).join('')}</ol>
+              <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">👁 View &amp; Edit</a>
+            </div>
+          </div>`).join('');
+        grid.querySelectorAll('.sm-thumb').forEach((el, i) => setThumb(el, cards[i].first));
+      } catch (e) {
+        console.warn('Show Me practices failed:', e);
+        grid.innerHTML = msg("Couldn't load practices right now.");
+      }
+    }
+
+    function wire(btnId, panelId, onFirstOpen) {
+      const btn = $(btnId), panel = $(panelId);
+      let rendered = false;
+      btn.addEventListener('click', () => {
+        const open = !panel.classList.contains('open');
+        panel.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open);
+        if (open && !rendered) { onFirstOpen(); rendered = true; }
+      });
+    }
+    wire('showme-drills-btn', 'showme-drills', renderDrills);
+    wire('showme-practices-btn', 'showme-practices', renderPractices);
+    $('showme-shuffle').addEventListener('click', renderDrills);
+  })();
+  </script>
   <script>RinkTour.auto('index');</script>
 </body>
 </html>

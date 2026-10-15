@@ -191,6 +191,10 @@ function initIO() {
     loadFromServer(urlId, '');
   }
 
+  // Auto-load a starter template from URL param  ?starter=full-ice-breakout
+  const starterId = new URLSearchParams(location.search).get('starter');
+  if (starterId && !urlId) loadStarter(starterId);
+
   pushHistory();
   markClean();
 }
@@ -806,6 +810,53 @@ async function openLibrary() {
 
   // Auto-focus search
   requestAnimationFrame(() => searchInput.focus());
+}
+
+
+// ─────────────────────────────────────────────────────────────
+//  Starter templates  (templates/<id>.json, shipped with the site)
+// ─────────────────────────────────────────────────────────────
+
+// Loads templates/<id>.json onto the canvas as a fresh, unsaved drill.
+// Used by the homepage "Show Me" cards via canvas.html?starter=<id>.
+async function loadStarter(id) {
+  if (!/^[a-z0-9-]+$/.test(id)) { showToast('✗ Unknown starter drill', true); return; }
+  try {
+    const res = await fetch(`templates/${id}.json`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(res.status === 404 ? 'template not found' : 'HTTP ' + res.status);
+    const scene = await res.json();
+    applySceneData(scene);
+    currentDrillId = null;   // a new drill — saving never overwrites the template
+    showToast('✓ Loaded starter: ' + (scene.metadata?.title || id));
+  } catch (e) {
+    showToast('✗ Could not load starter: ' + e.message, true);
+  }
+}
+
+// Authoring helper — run  downloadStarterFiles()  in the browser console
+// on canvas.html after drawing a starter drill. Downloads <slug>.json and
+// <slug>.jpg (the slug comes from the drill title); drop both into templates/.
+async function downloadStarterFiles() {
+  const { scene, slug } = buildScene();
+
+  const prevSelected = State.selected;
+  const prevMulti    = new Set(State.multiSelected);
+  State.selected = null;
+  State.multiSelected.clear();
+  render();
+  const thumb = await captureThumbnail();
+  State.selected = prevSelected;
+  prevMulti.forEach(id => State.multiSelected.add(id));
+  render();
+
+  const save = (blob, name) => {
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  save(new Blob([JSON.stringify(scene, null, 2)], { type: 'application/json' }), slug + '.json');
+  if (thumb) setTimeout(async () => save(await (await fetch(thumb)).blob(), slug + '.jpg'), 400);
+  console.log('Starter id (use in starters.js):', slug);
 }
 
 
