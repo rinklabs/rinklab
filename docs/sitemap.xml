@@ -2,8 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rinklabs.github.io/rinklab/</loc>
-    <lastmod>2026-10-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-10-14</lastmod>
+  </url>
+  <url>
+    <loc>https://rinklabs.github.io/rinklab/faq.html</loc>
+    <lastmod>2026-10-14</lastmod>
+  </url>
+  <url>
+    <loc>https://rinklabs.github.io/rinklab/values.html</loc>
+  </url>
+  <url>
+    <loc>https://rinklabs.github.io/rinklab/tutorial.html</loc>
+  </url>
+  <url>
+    <loc>https://rinklabs.github.io/rinklab/terms_conditions.html</loc>
   </url>
 </urlset>
