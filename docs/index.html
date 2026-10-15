@@ -821,7 +821,6 @@
   <script src="js/auth.js"></script>
   <script src="js/quickstart.js"></script>
   <script src="js/onboarding.js"></script>
-  <script src="js/starters.js"></script>
   <script>
   /* ── Header auth buttons + drawer ── */
   (function () {
@@ -859,7 +858,6 @@
 
   /* ── Show me: random library drills + starter practices ── */
   (function () {
-    const S = window.RINK_STARTERS || { practices: [] };
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     const msg = t => `<p class="showme-sub">${esc(t)}</p>`;
@@ -912,32 +910,52 @@
       }
     }
 
-    /* Fixed practices from js/starters.js; drill titles come from the library. */
+    /* Fixed practices from assets/starters.json; drill titles/thumbnails come from the library. */
     async function renderPractices() {
       const grid = $('showme-practices-grid');
-      if (!S.practices.length) { grid.innerHTML = msg('No starter practices yet.'); return; }
       grid.innerHTML = msg('Loading practices…');
       try {
-        const ids = [...new Set(S.practices.flatMap(p => p.items.map(it => it.drill)))];
-        const { data, error } = await _supabase.from('drill').select('id, title, thumbnail').in('id', ids);
-        if (error) throw error;
-        const byId = Object.fromEntries(data.map(d => [String(d.id), d]));
+        const res = await fetch('assets/starters.json', { cache: 'no-cache' });
+        if (!res.ok) throw new Error('assets/starters.json: HTTP ' + res.status);
+        const S = await res.json();
+        if (!S.practices || !S.practices.length) { grid.innerHTML = msg('No starter practices yet.'); return; }
+        const ids = [...new Set(S.practices.flatMap(p => p.items.filter(it => it.sourceId != null).map(it => it.sourceId)))];
+        const byId = {};
+        if (ids.length) {
+          const { data, error } = await _supabase.from('drill').select('id, title, thumbnail').in('id', ids);
+          if (error) throw error;
+          data.forEach(d => { byId[String(d.id)] = d; });
+        }
+        const lookup = it => (it.sourceId != null ? byId[String(it.sourceId)] : null);
         const cards = S.practices.map(p => {
-          const items = p.items.filter(it => byId[String(it.drill)] || console.warn('Drill not found:', it.drill));
-          const total = items.reduce((t, it) => t + (it.min || 0), 0);
-          return { p, items, total, first: items.length ? byId[String(items[0].drill)] : null };
+          // Items sharing a `group` run at the same time: one row, minutes counted once.
+          const rows = [];
+          p.items.forEach(it => {
+            const d = lookup(it);
+            const label = (d && d.title) || it.name;
+            const last = rows[rows.length - 1];
+            if (it.group && last && last.group === it.group) {
+              last.names.push(label);
+              last.min = Math.max(last.min, it.min);
+            } else {
+              rows.push({ group: it.group || null, names: [label], min: it.min });
+            }
+          });
+          return {
+            p, rows,
+            total: rows.reduce((t, r) => t + r.min, 0),
+            drills: p.items.filter(it => it.sourceId != null).length
+          };
         });
         grid.innerHTML = cards.map(c => `
           <div class="sm-card">
-            <div class="sm-thumb"></div>
             <div class="sm-body">
               <div class="sm-title">${esc(c.p.name)}</div>
-              <div class="sm-cat">${c.total} min · ${c.items.length} drills</div>
-              <ol class="sm-list">${c.items.map(it => `<li>${esc(byId[String(it.drill)].title)} (${it.min} min)</li>`).join('')}</ol>
+              <div class="sm-cat">${c.total} min · ${c.drills} drills</div>
+              <ol class="sm-list">${c.rows.map(r => `<li>${esc(r.names.join(' + '))} (${r.min} min)</li>`).join('')}</ol>
               <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">👁 View &amp; Edit</a>
             </div>
           </div>`).join('');
-        grid.querySelectorAll('.sm-thumb').forEach((el, i) => setThumb(el, cards[i].first));
       } catch (e) {
         console.warn('Show Me practices failed:', e);
         grid.innerHTML = msg("Couldn't load practices right now.");

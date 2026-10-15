@@ -1,0 +1,104 @@
+{
+  "practices": [
+    {
+      "id": "first-practice",
+      "name": "First Practice",
+      "items": [
+        {
+          "name": "Warm Up",
+          "min": 5,
+          "desc": "Free Skate"
+        },
+        {
+          "sourceId": 30,
+          "name": "Square Dance",
+          "min": 10,
+          "group": "a"
+        },
+        {
+          "sourceId": 28,
+          "name": "Cyclone",
+          "min": 10,
+          "group": "a"
+        },
+        {
+          "name": "Circle",
+          "min": 5
+        },
+        {
+          "sourceId": 60,
+          "name": "Progressive Passing Drill",
+          "min": 15
+        },
+        {
+          "sourceId": 48,
+          "name": "Pair Passing",
+          "min": 10
+        },
+        {
+          "sourceId": 43,
+          "name": "Zoned 1v1 + 2v2",
+          "min": 15,
+          "group": "b"
+        },
+        {
+          "sourceId": 21,
+          "name": "Read, React, Wrap",
+          "min": 15,
+          "group": "b"
+        }
+      ]
+    },
+    {
+      "id": "second-practice",
+      "name": "Second Practice",
+      "items": [
+        {
+          "name": "Skate Around Warm Up",
+          "min": 5
+        },
+        {
+          "sourceId": 42,
+          "name": "Circle Warmup",
+          "min": 5
+        },
+        {
+          "sourceId": 69,
+          "name": "Breakaway Warmup",
+          "min": 5
+        },
+        {
+          "name": "Suicides",
+          "min": 5
+        },
+        {
+          "sourceId": 28,
+          "name": "Cyclone",
+          "min": 10
+        },
+        {
+          "sourceId": 68,
+          "name": "Bounce Pass & To The Net",
+          "min": 10
+        },
+        {
+          "sourceId": 48,
+          "name": "Pair Passing",
+          "min": 10
+        },
+        {
+          "sourceId": 21,
+          "name": "Read, React, Wrap",
+          "min": 10,
+          "group": "c"
+        },
+        {
+          "sourceId": 4,
+          "name": "Reverse 3v3",
+          "min": 10,
+          "group": "c"
+        }
+      ]
+    }
+  ]
+}

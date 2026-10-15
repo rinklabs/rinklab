@@ -2599,6 +2599,58 @@ function copyShareURL() {
     .then(() => { showToast('Link copied!'); closeShareModal(); });
 }
 
+// Loads a starter practice (?starter=<id>, defined in assets/starters.json) as a
+// fresh, unsaved plan. Drill details (description, tags, thumbnail, rink view)
+// are pulled from the library by sourceId, the same way addFromLibrary does.
+async function loadStarter(id) {
+  try {
+    const res = await fetch('assets/starters.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('assets/starters.json: HTTP ' + res.status);
+    const starter = ((await res.json()).practices || []).find(x => x.id === id);
+    if (!starter) throw new Error('starter practice not found');
+
+    const ids = [...new Set(starter.items.filter(it => it.sourceId != null).map(it => it.sourceId))];
+    const byId = {};
+    if (ids.length) {
+      const { data, error } = await _supabase
+        .from('drill').select('id, title, tags, thumbnail, scene').in('id', ids);
+      if (error) throw new Error(error.message);
+      data.forEach(d => { byId[String(d.id)] = d; });
+    }
+
+    // Items sharing a `group` in the JSON become one simultaneous station block
+    const groupIds = {};
+    const gid = g => (g ? (groupIds[g] = groupIds[g] || uid()) : null);
+
+    practiceItems = starter.items.map(it => {
+      const d = it.sourceId != null ? byId[String(it.sourceId)] : null;
+      if (!d) {   // quick item (or a library drill that has since been deleted)
+        return { id: uid(), name: it.name, desc: it.desc || '', type: 'quick',
+                 groupId: gid(it.group), duration: it.min };
+      }
+      let desc = '', rinkView = 'half', tags = [];
+      try {
+        const scene = JSON.parse(d.scene);
+        desc     = scene?.metadata?.description || '';
+        rinkView = scene?.appState?.rinkView    || 'half';
+      } catch (_) {}
+      try { tags = JSON.parse(d.tags || '[]'); } catch (_) {}
+      return { id: uid(), sourceId: d.id, name: d.title, desc, tags,
+               thumbnail: d.thumbnail || null, rinkView, type: 'diagram',
+               groupId: gid(it.group), duration: it.min };
+    });
+
+    document.getElementById('practice-name').value   = starter.name;
+    document.getElementById('target-duration').value = starter.target || 60;
+    currentPracticeId     = null;   // a new, unsaved plan: saving never touches the original
+    currentPracticeTeamId = null;
+    renderList();
+    showToast('Loaded starter: ' + starter.name);
+  } catch (err) {
+    showToast('Could not load starter: ' + err.message, true);
+  }
+}
+
 // Boot-time restore: a `?id=` deep link loads that saved practice from the
 // DB (survives a fully-killed tab, since it re-fetches rather than relying
 // on anything held in memory); otherwise falls back to the existing
@@ -2607,8 +2659,11 @@ function copyShareURL() {
 async function restoreFromURL() {
   const params = new URLSearchParams(location.search);
   const id = params.get('id');
+  const starterId = params.get('starter');
   if (id) {
     await loadPractice(id);
+  } else if (starterId) {
+    await loadStarter(starterId);
   } else {
     await loadFromURL();
   }
