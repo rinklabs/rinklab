@@ -17,27 +17,32 @@
     .btn-lab:hover {
       background: #9d0000;
     }
-    #coach-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      white-space: nowrap;
+    /* Signed-in / signed-out status chip (matches practice.html) */
+    #auth-status { align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+    #auth-status.out {
+      color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+      padding: 3px 10px; background: rgba(255,107,53,.10);
     }
-    #coach-indicator strong {
-      color: var(--text);
+    #auth-status.in { cursor: default; }
+    #auth-status.in i { color: #4caf7d; font-size: 18px; }
+    #auth-status button {
+      background: none; border: none; padding: 0; font: inherit; font-weight: 700;
+      color: var(--accent); text-decoration: underline; cursor: pointer;
     }
-    #coach-indicator a {
-      color: var(--accent);
-      text-decoration: underline;
+
+    /* Warning bar shown when signed out */
+    #auth-hint {
+      display: none;
+      padding: 8px 14px;
       font-size: 12px;
+      background: rgba(255,107,53,.12);
+      border-bottom: 1px solid var(--accent);
+      color: var(--text);
+      flex-shrink: 0;
     }
-    #coach-indicator.unset {
-      cursor: pointer;
-    }
-    #coach-indicator.unset strong {
-      color: #f38ba8;  /* red-ish warning */
+    #auth-hint button {
+      background: none; border: none; padding: 0; font: inherit; font-weight: 700;
+      color: var(--accent); text-decoration: underline; cursor: pointer;
     }
 
     /* ── Mobile toolbar drawer: toggle / backdrop / close ──────
@@ -90,7 +95,7 @@
 
       #btn-back-lab .btn-text,
       #top-actions .btn-text,
-      #coach-indicator .ci-label {
+      #auth-status .auth-lbl {
         display: none;
       }
 
@@ -105,8 +110,6 @@
       }
 
       #drill-title { font-size: 14px; min-width: 70px; }
-
-      #coach-indicator { font-size: 12px; gap: 4px; }
 
       /* ── Collapsible toolbar drawer ── */
       #toolbar-toggle { display: flex; }
@@ -330,11 +333,11 @@
     <button class="btn btn-primary" id="btn-library" title="Load drill from cloud" aria-label="Load drill from cloud"><i class="ti ti-folder-open" aria-hidden="true"></i><span class="btn-text"> Library</span></button>
     <button class="btn btn-outline" id="btn-help" title="How to use the Canvas" aria-label="How to use the Canvas"><i class="ti ti-help" aria-hidden="true"></i><span class="btn-text"> Help</span></button>
   </div>
-  <div id="coach-indicator" title="Logged in as">
-    <span class="ci-label">Saving as:</span> <strong id="coach-indicator-name">—</strong>
-  </div>
+  <div id="auth-status" role="status" style="display:none;"></div>
 
 </div>
+
+<div id="auth-hint">You’re <b>not signed in</b>: this drill can’t be saved to the drill library. <button type="button" onclick="signInFromStatus()">Sign in</button></div>
 
 <!-- ── Main row ──────────────────────────────────────────────── -->
 <div id="main-row">
@@ -650,18 +653,45 @@
       }
     }
   });
-  // ── Coach indicator (read-only on this page) ───────────────
-  function initCoachIndicator() {
-    const name = localStorage.getItem('drillLab:coach') || '';
-    const el   = document.getElementById('coach-indicator');
-    const span = document.getElementById('coach-indicator-name');
-    if (name) {
-      span.textContent = name;
-      el.classList.remove('unset');
+  // ── Sign-in status (chip + warning bar) ────────────────────
+  function renderAuthStatus(session) {
+    const el   = document.getElementById('auth-status');
+    const hint = document.getElementById('auth-hint');
+    el.onclick = null;
+    if (session) {
+      const u = session.user, m = u.user_metadata || {};
+      const who = m.display_name || m.username || m.full_name || m.name ||
+                  (localStorage.getItem('drillLab:coach') || '').trim() || u.email || 'your account';
+      el.className = 'in';
+      el.title = 'Signed in as ' + who;                      // hover tooltip
+      el.setAttribute('aria-label', 'Signed in as ' + who);
+      el.innerHTML = '<i class="ti ti-user-check" aria-hidden="true"></i>';
+      el.onclick = () => showToast('Signed in as ' + who);   // phones have no hover
+      hint.style.display = 'none';
     } else {
-      span.textContent = 'Not set — click to sign in';
-      el.classList.add('unset');
+      el.className = 'out';
+      el.title = 'You are not signed in';
+      el.removeAttribute('aria-label');
+      el.innerHTML = '<i class="ti ti-user-off" aria-hidden="true"></i><span class="auth-lbl">Not signed in</span>' +
+                     '<button type="button" onclick="signInFromStatus()">Sign in</button>';
+      hint.style.display = 'block';
     }
+    el.style.display = 'inline-flex';
+    window.dispatchEvent(new Event('resize'));   // bar changes the canvas height
+  }
+
+  function signInFromStatus() {
+    if (typeof openAuthModal === 'function') openAuthModal(() => location.reload());
+  }
+
+  async function initAuthStatus() {
+    try {
+      const { data: { session } } = await _supabase.auth.getSession();
+      renderAuthStatus(session);
+    } catch (e) {
+      renderAuthStatus(null);
+    }
+    _supabase.auth.onAuthStateChange((event, session) => renderAuthStatus(session));
   }
 
   // ── Canvas Help modal ───────────────────────────────────────
@@ -695,7 +725,7 @@
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
-    initCoachIndicator();
+    initAuthStatus();
     initCanvasHelp();
 
     await initRink();

@@ -141,7 +141,7 @@
         { union: ['#tags-row', '#desc-row'], title: 'Tags and description',
           body: 'Add coaching points below the rink. Tags, separated by semicolons, make the drill easy to search for.' },
         { target: '#top-actions', title: 'Save, load and print',
-          body: '<b>Save</b> stores the drill to your account. <b>Library</b> reopens any drill you have saved. ' +
+          body: '<b>Save</b> stores the drill to library for all coaches to use. <b>Library</b> reopens any drill you have saved. ' +
                 '<b>Print</b> makes a PDF of this drill.' +
                 (ctx.signedIn ? '' : ' You need to be signed in to save.'),
           action: ctx.signedIn ? null : { label: 'Sign in', run: function () {
