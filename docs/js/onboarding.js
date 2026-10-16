@@ -1,6 +1,6 @@
-/* js/onboarding.js — first-visit tours for Rink Lab (index + practice pages)
+/* js/onboarding.js — first-visit tours for Rink Lab (index, practice + canvas pages)
  *
- *   RinkTour.auto('index' | 'practice')   run on page load; shows the tour once per device,
+ *   RinkTour.auto('index' | 'practice' | 'canvas') run on page load; shows the tour once per device,
  *                                         and a "join your team" nudge once per account
  *   RinkTour.start(page, {force:true})    replay the tour on demand
  */
@@ -122,6 +122,33 @@
           body: "View the practice on easy to flip through cards to see if the flow works." },
         { target: ['#btn-help-top', '#btn-mobile-menu'], title: 'Help is always here',
           body: 'Open <b>Help</b> any time for the walkthrough, or replay this tour from there.' }
+      ];
+    },
+
+    canvas: function (ctx) {
+      return [
+        { title: 'Welcome to the Drill Canvas',
+          body: 'Draw a drill in a few steps. Quick tour of the main parts.' },
+        { target: ['#tools', '#toolbar-toggle'], title: 'Drawing tools',
+          body: 'Pick a tool, then click or drag on the rink. <b>Lines</b> and <b>Equipment</b> open menus ' +
+                '(arrows, pens, pylons, nets, pucks), and the skater places a player. ' +
+                'Use the first tool, <b>Select</b>, to move things. On a phone, tap <i class="ti ti-tools" aria-hidden="true"></i> to open the tools.' },
+        { target: ['#player-type', '#toolbar-toggle'], title: 'Players and styles',
+          body: 'Choose F, D, G and so on before placing a player. To change something later, select it and use the ' +
+                '<b>Selected</b> panel for colour, line style, a number under a player, or a circle around one.' },
+        { target: '#drill-title', title: 'Name your drill',
+          body: 'Give the drill a name so you can find it later in the Library and the Practice Lab.' },
+        { union: ['#tags-row', '#desc-row'], title: 'Tags and description',
+          body: 'Add coaching points below the rink. Tags, separated by semicolons, make the drill easy to search for.' },
+        { target: '#top-actions', title: 'Save, load and print',
+          body: '<b>Save</b> stores the drill to your account. <b>Library</b> reopens any drill you have saved. ' +
+                '<b>Print</b> makes a PDF of this drill.' +
+                (ctx.signedIn ? '' : ' You need to be signed in to save.'),
+          action: ctx.signedIn ? null : { label: 'Sign in', run: function () {
+            if (typeof openAuthModal === 'function') openAuthModal(function () { location.reload(); });
+          } } },
+        { target: '#btn-help', title: 'Help is always here',
+          body: 'Open <b>Help</b> for keyboard shortcuts, or replay this tour from there.' }
       ];
     }
   };
@@ -300,7 +327,7 @@
     run(TOURS[page](ctx), function () {
       sset(tourKey(page), '1');
       // The full tour already covered "join a team", so don't nudge again right after
-      if (ctx.signedIn && !ctx.hasTeams) sset(nudgeKey(ctx.uid), '1');
+      if (page !== 'canvas' && ctx.signedIn && !ctx.hasTeams) sset(nudgeKey(ctx.uid), '1');
     });
   }
 
@@ -310,6 +337,8 @@
     if (page === 'index' && location.hash === '#teams') { openTeamsWhenReady(); return; }
 
     if (!sget(tourKey(page))) { start(page); return; }
+
+    if (page === 'canvas') return; // the team nudge belongs on index and practice
 
     // Tour already seen on this device: still catch signed-in coaches with no team (assistants!)
     var ctx = await getCtx();

@@ -234,6 +234,25 @@
       font-size: 13px;
       text-decoration: underline;
     }
+    #canvas-help-modal .help-footer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+    }
+    #ch-replay {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    #ch-replay:hover, #ch-replay:focus-visible { color: var(--accent); outline: none; }
     @media (max-width: 680px) {
       #canvas-help-modal .help-cols { grid-template-columns: 1fr; }
     }
@@ -571,6 +590,10 @@
 
     <div class="help-footer">
       <a href="tutorial.html#section-shortcuts">Open the full tutorial →</a>
+      <button id="ch-replay" type="button" onclick="document.getElementById('canvas-help-modal').style.display='none';RinkTour.start('canvas',{force:true});">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5 15.5 8.5"/></svg>
+        Replay tour
+      </button>
     </div>
   </div>
 </div>
@@ -603,6 +626,7 @@
 <script src="js/interaction.js"></script>
 <script src="js/io.js"></script>
 <script src="js/report.js"></script> 
+<script src="js/onboarding.js"></script>
 <script>
   // --- Shortcut keys -----------
   window.addEventListener('keydown', function(e) {
@@ -681,6 +705,7 @@
     initInteraction();
     initIO();
     requestAnimationFrame(render);
+    RinkTour.auto('canvas');
 
     // ── Flyout palette logic ───────────────────────────────
     const FLYOUT_MAP = {
