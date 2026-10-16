@@ -560,6 +560,37 @@
     #footer-nav a:hover { color: var(--accent); opacity: 1; }
     #footer-nav span { color: var(--border); }
     .footer-quote { font-style: italic; color: var(--muted); font-size: 13px; margin-top: 20px; }
+
+    /* ── Signed-in greeting + account menu (lives in the header) ── */
+    #site-header #coach-greeting { position: relative; width: auto; justify-content: flex-end; }
+    #account-menu-btn {
+      display: flex; align-items: center; gap: 8px; min-height: 40px;
+      background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); font: inherit; font-size: 14px; padding: 6px 12px; cursor: pointer;
+      transition: border-color .15s;
+    }
+    #account-menu-btn:hover, #account-menu-btn[aria-expanded="true"] { border-color: var(--accent); }
+    #account-menu-btn .welcome-text { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+    #account-menu-btn strong { font-size: 14px; color: var(--text); }
+    #account-menu-btn svg { width: 14px; height: 14px; flex: none; transition: transform .15s; }
+    #account-menu-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+    #account-menu {
+      position: absolute; right: 0; top: calc(100% + 8px); min-width: 240px; z-index: 950;
+      flex-direction: column; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    #account-menu[hidden] { display: none; }
+    #account-menu:not([hidden]) { display: flex; }
+    #account-menu .change-link {
+      display: block; width: 100%; min-height: 44px; padding: 10px 14px; text-align: left;
+      font-size: 14px; color: var(--text); text-decoration: none; border-radius: 6px;
+    }
+    #account-menu .change-link:hover, #account-menu .change-link:focus-visible { background: rgba(255,255,255,.06); color: var(--accent); outline: none; }
+    @media (max-width: 520px) {
+      #account-menu-btn { padding: 6px 10px; }
+      #account-menu-btn .wb-label { display: none; }
+      #account-menu-btn .welcome-text { max-width: 130px; }
+    }
   </style>
 </head>
 <body class="scroll-layout">
@@ -571,22 +602,34 @@
       <button class="btn btn-outline" id="hdr-signin">Sign In</button>
       <button class="btn btn-primary" id="hdr-create">Create Free Account</button>
     </div>
+
+    <!-- Signed-in greeting: replaces the sign-in buttons (shown/hidden by auth.js) -->
+    <div id="coach-greeting" style="display:none;">
+      <button type="button" id="account-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="account-menu">
+        <span class="welcome-text"><span class="wb-label">Welcome back, </span><strong id="coach-greeting-name"></strong></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="account-menu" role="menu" hidden>
+        <button class="change-link" id="account-btn" role="menuitem">Manage Teams and Account</button>
+        <button class="change-link" id="coach-change" role="menuitem">Sign out</button>
+      </div>
+    </div>
   </header>
 
   <!-- ── Hero banner ── -->
   <div id="hero-banner">
     <div id="hero-banner-overlay"></div>
     <div id="hero-banner-content">
-      <div id="hero-banner-title">EMPOWERING VOLUNTEER<br><span>YOUTH HOCKEY MENTORS</span></div>
-      <div id="hero-banner-sub">Free, fast drill drawing and practice planning for coaches.</div>
+      <div id="hero-banner-title">RINK <span>LABS</span></div>
+      <div id="hero-banner-sub">Free tools for drill creation and practice planning.</div>
       <div id="hero-cta-row">
-        <button id="qs-trigger" onclick="openQuickstart()">⚡ Quick Start</button>
-        <a id="tutorial-trigger" href="tutorial.html">📖 How To Use</a>
+        <button id="qs-trigger" onclick="openQuickstart()">Quick Start</button>
+        <a id="tutorial-trigger" href="tutorial.html">How To Use</a>
       </div>
     </div>
   </div>
 
-  <!-- ── Auth drawer (opened by header buttons; shows greeting when signed in) ── -->
+  <!-- ── Auth drawer (sign-in form, opened by the header buttons) ── -->
   <div id="coach-anchor"></div>
   <div id="coach-selector">
     <button id="auth-close" aria-label="Close sign in">✕</button>
@@ -607,21 +650,11 @@
         </span>
       </div>
 
-      <!-- Signed-in greeting -->
-      <div id="coach-greeting" style="display:none;">
-        <span class="welcome-text">Welcome back, <strong id="coach-greeting-name"></strong></span>
-        <div style="display:flex;gap:16px;align-items:center;">
-          <button class="change-link" id="account-btn">Manage Teams and Account</button>
-          <button class="change-link" id="coach-change">Sign out</button>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <!-- ── Core tools ── -->
   <section class="hero-section">
-    <p class="section-label">Core Tools</p>
     <div class="grid-a">
 
       <a class="card-a" href="canvas.html">
@@ -677,14 +710,14 @@
   <section class="hero-section" id="showme">
     <p class="section-label">Not sure where to start?</p>
     <div class="showme-bar">
-      <button class="showme-btn" id="showme-drills-btn" aria-expanded="false" aria-controls="showme-drills">⚡ Show Me: Library Drills</button>
-      <button class="showme-btn" id="showme-practices-btn" aria-expanded="false" aria-controls="showme-practices">⚡ Show Me: Starter Practices</button>
+      <button class="showme-btn" id="showme-drills-btn" aria-expanded="false" aria-controls="showme-drills">Show Me: Library Drills</button>
+      <button class="showme-btn" id="showme-practices-btn" aria-expanded="false" aria-controls="showme-practices">Show Me: Starter Practices</button>
     </div>
 
     <div class="showme-panel" id="showme-drills">
       <div class="showme-head">
         <h2>Drill Library</h2>
-        <button class="showme-shuffle" id="showme-shuffle" type="button">🔀 Shuffle</button>
+        <button class="showme-shuffle" id="showme-shuffle" type="button">Shuffle</button>
       </div>
       <p class="showme-sub">A few drills picked at random from the library. Click any drill to view and / or edit, or shuffle for more.</p>
       <div class="sm-grid" id="showme-drills-grid"></div>
@@ -706,7 +739,7 @@
         <a href="terms_conditions.html#contact-us">Contact</a><span aria-hidden="true">|</span>
         <a href="stats.html">Stats</a>
     </nav>
-    <p class="footer-quote">"The best coaches are the best thieves"</p>
+    <p class="final-note footer-quote">"The best coaches are the best thieves"</p>
   </footer>
 
   <!-- ── Account Modal ── -->
@@ -825,7 +858,8 @@
   (function () {
     const $ = id => document.getElementById(id);
     const drawer = $('coach-selector'), greeting = $('coach-greeting'),
-          actions = $('header-actions'), closeBtn = $('auth-close');
+          actions = $('header-actions'), closeBtn = $('auth-close'),
+          menuBtn = $('account-menu-btn'), menu = $('account-menu');
     const signedIn   = () => getComputedStyle(greeting).display !== 'none';
     const createMode = () => getComputedStyle($('coach-display')).display !== 'none';
     let wasSignedIn = false;
@@ -833,11 +867,17 @@
     function sync() {
       const si = signedIn();
       actions.style.display = si ? 'none' : '';
-      closeBtn.style.display = si ? 'none' : '';
-      if (si) drawer.classList.add('open');
-      else if (wasSignedIn) drawer.classList.remove('open');   // just signed out
+      if (si) { drawer.classList.remove('open'); setMenu(false); }   // signed in: the greeting takes over
       wasSignedIn = si;
     }
+    function setMenu(open) {
+      menu.hidden = !open;
+      menuBtn.setAttribute('aria-expanded', String(open));
+    }
+    menuBtn.addEventListener('click', () => setMenu(menu.hidden));
+    menu.addEventListener('click', () => setMenu(false));            // after an item's own handler runs
+    document.addEventListener('click', e => { if (!menu.hidden && !greeting.contains(e.target)) setMenu(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
     function openAuth(mode) {
       drawer.classList.add('open');
       if (mode === 'create' && !createMode()) $('auth-toggle').click();
@@ -898,7 +938,7 @@
             <div class="sm-body">
               <div class="sm-title">${esc(d.title)}</div>
               <div class="sm-cat">${tags.length ? 'Tags: ' + esc(tags.join(', ')) : 'Untagged'}</div>
-              <a class="sm-btn" href="canvas.html?id=${encodeURIComponent(d.id)}">👁 View &amp; Edit</a>
+              <a class="sm-btn" href="canvas.html?id=${encodeURIComponent(d.id)}">View &amp; Edit</a>
             </div>
           </div>`;
         }).join('');
@@ -952,7 +992,7 @@
               <div class="sm-title">${esc(c.p.name)}</div>
               <div class="sm-cat">${c.total} min · ${c.drills} drills</div>
               <ol class="sm-list">${c.rows.map(r => `<li>${esc(r.names.join(' + '))} (${r.min} min)</li>`).join('')}</ol>
-              <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">👁 View &amp; Edit</a>
+              <a class="sm-btn" href="practice.html?starter=${encodeURIComponent(c.p.id)}">View &amp; Edit</a>
             </div>
           </div>`).join('');
       } catch (e) {

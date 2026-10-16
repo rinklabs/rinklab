@@ -40,7 +40,7 @@
     return {
       title: 'Join your team',
       body: 'Assistant coaches: ask your head coach for the <b>team code</b>, then open ' +
-            '<b>Manage Teams and Account</b> on the home page and enter it under “join with code”. ' +
+            'the menu under your name on the home page, choose <b>Manage Teams and Account</b>, and enter it under “join with code”. ' +
             'Your team will then appear in the Team dropdown on the Practice page.',
       action: page === 'index'
         ? { label: 'Open Teams', run: openAccount }
@@ -51,24 +51,24 @@
   var TOURS = {
     index: function (ctx) {
       return [
-        { title: 'Welcome to Rink Lab 👋',
+        { title: 'Welcome to Rink Lab',
           body: 'A quick tour of where things are. You can replay it any time from the “Replay the tour” button at the bottom of this page.' },
 
         ctx.signedIn
           ? { target: '#coach-greeting', title: 'You’re signed in',
-              body: 'Your account menu is here — sign out, or manage your teams.' }
-          : { target: '#coach-banner', title: 'Sign in or create an account',
+              body: 'Tap your name for your account menu: manage your teams or sign out.' }
+          : { target: '#header-actions', title: 'Sign in or create an account',
               body: 'You need an account to save drills and practices and to join a team. ' +
                     'Every coach, head or assistant, should create their own.',
               action: { label: 'Go to sign in', run: function () {
-                var i = document.getElementById('coach-text'); if (i) i.focus(); } } },
+                var b = document.getElementById('hdr-signin'); if (b) b.click(); } } },
 
-        { target: ctx.signedIn ? '#account-btn' : '#coach-banner',
+        { target: ctx.signedIn ? '#coach-greeting' : '#header-actions',
           title: 'Create or join your team',
           body: ctx.signedIn
-            ? 'Head coaches: create a team and share its code. Assistant coaches: <b>join with the code from your head coach</b>. ' +
+            ? 'Open the menu under your name and choose <b>Manage Teams and Account</b>. Head coaches: create a team and share its code. Assistant coaches: <b>join with the code from your head coach</b>. ' +
               'Do this first — it connects you to your team’s drills and practices.'
-            : 'Once you’re signed in, <b>Manage Teams and Account</b> appears here. Head coaches create a team; ' +
+            : 'Once you’re signed in, open the menu under your name and choose <b>Manage Teams and Account</b>. Head coaches create a team; ' +
               'assistant coaches join with the code from their head coach.',
           action: ctx.signedIn ? { label: 'Open Teams', run: openAccount } : null },
 
@@ -83,7 +83,7 @@
     practice: function (ctx) {
       var teamStep;
       if (!ctx.signedIn) {
-        teamStep = {target: ["a.btn-lab"], title: 'Sign in to use your team',
+        teamStep = {target: ['#auth-status.out', '#auth-status'], title: 'Sign in to use your team',
           body: 'Sign in to save practices and see your team’s drills. Assistant coaches: after signing in, ' +
                 'join your team with the code from your head coach.',
           action: { label: 'Sign in', run: function () {
@@ -103,7 +103,9 @@
         teamStep,
         { target: ['#pg-sidebar', '#sidebar-toggle'], title: 'Drill Library',
           body: 'The library of drills live here. Add them to your practice plan, or use <b>Quick Drill</b> for a one-off drill without a picture. ' +
-                'On a phone, tap the clipboard icon to open it.' },
+                'On a phone, tap the clipboard icon to open it. Drills can be grouped using <i class="ti ti-arrows-join" aria-hidden="true"></i> to run multiple drills simultaneously. Use <i class="ti ti-eye" aria-hidden="true"> to see a drill preview.' },
+        { target: '#target-duration', title: 'Practice Length',
+          body: 'Set your target practice length and keep track of used time at the bottom.' },
         { target: '#pg-list-wrap', title: 'Your practice plan',
           body: 'Added drills appear here in order. The bar at the bottom shows how much of the practice time is used. You can always reorder the drills or merge two drills to be run concurrently.' },
         { target: '#practice-name', title: 'Name your practice',
@@ -116,6 +118,8 @@
           body: '<b>PDF</b> builds a printable plan with a summary table and each drill’s details. ' +
                 'Your browser’s print window opens: choose <b>Save as PDF</b> as the destination. ' +
                 '<b>Share</b> gives you a link instead. On a phone, both are in the ⋮ menu.' },
+        {target: ["#btn-view", "btn-mobile-menu"], title: "Preview your practice",
+          body: "View the practice on easy to flip through cards to see if the flow works." },
         { target: ['#btn-help-top', '#btn-mobile-menu'], title: 'Help is always here',
           body: 'Open <b>Help</b> any time for the walkthrough, or replay this tour from there.' }
       ];
@@ -316,10 +320,11 @@
 
   function openTeamsWhenReady() {
     var tries = 0, t = setInterval(function () {
-      var b = document.getElementById('account-btn');
-      if ((b && b.offsetParent) || ++tries > 25) {
+      var b = document.getElementById('account-btn'), g = document.getElementById('coach-greeting');
+      var ready = b && g && g.offsetParent;   // greeting (holding the closed menu) shows once signed in
+      if (ready || ++tries > 25) {
         clearInterval(t);
-        if (b && b.offsetParent) b.click();
+        if (ready) b.click();
       }
     }, 200);
   }
